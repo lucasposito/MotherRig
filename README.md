@@ -1,2 +1,2 @@
 # MotherRig
-Personal Rigging Master Tool for Maya
+Personal Master Rigging Tool for Maya
