@@ -15,7 +15,7 @@ def manipulate_name(full_name, action=None, name=None, position=None, separator=
             name_list.append(name)
             new_name = separator.join(name_list)
             return new_name
-        elif position < -1:
+        if position < -1:
             position += 1
         name_list.insert(position, name)
         new_name = separator.join(name_list)
@@ -26,7 +26,7 @@ def manipulate_name(full_name, action=None, name=None, position=None, separator=
             name_list.append(name)
             new_name = separator.join(name_list)
             return new_name
-        elif position < -1:
+        if position < -1:
             position += 1
         name_list.insert(position, name)
         new_name = separator.join(name_list)
