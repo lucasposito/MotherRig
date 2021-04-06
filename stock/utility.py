@@ -1,6 +1,21 @@
 import maya.cmds as cmds
 
 
+def clean_namespaces():
+    refs = cmds.file(q=True, r=True)
+    for a in refs:
+        cmds.file(a, ir=True)
+
+    n_spaces = cmds.namespaceInfo(':', lon=True, r=True)
+    defa = ['UI', 'shared']
+    diff = [b for b in n_spaces if b not in defa]
+    diff.sort(reverse=True)
+
+    for d in diff:
+        cmds.namespace(removeNamespace=d + ":", mergeNamespaceWithRoot=True)
+    print('All namespaces deleted')
+    
+    
 def manipulate_name(full_name, action=None, name=None, position=None, separator='_'):
     name_list = full_name.split(separator)
 
