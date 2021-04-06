@@ -1,7 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="173195c9-232f-4d05-8ef1-b39bfc67cb3a" name="Default Changelist" comment="" />
+    <list default="true" id="173195c9-232f-4d05-8ef1-b39bfc67cb3a" name="Default Changelist" comment="little correction">
+      <change afterPath="$PROJECT_DIR$/core/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mShelf.mod" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/parts/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/userSetup.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MotherShelf.mod" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/MotherShelf.py" beforeDir="false" afterPath="$PROJECT_DIR$/mShelf.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/arm.py" beforeDir="false" afterPath="$PROJECT_DIR$/parts/arm.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/stock/control.py" beforeDir="false" afterPath="$PROJECT_DIR$/parts/control.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/stock/curve.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/curve.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/stock/ik_fk_switcher.py" beforeDir="false" afterPath="$PROJECT_DIR$/parts/ik_fk_switcher.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/stock/import_fbx_anim.py" beforeDir="false" afterPath="$PROJECT_DIR$/parts/import_fbx_anim.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/stock/rig.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/rig.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/stock/rig_ui.py" beforeDir="false" afterPath="$PROJECT_DIR$/parts/mother_ui.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/stock/simple_parent.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/simple_parent.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/stock/tree.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/tree.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/stock/utility.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/utility.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -18,6 +36,9 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="ProjectId" id="1qkWdeEKeUcwlu5u495v2hh9k7Z" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -25,6 +46,39 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Lucas\Documents\GitHub\MotherRig\modules" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="utility" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="MotherRig" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/stock" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/stock/utility.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.utility" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -35,6 +89,21 @@
       <option name="presentableId" value="Default" />
       <updated>1617624157119</updated>
     </task>
+    <task id="LOCAL-00001" summary="little correction">
+      <created>1617633993796</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1617633993796</updated>
+    </task>
+    <task id="LOCAL-00002" summary="little correction">
+      <created>1617634053817</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1617634053817</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -47,5 +116,20 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="little correction" />
+    <option name="LAST_COMMIT_MESSAGE" value="little correction" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/parts/import_fbx_anim.py</url>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

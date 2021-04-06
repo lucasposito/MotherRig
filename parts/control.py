@@ -1,5 +1,4 @@
 import maya.cmds as cmds
-import core.curve as cur
 
 
 class Control(object):
@@ -44,7 +43,7 @@ class Control(object):
             self._object_father[elem] = cmds.listRelatives(elem, p=True, f=True)
 
     def edit_suffix(self, name):
-        #add the possibility of changing the element to add in between
+        # add the possibility of changing the element to add in between
         old_name = name.split('|')[-1]
         old_name = old_name.split('_')
         suffix = ['hrc', 'srt', 'cst', 'loc', 'ctr', 'jnt']

@@ -1,11 +1,6 @@
 import maya.cmds as cmds
-
-import core.utility as utility
-
-from core.ik_fk_switcher import ikfkUI
-from core.import_fbx_anim import ImportAnimation
-from core.simple_parent import run
-import core.rig_ui as rig_ui
+import core
+import parts
 
 
 def _null(*args):
@@ -13,30 +8,28 @@ def _null(*args):
 
 
 def _import_fbx(*args):
-    ImportAnimation.show_ui()
+    parts.ImportAnimation.show_ui()
 
 
 def _ik_fk_switcher(*args):
-    ikfkUI.show_ui()
+    parts.ikfkUI.show_ui()
 
 
-def _gwent_autorig(*args):
-    # GwentUI.show_ui()
-    reload(rig_ui)
+def _mother_rig(*args):
     try:
-        gwent_ui.close()
+        m_rig.close()
     except:
         pass
-    gwent_ui = rig_ui.GwentUI()
-    gwent_ui.show()
+    m_rig = parts.MotherUI()
+    m_rig.show()
 
 
 def _clean_namespaces(*args):
-    utility.clean_namespaces()
+    core.utility.clean_namespaces()
 
 
 def _simple_parent(*args):
-    run()
+    core.simple_parent.run()
 
 
 class MotherShelf(object):
@@ -51,7 +44,7 @@ class MotherShelf(object):
         self.add_button(label='Import', command=_import_fbx)
         self.add_button(label='IkFk', command=_ik_fk_switcher)
         cmds.separator(style='single', w=10)
-        self.add_button(label='RIG', command=_gwent_autorig)
+        self.add_button(label='RIG', command=_mother_rig)
         self.add_button(label='NSpace', command=_clean_namespaces)
         self.add_button(label='Del', command=_simple_parent)
 

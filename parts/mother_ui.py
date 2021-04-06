@@ -3,7 +3,7 @@ from PySide2 import QtCore
 from shiboken2 import wrapInstance
 import maya.OpenMayaUI as omui
 
-import rig
+import core
 
 
 def maya_main_window():
@@ -11,13 +11,13 @@ def maya_main_window():
     return wrapInstance(long(main_window_ptr), QtWidgets.QWidget)
 
 
-class GwentUI(QtWidgets.QDialog):
+class MotherUI(QtWidgets.QDialog):
     ui_instance = None
 
     @classmethod
     def show_ui(cls):
         if not cls.ui_instance:
-            cls.ui_instance = GwentUI()
+            cls.ui_instance = MotherUI()
 
         if cls.ui_instance.isHidden():
             cls.ui_instance.show()
@@ -26,11 +26,11 @@ class GwentUI(QtWidgets.QDialog):
             cls.ui_instance.activateWindow()
 
     def __init__(self, parent=maya_main_window()):
-        super(GwentUI, self).__init__(parent)
+        super(MotherUI, self).__init__(parent)
         self.width = 280
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
         self.setFixedSize(self.width + 10, 500)
-        self.setWindowTitle('Gwent Auto Rig')
+        self.setWindowTitle('Mother Rig')
         self.parameter = {'name': None, 'order': None, 'side': None, 'type': None, 'size': None, 'module': None}
         self.create_widgets()
         self.create_layouts()
@@ -179,12 +179,12 @@ class GwentUI(QtWidgets.QDialog):
 
     def send_spine(self):
         self.parameter['module'] = 'Spine'
-        rig.create_proxy(self.parameter)
+        core.rig.create_proxy(self.parameter)
 
     def send_arm(self):
         self.parameter['module'] = 'Arm'
-        rig.create_proxy(self.parameter)
+        core.rig.create_proxy(self.parameter)
 
     def send_leg(self):
         self.parameter['module'] = 'Leg'
-        rig.create_proxy(self.parameter)
+        core.rig.create_proxy(self.parameter)

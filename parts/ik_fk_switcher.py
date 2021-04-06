@@ -8,7 +8,7 @@ from shiboken2 import wrapInstance
 '''
 Author: Lucas Esposito
 
-if you need to clear all modules run the following code on python script editor:
+if you need to clear all parts run the following code on python script editor:
 
 ikfkUI.dialog_instance.ik_fk._modules = []
 ikfkUI.dialog_instance.ik_fk._content = {}
@@ -40,7 +40,7 @@ class IKFK(object):
 
         self._modules = []
         self._content = {}
-        # modules = ['John_LeftLeg', 'John_RightLeg', 'John_LeftArm', 'John_RightArm']
+        # parts = ['John_LeftLeg', 'John_RightLeg', 'John_LeftArm', 'John_RightArm']
         # content = {'John_LeftLeg':['John_LeftFoot', 'John_LeftLeg', 'John_LeftFoot_IK',
         # 'John_LeftKnee_pole'], 'John_RightLeg':['John_RightFoot', 'John_RightLeg', 'John_RightFoot_IK',
         # 'John_RightKnee_pole'], 'John_LeftArm', 'John_RightArm'}
@@ -141,7 +141,7 @@ class IKFK(object):
                 cmds.setKeyframe(controllers, hi='none', at=['translate', 'rotate'], s=False, t=frame)
             cmds.delete(controllers, sc=True)
         except ValueError:
-            print('Make sure the names of the modules are correct')
+            print('Make sure the names of the parts are correct')
         except KeyboardInterrupt:
             pass
 
@@ -181,7 +181,7 @@ class IKFK(object):
                 cmds.setKeyframe(controllers, hi='none', at=['translate', 'rotate'], s=False, t=frame)
             cmds.delete(controllers, sc=True)
         except ValueError:
-            print('Make sure the names of the modules are correct')
+            print('Make sure the names of the parts are correct')
 
 
 class ikfkUI(QtWidgets.QDialog):
@@ -311,7 +311,7 @@ class ikfkUI(QtWidgets.QDialog):
         sep = self.separator_field.text()
         self.ik_fk.separator = sep
         self.ik_fk.characters = name
-        print('\n\n--------Detected modules:--------\n')
+        print('\n\n--------Detected parts:--------\n')
         for mod in self.ik_fk.characters:
             print(mod)
         print('\n---------------------------------\n')
