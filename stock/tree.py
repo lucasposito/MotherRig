@@ -184,7 +184,12 @@ class Structure(object):
         self.modules = {}
 
     def _check_selection(self):
-        pass
+        selected = cmds.ls(sl=True)
+        if len(selected) is not 1:
+            return
+        if manipulate_name(selected[0], 'check', self._suffix, -1) is True:
+            new_name = manipulate_name(selected[0], 'delete', position=-1)
+            return new_name
 
         # if nothing is selected it creates on root
         # if something is selected, this is the parent
