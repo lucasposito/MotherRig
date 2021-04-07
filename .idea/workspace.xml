@@ -2,23 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="173195c9-232f-4d05-8ef1-b39bfc67cb3a" name="Default Changelist" comment="little correction">
-      <change afterPath="$PROJECT_DIR$/core/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mShelf.mod" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/parts/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/userSetup.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MotherShelf.mod" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/MotherShelf.py" beforeDir="false" afterPath="$PROJECT_DIR$/mShelf.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/arm.py" beforeDir="false" afterPath="$PROJECT_DIR$/parts/arm.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/stock/control.py" beforeDir="false" afterPath="$PROJECT_DIR$/parts/control.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/stock/curve.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/curve.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/stock/ik_fk_switcher.py" beforeDir="false" afterPath="$PROJECT_DIR$/parts/ik_fk_switcher.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/stock/import_fbx_anim.py" beforeDir="false" afterPath="$PROJECT_DIR$/parts/import_fbx_anim.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/stock/rig.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/rig.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/stock/rig_ui.py" beforeDir="false" afterPath="$PROJECT_DIR$/parts/mother_ui.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/stock/simple_parent.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/simple_parent.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/stock/tree.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/tree.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/stock/utility.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/utility.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/rig.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/rig.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/utility.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/utility.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/userSetup.py" beforeDir="false" afterPath="$PROJECT_DIR$/userSetup.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -103,7 +90,14 @@
       <option name="project" value="LOCAL" />
       <updated>1617634053817</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="more updates">
+      <created>1617744111710</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1617744111710</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -120,7 +114,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="little correction" />
-    <option name="LAST_COMMIT_MESSAGE" value="little correction" />
+    <MESSAGE value="more updates" />
+    <option name="LAST_COMMIT_MESSAGE" value="more updates" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

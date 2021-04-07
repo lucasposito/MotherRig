@@ -17,6 +17,8 @@ def clean_namespaces():
     
     
 def manipulate_name(full_name, action=None, name=None, position=None, separator='_'):
+    if not full_name:
+        return
     name_list = full_name.split(separator)
 
     if action == 'delete':
@@ -50,6 +52,13 @@ def manipulate_name(full_name, action=None, name=None, position=None, separator=
     if action == 'check':
         if name_list[position] == name:
             return True
+
+    if action == 'find' and name:
+        try:
+            result = name_list.index(name)
+            return result
+        except ValueError:
+            return
 
 
 def joint_hierarchy():

@@ -22,9 +22,6 @@ class Structure(object):
             node = self._naming.find_node([new_name])
             return node
 
-        # if nothing is selected it creates on root
-        # if something is selected, this is the parent
-
     def execute(self):
         pass
         # if nothing is selected
@@ -63,14 +60,10 @@ class Structure(object):
         # like it's typed John and John is there already, then
         # QLineEdit becomes None
 
-        # def create_node(parent, name):
-        #     if parent is not None:
-        #         final_name = '{}_{}'.format(parent, name)
-        #         return final_name
-        #     final_name = name
-        #     return final_name
-        selection = self._check_selection()
         char_name = data[0]
+        selection = self._check_selection()
+        core.utility.manipulate_name(selection, 'find', char_name)
+
         name_result = None
 
         new_layers_to_add = 1

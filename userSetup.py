@@ -1,4 +1,4 @@
-from maya import utils, cmds
+import maya.cmds as cmds
 
 if not cmds.about(batch=True):
-    utils.executeDeferred('import mother_shelf')
+    cmds.evalDeferred('import mother_shelf')
