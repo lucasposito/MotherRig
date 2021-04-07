@@ -52,6 +52,29 @@ def manipulate_name(full_name, action=None, name=None, position=None, separator=
             return True
 
 
+def joint_hierarchy():
+    def joint_type(obj):
+        temp = cmds.objectType(obj)
+        if temp == 'joint':
+            return True
+    skeleton = []
+    parent = cmds.ls(sl=True, l=True)
+    upper_parent = cmds.listRelatives(p=True, f=True)
+    if len(parent) is not 1:
+        return
+    while upper_parent is not None:
+        cmds.select(upper_parent, r=True)
+        parent.insert(0, upper_parent[0])
+        upper_parent = cmds.listRelatives(p=True, f=True)
+    for main in parent:
+        if joint_type(main) is True:
+            skeleton.append(main)
+            for each in cmds.listRelatives(main, ad=True, f=True):
+                if joint_type(each) is True:
+                    skeleton.append(each)
+            return skeleton
+        
+        
 def check_selection(suffix='pxy'):
     selected = cmds.ls(sl=True)
     if len(selected) is not 1:
