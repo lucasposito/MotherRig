@@ -1,7 +1,3 @@
-import maya.cmds as cmds
-import core
-
-
 class LeafNode(object):
     def __init__(self):
         self.name = None  # it's the path as well character|module|side|extra
