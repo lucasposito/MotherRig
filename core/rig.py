@@ -19,7 +19,9 @@ class Structure(object):
             return
         if core.utility.manipulate_name(selected[0], 'check', self._suffix, -1) is True:
             new_name = core.utility.manipulate_name(selected[0], 'delete', position=-1)
-            node = self._naming.find_node([new_name])
+            node = self._naming.find_node(new_name)
+            if isinstance(node, tuple):
+                node = None
             return node
 
     def execute(self):
@@ -62,51 +64,43 @@ class Structure(object):
 
         char_name = data[0]
         selection = self._check_selection()
-        core.utility.manipulate_name(selection, 'find', char_name)
+        if not selection:
+            if char_name:
+                parent_result = self._naming.create_node(char_name)
+                cmds.group(n='{}_{}'.format(parent_result.name, self._suffix), em=True)
+                name_result = self._naming.create_node('{}_{}{}'.format(parent_result.name, data[2], data[3]))
+                cmds.spaceLocator(n=('{}_{}'.format(name_result.name, self._suffix)))
+                cmds.select(cl=True)
+                return
 
-        name_result = None
+            name_result = self._naming.create_node('{}{}'.format(data[2], data[3]))
+            cmds.spaceLocator(n=('{}_{}'.format(name_result.name, self._suffix)))
+            cmds.select(cl=True)
+            return
+        if selection:
+            if char_name:
+                if not core.utility.manipulate_name(selection.name, 'find', char_name):
+                    parent_result = self._naming.create_node('{}_{}'.format(selection.name, char_name))
+                    cmds.group(n='{}_{}'.format(parent_result.name, self._suffix), em=True)
+                    name_result = self._naming.create_node('{}_{}{}'.format(parent_result.name, data[2], data[3]))
+                    cmds.spaceLocator(n=('{}_{}'.format(name_result.name, self._suffix)))
+                    cmds.select(cl=True)
+                    return
+                # it doesn't work well with same name like John_LeftArm and John_LeftArm_LeftArm
+                print(selection.name, data[2], data[3])
+                name_result = self._naming.create_node('{}_{}{}'.format(selection.name, data[2], data[3]))
+                cmds.spaceLocator(n=('{}_{}'.format(name_result.name, self._suffix)))
+                cmds.select(cl=True)
+                return
 
-        new_layers_to_add = 1
-        consider_parent = False
-        if not selection and not char_name:
-            consider_parent = True
-            char_name = '{}{}'.format(data[2], data[3])
-            name_result = self._naming.create_node(char_name)
-            print(name_result.name)
-        elif not selection and char_name:
-            new_layers_to_add = 2
-            pre_step = data[0]
-            char_name = '{}_{}{}'.format(data[0], data[2], data[3])
-            self._naming.create_node(pre_step)
-            name_result = self._naming.create_node(char_name)
-            print(name_result.name)
-        elif selection and not char_name:
-            consider_parent = True
-            char_name = '{}_{}{}'.format(selection, data[2], data[3])
-            name_result = self._naming.create_node(char_name)
-        elif selection == char_name:
-            # if last parent == char_name
-            consider_parent = True
-            pass
-        elif selection != char_name:
-            # if last parent != char_name
-            consider_parent = True
-            new_layers_to_add = 2
-            pass
-
-        #
-        # elif selection != char_name:
-        #     consider_parent = True
-        #     pre_step = '{}_{}'.format(selection, data[0])
-        #     char_name = '{}_{}{}'.format(pre_step, data[2], data[3])
-        #     self._naming.create_node(pre_step)
-        #     name_result = self._naming.create_node(char_name)
-        #
-        # else:
-        #     pre_step = data[0]
-        #     char_name = '{}_{}{}'.format(pre_step, data[2], data[3])
-        #     self._naming.create_node(pre_step)
-        #     name_result = self._naming.create_node(char_name)
+            if not char_name:
+                # it doesn't work well with same name like John_LeftArm and John_LeftArm_LeftArm
+                name_result = self._naming.create_node('{}_{}{}'.format(selection.name, data[2], data[3]))
+                cmds.spaceLocator(n=('{}_{}'.format(name_result.name, self._suffix)))
+                cmds.select(cl=True)
+                print('nothing changes')
+                print(selection.name, char_name, data[2], data[3])
+                return
 
         # print(name_result.name)
         # John and LeftArm

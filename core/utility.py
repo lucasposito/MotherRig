@@ -54,11 +54,18 @@ def manipulate_name(full_name, action=None, name=None, position=None, separator=
             return True
 
     if action == 'find' and name:
-        try:
-            result = name_list.index(name)
-            return result
-        except ValueError:
+        occurrence = []
+        for each in name_list:
+            try:
+                each.index(name)
+            except ValueError:
+                continue
+            else:
+                index = name_list.index(each)
+                occurrence.append(index)
+        if len(occurrence) == 0:
             return
+        return occurrence
 
 
 def joint_hierarchy():
@@ -82,12 +89,3 @@ def joint_hierarchy():
                 if joint_type(each) is True:
                     skeleton.append(each)
             return skeleton
-        
-        
-def check_selection(suffix='pxy'):
-    selected = cmds.ls(sl=True)
-    if len(selected) is not 1:
-        return
-    if manipulate_name(selected[0], 'check', suffix, -1) is True:
-        new_name = manipulate_name(selected[0], 'delete', position=-1)
-        return new_name

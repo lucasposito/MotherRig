@@ -1,6 +1,3 @@
-import maya.cmds as cmds
-import core
-
 
 class LeafNode(object):
     def __init__(self):
@@ -55,12 +52,12 @@ class Tree(object):
     def _traverse_in_order(self, node):
         # nodes = [node.child_group, node.right]
         nodes = []
-        if len(node.child_group) is not 0:
+        if len(node.child_group) != 0:
             for children in node.child_group:
                 nodes.append(children[0])
         if node.right is not None:
             nodes.append(node.right)
-        if len(nodes) is not 0:
+        if len(nodes) != 0:
             for each in nodes:
                 print('- {}'.format(each.name))
                 self._cache.append(each)
@@ -85,7 +82,7 @@ class Tree(object):
         for elem in parent.child_group:
             if elem[0].name in node.name:
                 index = parent.child_group.index(elem)
-        if parent.child_group[index][-1] is 1:
+        if parent.child_group[index][-1] == 1:
             parent.child_group.pop(index)
             return node, parent
         parent.child_group[index][-1] -= 1
@@ -100,11 +97,11 @@ class Tree(object):
             print('The node \'{}\' does not exist'.format(name))
             return
 
-        if len(node.child_group) is 0:
+        if len(node.child_group) == 0:
             parent = self._disconnect_parent(node)
             return parent
 
-        elif len(node.child_group) is 1:
+        elif len(node.child_group) == 1:
             print('node \'{}\' removed'.format(name))
 
     def _find_child(self, name, node):
@@ -113,33 +110,29 @@ class Tree(object):
                 return elem[0]
         return None
 
-    def find_node(self, path_list):
-        if isinstance(path_list, str):
-            path_list = path_list.split(self.separator)
+    def find_node(self, path_name):
+        path_name = path_name.split(self._separator)
         parent = self.head
-        for item in path_list:
-            list_name = path_list[0:path_list.index(item) + 1]
-            name = self._list_to_string(list_name, self.separator)
-            try:
-                int(name[-1])
+        index = 0
+        for item in path_name:
+            if not path_name[index] == item:
+                index += 1
+                continue
+            list_name = path_name[0:index + 1]
+            name = self._separator.join(list_name)
+            index += 1
+
+            if name[-1].isdigit() is True:
                 main_child = name[0:-2]
                 temp = self._find_child(main_child, parent)
                 while temp is not None and temp.name != name:
                     temp = temp.right
-            except ValueError:
+            else:
                 temp = self._find_child(name, parent)
             if temp is None:
                 return name, parent  # it'll be a tuple (name, node)
             parent = temp
         return parent  # it'll be an instance of Node
-
-    def _list_to_string(self, name, item):
-        if not isinstance(name, list):
-            return name
-        result = [item] * (len(name) * 2 - 1)
-        result[0::2] = name
-        final = ''.join(result)
-        return final
 
     def _insert_child(self, child, parent):
         # update with doubly link list for names in same list of siblings
@@ -162,13 +155,13 @@ class Tree(object):
         # update with doubly link list for names in same list of siblings
         new_node = LeafNode()
         path = name.split(self.separator)
-        if len(path) is 1:
+        if len(path) == 1:
             new_node.parent = self.head
             new_node.name = name
             self._insert_child(new_node, self.head)
             return new_node
 
-        final_info = self.find_node(path)  # it'll be a tuple (name, node) if it's first otherwise it'll be an instance
+        final_info = self.find_node(name)  # it'll be a tuple (name, node) if it's first otherwise it'll be an instance
         if not isinstance(final_info, tuple):
             final_info = (final_info.name, final_info.parent)
         new_node.parent = final_info[-1]
