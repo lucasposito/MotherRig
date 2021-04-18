@@ -1,3 +1,4 @@
+import maya.OpenMaya as om
 import maya.cmds as cmds
 
 
@@ -89,3 +90,39 @@ def joint_hierarchy():
                 if joint_type(each) is True:
                     skeleton.append(each)
             return skeleton
+
+
+def object_size(obj):
+    shape = cmds.listRelatives(obj, s=True, f=True)
+    min_size = cmds.getAttr('%s.boundingBoxMin' % shape[0])[0]
+    max_size = cmds.getAttr('%s.boundingBoxMax' % shape[0])[0]
+
+    width = max_size[0] - min_size[0]
+    height = max_size[1] - min_size[1]
+    depth = max_size[2] - min_size[2]
+
+    return width, height, depth
+
+
+def object_position(obj):
+    pos = tuple(cmds.xform(obj, q=True, ws=1, piv=1)[:3])
+    return pos
+
+
+def create_vector(pos):
+    vector = om.MVector(pos[0], pos[1], pos[2])
+    return vector
+
+
+def distance_between():
+    selection = cmds.ls(sl=True)
+    if len(selection) != 2:
+        return
+    obj1_pos = object_position(selection[0])
+    obj2_pos = object_position(selection[1])
+
+    vector1 = create_vector(obj1_pos)
+    vector2 = create_vector(obj2_pos)
+
+    distance = vector1 - vector2
+    return distance.length()

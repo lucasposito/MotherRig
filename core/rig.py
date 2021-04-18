@@ -1,4 +1,5 @@
 import maya.cmds as cmds
+from random import uniform as rd
 import core
 
 
@@ -56,12 +57,7 @@ class Structure(object):
         list_name = name.split('_')
 
     def add_module(self, data):
-        # QLineEdit empty means None
-        # None doesn't add name, it adds just module's name like "LeftArm"
-        # If name in QLineEdit is the same as closest parent's name,
-        # like it's typed John and John is there already, then
-        # QLineEdit becomes None
-
+        # cmds.move(rd(10, -10), rd(10, -10), rd(10, -10))
         char_name = data[0]
         selection = self._check_selection()
         if not selection:
@@ -86,20 +82,16 @@ class Structure(object):
                     cmds.spaceLocator(n=('{}_{}'.format(name_result.name, self._suffix)))
                     cmds.select(cl=True)
                     return
-                # it doesn't work well with same name like John_LeftArm and John_LeftArm_LeftArm
-                print(selection.name, data[2], data[3])
+
                 name_result = self._naming.create_node('{}_{}{}'.format(selection.name, data[2], data[3]))
                 cmds.spaceLocator(n=('{}_{}'.format(name_result.name, self._suffix)))
                 cmds.select(cl=True)
                 return
 
             if not char_name:
-                # it doesn't work well with same name like John_LeftArm and John_LeftArm_LeftArm
                 name_result = self._naming.create_node('{}_{}{}'.format(selection.name, data[2], data[3]))
                 cmds.spaceLocator(n=('{}_{}'.format(name_result.name, self._suffix)))
                 cmds.select(cl=True)
-                print('nothing changes')
-                print(selection.name, char_name, data[2], data[3])
                 return
 
         # print(name_result.name)
