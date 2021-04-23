@@ -20,10 +20,9 @@ class Control(object):
 
     @object.setter
     def object(self, element):
-        if isinstance(element, list):
-            element.sort(reverse=True)
-            self._current_object = element
-            self.update_position()
+        element.sort(reverse=True)
+        self._current_object = element
+        self.update_position()
 
     @property
     def suffix(self):
@@ -32,9 +31,8 @@ class Control(object):
     @suffix.setter
     def suffix(self, name):
         if not isinstance(name, str):
-            pass
-        else:
-            self._suffix = name
+            return
+        self._suffix = name
 
     def update_position(self):
         for elem in self._current_object:

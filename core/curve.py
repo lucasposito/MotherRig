@@ -34,8 +34,8 @@ def curve_size(value=1.1):
 
 
 def normalize_size(factor=0.8):
-    objects = [a for a in cmds.ls(sl=True) if cmds.listRelatives(a, s=True, f=True)]
-    for child in cmds.listRelatives(cmds.ls(sl=True), ad=True, f=True):
+    objects = [a for a in cmds.ls(sl=True) if cmds.listRelatives(a, s=True, f=True, type='nurbsCurve')]
+    for child in cmds.listRelatives(cmds.ls(sl=True), ad=True, f=True, type='nurbsCurve'):
         if not cmds.listRelatives(child, s=True, f=True):
             continue
         objects.append(child)
