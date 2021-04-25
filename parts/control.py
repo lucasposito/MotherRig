@@ -1,4 +1,5 @@
 import maya.cmds as cmds
+import core
 
 
 class Control(object):
@@ -20,21 +21,9 @@ class Control(object):
 
     @object.setter
     def object(self, element):
-        if isinstance(element, list):
-            element.sort(reverse=True)
-            self._current_object = element
-            self.update_position()
-
-    @property
-    def suffix(self):
-        return self._suffix
-
-    @suffix.setter
-    def suffix(self, name):
-        if not isinstance(name, str):
-            pass
-        else:
-            self._suffix = name
+        element.sort(reverse=True)
+        self._current_object = element
+        self.update_position()
 
     def update_position(self):
         for elem in self._current_object:
@@ -46,13 +35,9 @@ class Control(object):
         # add the possibility of changing the element to add in between
         old_name = name.split('|')[-1]
         old_name = old_name.split('_')
-        suffix = ['hrc', 'srt', 'cst', 'loc', 'ctr', 'jnt']
-        for a in suffix:
-            if a in old_name:
-                del (old_name[-1])
-        pre_name = ''
-        for a in old_name:
-            pre_name += a
+        if len(old_name[-1]) == 3:
+            del (old_name[-1])
+        pre_name = '_'.join(old_name)
         return pre_name
 
     def find_parent_index(self, main):
@@ -102,26 +87,46 @@ class Control(object):
         last = cmds.ls(sl=True, l=True)
         self.object = last
 
-    def zero_out(self):
-        for a in self._current_object:
-            new_name = self.edit_suffix(a)
-            # pre_element = cmds.group(n='{0}_{1}'.format(new_name, self.suffix), em=True)
-            pre_element = cmds.circle(n='{0}_{1}'.format(new_name, self.suffix), r=1, nr=(0, 1, 0), ch=False)
-            cmds.xform(pre_element, t=tuple(self._object_translation[a]))
-            cmds.xform(pre_element, ro=tuple(self._object_rotation[a]))
-            if self._object_father[a] is not None:
-                cmds.parent(pre_element, self._object_father[a])
-            zero_element = cmds.ls(pre_element, l=True)
+    def zero_out(self, shape=None, suffix=None, inside=True):
+        self.object = cmds.ls(sl=True, l=True)
+        if not isinstance(shape, list) or not isinstance(suffix, list):
+            return
+        for sh, su in zip(shape, suffix):
+            for obj in self._current_object:
+                new_name = self.edit_suffix(obj)
 
-            self.find_parent_index(a)
-            self._current_index = self._current_object.index(a)
+                if sh == 'circle':
+                    pre_element = core.curve.circle('{}_{}'.format(new_name, su))
+                elif sh == 'cube':
+                    pre_element = core.curve.cube('{}_{}'.format(new_name, su))
+                elif sh == 'diamond':
+                    pre_element = core.curve.diamond('{}_{}'.format(new_name, su))
+                elif sh == 'square':
+                    pre_element = core.curve.square('{}_{}'.format(new_name, su))
+                elif sh == 'knot':
+                    pre_element = core.curve.knot('{}_{}'.format(new_name, su))
+                elif sh == 'quad_arrow':
+                    pre_element = core.curve.quad_arrow('{}_{}'.format(new_name, su))
+                else:
+                    pre_element = cmds.group(n='{}_{}'.format(new_name, su), em=True)
 
-            pre = a.split('|')
-            pre = [i for i in pre if i]
-            self._current_object[self._current_index] = zero_element[0] + '|' + pre[-1] + '|'
-            cmds.parent(a, zero_element[0])
+                cmds.xform(pre_element, t=tuple(self._object_translation[obj]))
+                cmds.xform(pre_element, ro=tuple(self._object_rotation[obj]))
+                try:
+                    if self._object_father[obj] is not None:
+                        cmds.parent(pre_element, self._object_father[obj])
+                    zero_element = cmds.ls(pre_element, l=True)
 
-            if self._old_parent_index is self._current_index:
-                self._old_parent_index = self._parent_index
-            self.update_path(a)
+                    self.find_parent_index(obj)
+                    self._current_index = self._current_object.index(obj)
 
+                    pre = obj.split('|')
+                    pre = [i for i in pre if i]
+                    self._current_object[self._current_index] = zero_element[0] + '|' + pre[-1] + '|'
+                    cmds.parent(obj, zero_element[0])
+
+                    if self._old_parent_index is self._current_index:
+                        self._old_parent_index = self._parent_index
+                    self.update_path(obj)
+                except IndexError:
+                    print('Suffix \'{}\' can\'t be the same'.format(su))

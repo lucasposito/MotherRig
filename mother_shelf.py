@@ -24,6 +24,10 @@ def _mother_rig(*args):
     m_rig.show()
 
 
+def _zero_out(*args):
+    parts.ControlUI.show_ui()
+
+
 def _clean_namespaces(*args):
     core.utility.clean_namespaces()
 
@@ -45,6 +49,7 @@ class MotherShelf(object):
         self.add_button(label='IkFk', command=_ik_fk_switcher)
         cmds.separator(style='single', w=10)
         self.add_button(label='RIG', command=_mother_rig)
+        self.add_button(label='ZERO', command=_zero_out)
         self.add_button(label='NSpace', command=_clean_namespaces)
         self.add_button(label='Del', command=_simple_parent)
 
