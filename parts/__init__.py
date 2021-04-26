@@ -1,3 +1,4 @@
+from .control_ui import ControlUI
 from .control import Control
 from .arm import Arm
 from .ik_fk_switcher import ikfkUI
