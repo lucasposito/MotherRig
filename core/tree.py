@@ -6,6 +6,7 @@ class LeafNode(object):
         # for siblings with same name, eg: None <-- John <--> John02 <--> John03 --> None
         self.parent = None
         self.right = None
+        self.capsule = None
 
 
 class CapsuleNode(object):

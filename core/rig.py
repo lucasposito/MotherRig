@@ -1,6 +1,7 @@
 import maya.cmds as cmds
 from random import uniform as rd
 import core
+import parts
 
 
 _NEW_RIG_ = None
@@ -11,14 +12,14 @@ class Structure(object):
     def __init__(self):
         self._mother = core.Tree()
         self._naming = core.Tree()
-        self._suffix = 'pxy'
+        self.suffix = 'pxy'
         self.modules = {}
 
     def _check_selection(self):
         selected = cmds.ls(sl=True)
         if len(selected) is not 1:
             return
-        if core.utility.manipulate_name(selected[0], 'check', self._suffix, -1) is True:
+        if core.utility.manipulate_name(selected[0], 'check', self.suffix, -1) is True:
             new_name = core.utility.manipulate_name(selected[0], 'delete', position=-1)
             node = self._naming.find_node(new_name)
             if isinstance(node, tuple):
@@ -53,46 +54,48 @@ class Structure(object):
         # of tweaked or new Nodes, not the rest
         pass
 
-    def _find_last_parent(self, name):
-        list_name = name.split('_')
+    def _prepare_node(self, name, data):
+        result = self._naming.create_node(name)
+        self.modules[result.name] = result
+        result.capsule = core.CapsuleNode()
+        result.capsule.name_node = name
+        result.capsule.attributes = data
+
+        if data[3] == 'Arm':
+            proxy = core.curve.proxy('{}_root_{}'.format(result.name, self.suffix))
+            mid = core.curve.proxy('{}_mid_{}'.format(result.name, self.suffix))
+            end = core.curve.proxy('{}_end_{}'.format(result.name, self.suffix))
+            cmds.move(rd(5, 0), rd(0, 0), rd(0, 0), proxy)
+            cmds.move(rd(15, 10), rd(0, 0), rd(0, 0), mid)
+            cmds.move(rd(25, 20), rd(0, 0), rd(0, 0), end)
+
+        cmds.select(sl=True)
+        return result
 
     def add_module(self, data):
-        # cmds.move(rd(10, -10), rd(10, -10), rd(10, -10))
         char_name = data[0]
         selection = self._check_selection()
         if not selection:
             if char_name:
                 parent_result = self._naming.create_node(char_name)
-                cmds.group(n='{}_{}'.format(parent_result.name, self._suffix), em=True)
-                name_result = self._naming.create_node('{}_{}{}'.format(parent_result.name, data[2], data[3]))
-                cmds.spaceLocator(n=('{}_{}'.format(name_result.name, self._suffix)))
-                cmds.select(cl=True)
-                return
-
-            name_result = self._naming.create_node('{}{}'.format(data[2], data[3]))
-            cmds.spaceLocator(n=('{}_{}'.format(name_result.name, self._suffix)))
-            cmds.select(cl=True)
-            return
+                cmds.group(n='{}_{}'.format(parent_result.name, self.suffix), em=True)
+                node = self._prepare_node('{}_{}{}'.format(parent_result.name, data[2], data[3]), data)
+                return node
+            node = self._prepare_node('{}{}'.format(data[2], data[3]), data)
+            return node
         if selection:
             if char_name:
                 if not core.utility.manipulate_name(selection.name, 'find', char_name):
                     parent_result = self._naming.create_node('{}_{}'.format(selection.name, char_name))
-                    cmds.group(n='{}_{}'.format(parent_result.name, self._suffix), em=True)
-                    name_result = self._naming.create_node('{}_{}{}'.format(parent_result.name, data[2], data[3]))
-                    cmds.spaceLocator(n=('{}_{}'.format(name_result.name, self._suffix)))
-                    cmds.select(cl=True)
-                    return
-
-                name_result = self._naming.create_node('{}_{}{}'.format(selection.name, data[2], data[3]))
-                cmds.spaceLocator(n=('{}_{}'.format(name_result.name, self._suffix)))
-                cmds.select(cl=True)
-                return
+                    cmds.group(n='{}_{}'.format(parent_result.name, self.suffix), em=True)
+                    node = self._prepare_node('{}_{}{}'.format(parent_result.name, data[2], data[3]), data)
+                    return node
+                node = self._prepare_node('{}_{}{}'.format(selection.name, data[2], data[3]), data)
+                return node
 
             if not char_name:
-                name_result = self._naming.create_node('{}_{}{}'.format(selection.name, data[2], data[3]))
-                cmds.spaceLocator(n=('{}_{}'.format(name_result.name, self._suffix)))
-                cmds.select(cl=True)
-                return
+                node = self._prepare_node('{}_{}{}'.format(selection.name, data[2], data[3]), data)
+                return node
 
         # print(name_result.name)
         # John and LeftArm
@@ -127,3 +130,15 @@ def create_proxy(info, *args):
 
     module_data = [name, order, side, module, type, size]
     _NEW_RIG_.add_module(module_data)
+
+
+def create_rig(*args):
+    global _NEW_RIG_
+    if not isinstance(_NEW_RIG_, Structure):
+        return
+    for key in _NEW_RIG_.modules:
+        node = _NEW_RIG_.modules[key]
+        if node.capsule.attributes[3] == 'Arm':
+            new_arm = parts.Arm(node.name, ['{}_root_{}'.format(node.name, _NEW_RIG_.suffix),
+                                            '{}_mid_{}'.format(node.name, _NEW_RIG_.suffix),
+                                            '{}_end_{}'.format(node.name, _NEW_RIG_.suffix)])

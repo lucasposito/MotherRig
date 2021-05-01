@@ -159,6 +159,7 @@ class MotherUI(QtWidgets.QDialog):
         self.spine_button.clicked.connect(self.send_spine)
         self.arm_button.clicked.connect(self.send_arm)
         self.leg_button.clicked.connect(self.send_leg)
+        self.generate_button.clicked.connect(self.generate_rig)
 
     def update_name(self, data):
         self.parameter['name'] = data
@@ -188,3 +189,6 @@ class MotherUI(QtWidgets.QDialog):
     def send_leg(self):
         self.parameter['module'] = 'Leg'
         core.rig.create_proxy(self.parameter)
+
+    def generate_rig(self):
+        core.rig.create_rig()

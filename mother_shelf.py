@@ -32,6 +32,10 @@ def _clean_namespaces(*args):
     core.utility.clean_namespaces()
 
 
+def _select_joints(*args):
+    cmds.select(core.utility.joint_hierarchy(), r=True)
+
+
 def _simple_parent(*args):
     core.simple_parent.run()
 
@@ -51,7 +55,8 @@ class MotherShelf(object):
         self.add_button(label='RIG', command=_mother_rig)
         self.add_button(label='ZERO', command=_zero_out)
         self.add_button(label='NSpace', command=_clean_namespaces)
-        self.add_button(label='Del', command=_simple_parent)
+        self.add_button(label='SEL', command=_select_joints)
+        self.add_button(label='DEL', command=_simple_parent)
 
     def add_button(self, label, icon='commandButton.png', command=_null):
         cmds.setParent(self.name)

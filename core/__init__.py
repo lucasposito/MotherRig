@@ -1,2 +1,2 @@
 from . import curve, rig, simple_parent, utility
-from .tree import Tree
+from .tree import Tree, CapsuleNode

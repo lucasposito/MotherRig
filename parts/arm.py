@@ -2,14 +2,15 @@ import maya.cmds as cmds
 
 
 class Arm:
-    def __init__(self):
+    def __init__(self, name=None, points=None):
         self.main_arm = []
         self._toggle = False
         self.position = {}
-        self.selected = cmds.ls(sl=True, l=True)
-        cmds.select(cl=True)
-        if len(self.selected) is not 3:
+        if len(points) is not 3:
             raise ValueError('Please select three objects')
+        self.selected = points
+        self.suffix = 'jnt'
+        self.name = name
         self._get_position()
         self._set_limbo()
 
@@ -24,10 +25,11 @@ class Arm:
         cmds.xform(cmds.spaceLocator(p=self.position['ForeArm']), cp=True)
         locator = cmds.ls(sl=True, l=True)
         cmds.select(d=True)
-        # name = generate_chainName(Arm)
-        self.main_arm.insert(0, cmds.joint(p=self.position['Arm']))
-        self.main_arm.insert(1, cmds.joint(p=self.position['ForeArm']))
-        self.main_arm.insert(2, cmds.joint(p=self.position['Hand']))
+        if self.name is None:
+            self.name = 'Arm'
+        self.main_arm.insert(0, cmds.joint(n='{}Arm_{}'.format(self.name, self.suffix), p=self.position['Arm']))
+        self.main_arm.insert(1, cmds.joint(n='{}ForeArm_{}'.format(self.name, self.suffix), p=self.position['ForeArm']))
+        self.main_arm.insert(2, cmds.joint(n='{}Hand_{}'.format(self.name, self.suffix), p=self.position['Hand']))
         cmds.joint(self.main_arm[0], e=True, oj="yxz", sao="xup", ch=True, zso=True)
         self._orient(locator)
 
