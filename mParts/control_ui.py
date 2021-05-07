@@ -47,6 +47,11 @@ class ControlUI(QtWidgets.QDialog):
         self.suffix_field = QtWidgets.QLineEdit()
         self.suffix_field.setMinimumWidth(140)
 
+        # toggle button
+        self.toggle_button = QtWidgets.QPushButton('TOGGLE CONTROLS')
+        self.toggle_button.setMinimumWidth(self.width - 20)
+        self.toggle_button.setMinimumHeight(20)
+
         # generate button
         self.zero_out_button = QtWidgets.QPushButton('ZERO OUT')
         self.zero_out_button.setMinimumWidth(self.width - 20)
@@ -59,6 +64,10 @@ class ControlUI(QtWidgets.QDialog):
         suffix_layout = QtWidgets.QFormLayout()
         suffix_layout.addRow('SUFFIX', self.suffix_field)
 
+        toggle_layout = QtWidgets.QHBoxLayout()
+        toggle_layout.addStretch()
+        toggle_layout.addWidget(self.toggle_button)
+
         button_layout = QtWidgets.QHBoxLayout()
         button_layout.addStretch()
         button_layout.addWidget(self.zero_out_button)
@@ -66,10 +75,15 @@ class ControlUI(QtWidgets.QDialog):
         main_layout = QtWidgets.QVBoxLayout(self)
         main_layout.addLayout(shape_layout)
         main_layout.addLayout(suffix_layout)
+        main_layout.addLayout(toggle_layout)
         main_layout.addLayout(button_layout)
 
     def create_connections(self):
+        self.toggle_button.clicked.connect(self._toggle)
         self.zero_out_button.clicked.connect(self._zero_out)
+
+    def _toggle(self):
+        self.control.toggle_control()
 
     def _zero_out(self):
         pre_shape = self.shape_field.text()

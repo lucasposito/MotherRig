@@ -142,7 +142,7 @@ class Control(object):
     def toggle_control(self):
         self._toggle = not self._toggle
         self._unparent_elements()
-        # temp = []
+        index = 1
         for old, new in zip(self._old_object, self._current_object):
             old = old.split('|')
             new = new.split('|')
@@ -150,9 +150,29 @@ class Control(object):
             f_name = new[-1]
             g_name = '{}_{}'.format(new[-1], self._suffix[0])
 
-        #     temp.append(old[-1])
-        #     temp.append(f_name)
-        # cmds.select(temp, r=True)
+            parent_list = []
+            for other in self._old_object[index:]:
+                each = other.split('|')
+                intersected = [value for value in old if value in each]
+                if len(intersected) == 0:
+                    continue
+                parent_list.append(intersected)
+            connection_point = None
+            if len(parent_list) != 0:
+                parent = max(parent_list)
+                short_name = parent[-1]
+                difference = [value for value in old if value not in parent]
+                if old[-1] in difference:
+                    difference.remove(old[-1])
+                if len(difference) != 0:
+                    difference.insert(0, short_name)
+                    connection_point = '|'.join(difference)
+                else:
+                    connection_point = short_name
+
+            if connection_point is not None:
+                cmds.parent(old[-1], connection_point)
+            index += 1
 
     def _unparent_elements(self):
         if len(self._suffix) == 0:
