@@ -1,5 +1,5 @@
 import maya.OpenMayaUI as omui
-import parts
+import mParts
 import re
 from PySide2 import QtWidgets
 from PySide2 import QtCore
@@ -30,7 +30,7 @@ class ControlUI(QtWidgets.QDialog):
         super(ControlUI, self).__init__(parent)
 
         self.setWindowTitle("Zero Out Control")
-        self.control = parts.Control()
+        self.control = mParts.Control()
         self.width = 280
         self.setFixedSize(self.width + 10, 180)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)

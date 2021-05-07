@@ -3,7 +3,7 @@ from PySide2 import QtCore
 from shiboken2 import wrapInstance
 import maya.OpenMayaUI as omui
 
-import core
+import mCore
 
 
 def maya_main_window():
@@ -180,15 +180,15 @@ class MotherUI(QtWidgets.QDialog):
 
     def send_spine(self):
         self.parameter['module'] = 'Spine'
-        core.rig.create_proxy(self.parameter)
+        mCore.rig.create_proxy(self.parameter)
 
     def send_arm(self):
         self.parameter['module'] = 'Arm'
-        core.rig.create_proxy(self.parameter)
+        mCore.rig.create_proxy(self.parameter)
 
     def send_leg(self):
         self.parameter['module'] = 'Leg'
-        core.rig.create_proxy(self.parameter)
+        mCore.rig.create_proxy(self.parameter)
 
     def generate_rig(self):
-        core.rig.create_rig()
+        mCore.rig.create_rig()

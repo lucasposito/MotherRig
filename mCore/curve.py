@@ -48,9 +48,9 @@ def proxy(name='proxy_ctr'):
                        (0, 0, -1), (0, 1, 0), (0, 0, -1), (-1, 0, 0), (0, -1, 0), (0, 0, -1), (1, 0, 0), (0, -1, 0),
                        (0, -12, 0), (0, -1, 0), (0, 0, 1)]
     vertex_number = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]
-    curve_object = [cmds.curve(n=name, d=1, p=vertex_position, k=vertex_number)]
+    curve_object = cmds.curve(n=name, d=1, p=vertex_position, k=vertex_number)
     shape = cmds.listRelatives(curve_object, s=True, f=True)
-    cmds.rename(shape, '{}Shape'.format(curve_object[0]))
+    cmds.rename(shape, '{}Shape'.format(curve_object))
     return curve_object
 
 
@@ -60,9 +60,19 @@ def diamond(name='diamond_ctr'):
                        (-1, 0, 0), (0, -1, 0), (0, 0, -1),
                        (1, 0, 0), (0, -1, 0), (0, 0, 1)]
     vertex_number = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-    curve_object = [cmds.curve(n=name, d=1, p=vertex_position, k=vertex_number)]
+    curve_object = cmds.curve(n=name, d=1, p=vertex_position, k=vertex_number)
     shape = cmds.listRelatives(curve_object, s=True, f=True)
-    cmds.rename(shape, '{}Shape'.format(curve_object[0]))
+    cmds.rename(shape, '{}Shape'.format(curve_object))
+    return curve_object
+
+
+def pyramid(name='pyramid_ctr'):
+    vertex_position = [(0, 0, 0), (0, -0.7, 0.7), (0.7, -0.7, 0), (0, 0, 0), (0.7, -0.7, 0), (0, -0.7, -0.7), (0, 0, 0),
+                       (0, -0.7, -0.7), (-0.7, -0.7, 0), (0, 0, 0), (-0.7, -0.7, 0), (0, -0.7, 0.7)]
+    vertex_number = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    curve_object = cmds.curve(n=name, d=1, p=vertex_position, k=vertex_number)
+    shape = cmds.listRelatives(curve_object, s=True, f=True)
+    cmds.rename(shape, '{}Shape'.format(curve_object))
     return curve_object
 
 
@@ -71,18 +81,18 @@ def cube(name='cube_ctr'):
                        (1, 1, -1), (-1, 1, -1), (-1, -1, -1), (1, -1, -1), (-1, -1, -1), (-1, -1, 1),
                        (-1, 1, 1), (-1, -1, 1), (1, -1, 1)]
     vertex_number = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-    curve_object = [cmds.curve(n=name, d=1, p=vertex_position, k=vertex_number)]
+    curve_object = cmds.curve(n=name, d=1, p=vertex_position, k=vertex_number)
     shape = cmds.listRelatives(curve_object, s=True, f=True)
-    cmds.rename(shape, '{}Shape'.format(curve_object[0]))
+    cmds.rename(shape, '{}Shape'.format(curve_object))
     return curve_object
 
 
 def square(name='square_ctr'):
     vertex_position = [(-1, 0, -1), (1, 0, -1), (1, 0, 1), (-1, 0, 1), (-1, 0, -1)]
     vertex_number = [0, 1, 2, 3, 4]
-    curve_object = [cmds.curve(n=name, d=1, p=vertex_position, k=vertex_number)]
+    curve_object = cmds.curve(n=name, d=1, p=vertex_position, k=vertex_number)
     shape = cmds.listRelatives(curve_object, s=True, f=True)
-    cmds.rename(shape, '{}Shape'.format(curve_object[0]))
+    cmds.rename(shape, '{}Shape'.format(curve_object))
     return curve_object
 
 
@@ -97,9 +107,9 @@ def knot(name='knot_ctr'):
                        (0, 0.866, 0.5), (0, 0.5, 0.866), (0, 0, 1)]
     vertex_number = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
                      24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]
-    curve_object = [cmds.curve(n=name, d=1, p=vertex_position, k=vertex_number)]
+    curve_object = cmds.curve(n=name, d=1, p=vertex_position, k=vertex_number)
     shape = cmds.listRelatives(curve_object, s=True, f=True)
-    cmds.rename(shape, '{}Shape'.format(curve_object[0]))
+    cmds.rename(shape, '{}Shape'.format(curve_object))
     return curve_object
 
 
@@ -110,9 +120,9 @@ def quad_arrow(name='quadArrow_ctr'):
                        (-1, 0, 3), (-2, 0, 3), (0, 0, 5), (2, 0, 3), (1, 0, 3), (1, 0, 1)]
     vertex_number = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
                      22, 23, 24]
-    curve_object = [cmds.curve(n=name, d=1, p=vertex_position, k=vertex_number)]
+    curve_object = cmds.curve(n=name, d=1, p=vertex_position, k=vertex_number)
     shape = cmds.listRelatives(curve_object, s=True, f=True)
-    cmds.rename(shape, '{}Shape'.format(curve_object[0]))
+    cmds.rename(shape, '{}Shape'.format(curve_object))
     return curve_object
 
 

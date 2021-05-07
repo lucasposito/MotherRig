@@ -12,7 +12,22 @@ class Arm:
         self.suffix = 'jnt'
         self.name = name
         self._get_position()
+        self._limb_name()
         self._set_limbo()
+
+    def _limb_name(self):
+        if self.name is None:
+            self.name = ['Arm', 'ForeArm', 'Hand']
+        elif self.name[-1].isdigit():
+            root = '{}Arm{}'.format(self.name[:-5], self.name[-2:])
+            mid = '{}ForeArm{}'.format(self.name[:-5], self.name[-2:])
+            end = '{}Hand{}'.format(self.name[:-5], self.name[-2:])
+            self.name = [root, mid, end]
+        else:
+            root = '{}Arm'.format(self.name[:-3])
+            mid = '{}ForeArm'.format(self.name[:-3])
+            end = '{}Hand'.format(self.name[:-3])
+            self.name = [root, mid, end]
 
     def _get_position(self):
         arm_key = ['Arm', 'ForeArm', 'Hand']
@@ -25,11 +40,9 @@ class Arm:
         cmds.xform(cmds.spaceLocator(p=self.position['ForeArm']), cp=True)
         locator = cmds.ls(sl=True, l=True)
         cmds.select(d=True)
-        if self.name is None:
-            self.name = 'Arm'
-        self.main_arm.insert(0, cmds.joint(n='{}Arm_{}'.format(self.name, self.suffix), p=self.position['Arm']))
-        self.main_arm.insert(1, cmds.joint(n='{}ForeArm_{}'.format(self.name, self.suffix), p=self.position['ForeArm']))
-        self.main_arm.insert(2, cmds.joint(n='{}Hand_{}'.format(self.name, self.suffix), p=self.position['Hand']))
+        self.main_arm.append(cmds.joint(n='{}_{}'.format(self.name[0], self.suffix), p=self.position['Arm']))
+        self.main_arm.append(cmds.joint(n='{}_{}'.format(self.name[1], self.suffix), p=self.position['ForeArm']))
+        self.main_arm.append(cmds.joint(n='{}_{}'.format(self.name[2], self.suffix), p=self.position['Hand']))
         cmds.joint(self.main_arm[0], e=True, oj="yxz", sao="xup", ch=True, zso=True)
         self._orient(locator)
 
@@ -77,7 +90,7 @@ class Arm:
 
         cmds.joint(self.main_arm[0], e=True, oj="yxz", sao="xup", ch=True, zso=True)
         self._orient(locator)
-        if self._toggle is True:
+        if self._toggle:
             self.toggle_orient()
             self._toggle = True
 
@@ -91,3 +104,18 @@ class Arm:
         for b in self.main_arm:
             cmds.makeIdentity(b, a=True, t=1, r=1, s=1, n=0)
         cmds.select(cl=True)
+
+    def set_ik(self):
+        # first duplicate chain and replace jnt suffix to ik
+        # create zeroed out controls
+        #
+        pass
+
+    def set_fk(self):
+        pass
+
+    def set_ik_fk(self):
+        pass
+
+    def _remove_controls(self):
+        pass

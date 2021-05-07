@@ -1,6 +1,6 @@
 import maya.cmds as cmds
-import core
-import parts
+import mCore
+import mParts
 
 
 def _null(*args):
@@ -8,11 +8,11 @@ def _null(*args):
 
 
 def _import_fbx(*args):
-    parts.ImportAnimation.show_ui()
+    mParts.ImportAnimation.show_ui()
 
 
 def _ik_fk_switcher(*args):
-    parts.ikfkUI.show_ui()
+    mParts.ikfkUI.show_ui()
 
 
 def _mother_rig(*args):
@@ -20,24 +20,24 @@ def _mother_rig(*args):
         m_rig.close()
     except:
         pass
-    m_rig = parts.MotherUI()
+    m_rig = mParts.MotherUI()
     m_rig.show()
 
 
 def _zero_out(*args):
-    parts.ControlUI.show_ui()
+    mParts.ControlUI.show_ui()
 
 
 def _clean_namespaces(*args):
-    core.utility.clean_namespaces()
+    mCore.utility.clean_namespaces()
 
 
 def _select_joints(*args):
-    cmds.select(core.utility.joint_hierarchy(), r=True)
+    cmds.select(mCore.utility.joint_hierarchy(), r=True)
 
 
 def _simple_parent(*args):
-    core.simple_parent.run()
+    mCore.simple_parent.run()
 
 
 class MotherShelf(object):

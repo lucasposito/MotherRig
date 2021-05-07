@@ -1,9 +1,11 @@
 import maya.cmds as cmds
-import core
+import mCore
 
 
 class Control(object):
     def __init__(self):
+        self._toggle = False
+        self._old_object = []
         self._current_object = []
         self._suffix = ''
 
@@ -87,26 +89,32 @@ class Control(object):
         last = cmds.ls(sl=True, l=True)
         self.object = last
 
-    def zero_out(self, shape=None, suffix=None, inside=True):
+    def zero_out(self, shape=None, suffix=None):
+        self._suffix = suffix
+        self._old_object = cmds.ls(sl=True, l=True)
+        self._old_object.sort(reverse=True)
         self.object = cmds.ls(sl=True, l=True)
         if not isinstance(shape, list) or not isinstance(suffix, list):
+            print('shape and suffix have to be inside of a list')
             return
         for sh, su in zip(shape, suffix):
             for obj in self._current_object:
                 new_name = self.edit_suffix(obj)
 
                 if sh == 'circle':
-                    pre_element = core.curve.circle('{}_{}'.format(new_name, su))
+                    pre_element = mCore.curve.circle('{}_{}'.format(new_name, su))
                 elif sh == 'cube':
-                    pre_element = core.curve.cube('{}_{}'.format(new_name, su))
+                    pre_element = mCore.curve.cube('{}_{}'.format(new_name, su))
+                elif sh == 'pyramid':
+                    pre_element = mCore.curve.pyramid('{}_{}'.format(new_name, su))
                 elif sh == 'diamond':
-                    pre_element = core.curve.diamond('{}_{}'.format(new_name, su))
+                    pre_element = mCore.curve.diamond('{}_{}'.format(new_name, su))
                 elif sh == 'square':
-                    pre_element = core.curve.square('{}_{}'.format(new_name, su))
+                    pre_element = mCore.curve.square('{}_{}'.format(new_name, su))
                 elif sh == 'knot':
-                    pre_element = core.curve.knot('{}_{}'.format(new_name, su))
+                    pre_element = mCore.curve.knot('{}_{}'.format(new_name, su))
                 elif sh == 'quad_arrow':
-                    pre_element = core.curve.quad_arrow('{}_{}'.format(new_name, su))
+                    pre_element = mCore.curve.quad_arrow('{}_{}'.format(new_name, su))
                 else:
                     pre_element = cmds.group(n='{}_{}'.format(new_name, su), em=True)
 
@@ -130,3 +138,28 @@ class Control(object):
                     self.update_path(obj)
                 except IndexError:
                     print('Suffix \'{}\' can\'t be the same'.format(su))
+
+    def toggle_control(self):
+        self._toggle = not self._toggle
+        self._unparent_elements()
+        # temp = []
+        for old, new in zip(self._old_object, self._current_object):
+            old = old.split('|')
+            new = new.split('|')
+
+            f_name = new[-1]
+            g_name = '{}_{}'.format(new[-1], self._suffix[0])
+
+        #     temp.append(old[-1])
+        #     temp.append(f_name)
+        # cmds.select(temp, r=True)
+
+    def _unparent_elements(self):
+        if len(self._suffix) == 0:
+            return
+        temp = None
+        for obj in range(len(self._suffix)):
+            cmds.pickWalk(d='up')
+            temp = cmds.ls(sl=True, l=True)
+        cmds.parent(self._current_object, temp, w=True)
+        cmds.select(cl=True)

@@ -23,7 +23,7 @@ class Tree(object):
         self.head.name = 'Root'
         self._separator = '_'
         self._cache = []
-        # self.parts = ['Spine', 'Arm', 'Leg']
+        # self.mParts = ['Spine', 'Arm', 'Leg']
         # self.side = ['Left', 'Right']
 
     @property

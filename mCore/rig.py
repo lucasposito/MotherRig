@@ -1,7 +1,7 @@
 import maya.cmds as cmds
 from random import uniform as rd
-import core
-import parts
+import mCore
+import mParts
 
 
 _NEW_RIG_ = None
@@ -10,8 +10,8 @@ _NEW_RIG_ = None
 class Structure(object):
     # That's a tree structure of the rig
     def __init__(self):
-        self._mother = core.Tree()
-        self._naming = core.Tree()
+        self._mother = mCore.Tree()
+        self._naming = mCore.Tree()
         self.suffix = 'pxy'
         self.modules = {}
 
@@ -19,8 +19,8 @@ class Structure(object):
         selected = cmds.ls(sl=True)
         if len(selected) is not 1:
             return
-        if core.utility.manipulate_name(selected[0], 'check', self.suffix, -1) is True:
-            new_name = core.utility.manipulate_name(selected[0], 'delete', position=-1)
+        if mCore.utility.manipulate_name(selected[0], 'check', self.suffix, -1) is True:
+            new_name = mCore.utility.manipulate_name(selected[0], 'delete', position=-1)
             node = self._naming.find_node(new_name)
             if isinstance(node, tuple):
                 node = None
@@ -45,7 +45,7 @@ class Structure(object):
 
     def generate(self):
         # until it's not generated button_proxy_mode is disabled
-        # executes the skeleton parts on each Node on scene
+        # executes the skeleton mParts on each Node on scene
         pass
 
     def proxy_mode(self):
@@ -57,19 +57,22 @@ class Structure(object):
     def _prepare_node(self, name, data):
         result = self._naming.create_node(name)
         self.modules[result.name] = result
-        result.capsule = core.CapsuleNode()
+        result.capsule = mCore.CapsuleNode()
         result.capsule.name_node = name
         result.capsule.attributes = data
 
         if data[3] == 'Arm':
-            proxy = core.curve.proxy('{}_root_{}'.format(result.name, self.suffix))
-            mid = core.curve.proxy('{}_mid_{}'.format(result.name, self.suffix))
-            end = core.curve.proxy('{}_end_{}'.format(result.name, self.suffix))
-            cmds.move(rd(5, 0), rd(0, 0), rd(0, 0), proxy)
+            proxy = mCore.curve.pyramid('{}_{}'.format(result.name, self.suffix))
+            root = mCore.curve.proxy('{}_root_{}'.format(result.name, self.suffix))
+            mid = mCore.curve.proxy('{}_mid_{}'.format(result.name, self.suffix))
+            end = mCore.curve.proxy('{}_end_{}'.format(result.name, self.suffix))
+            cmds.move(rd(5, 0), rd(10, 5), rd(0, 0), proxy)
+            cmds.move(rd(5, 0), rd(0, 0), rd(0, 0), root)
             cmds.move(rd(15, 10), rd(0, 0), rd(0, 0), mid)
             cmds.move(rd(25, 20), rd(0, 0), rd(0, 0), end)
+            cmds.parent([root, mid, end], proxy)
 
-        cmds.select(sl=True)
+        cmds.select(cl=True)
         return result
 
     def add_module(self, data):
@@ -85,7 +88,7 @@ class Structure(object):
             return node
         if selection:
             if char_name:
-                if not core.utility.manipulate_name(selection.name, 'find', char_name):
+                if not mCore.utility.manipulate_name(selection.name, 'find', char_name):
                     parent_result = self._naming.create_node('{}_{}'.format(selection.name, char_name))
                     cmds.group(n='{}_{}'.format(parent_result.name, self.suffix), em=True)
                     node = self._prepare_node('{}_{}{}'.format(parent_result.name, data[2], data[3]), data)
@@ -139,6 +142,6 @@ def create_rig(*args):
     for key in _NEW_RIG_.modules:
         node = _NEW_RIG_.modules[key]
         if node.capsule.attributes[3] == 'Arm':
-            new_arm = parts.Arm(node.name, ['{}_root_{}'.format(node.name, _NEW_RIG_.suffix),
+            new_arm = mParts.Arm(node.name, ['{}_root_{}'.format(node.name, _NEW_RIG_.suffix),
                                             '{}_mid_{}'.format(node.name, _NEW_RIG_.suffix),
                                             '{}_end_{}'.format(node.name, _NEW_RIG_.suffix)])
