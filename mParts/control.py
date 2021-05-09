@@ -140,24 +140,26 @@ class Control(object):
                     print('Suffix \'{}\' can\'t be the same'.format(su))
 
     def toggle_control(self):
+        if len(self._suffix) == 0:
+            return
         self._toggle = not self._toggle
         self._unparent_elements()
-        index = 1
+        suffix_length = (len(self._suffix) + 1) * -1
+        index = 0
         for old, new in zip(self._old_object, self._current_object):
-            old = old.split('|')
-            new = new.split('|')
-
-            f_name = new[-1]
-            g_name = '{}_{}'.format(new[-1], self._suffix[0])
-
+            old = list(filter(None, old.split('|')))
+            new = list(filter(None, new.split('|')))
             parent_list = []
-            for other in self._old_object[index:]:
-                each = other.split('|')
-                intersected = [value for value in old if value in each]
-                if len(intersected) == 0:
-                    continue
-                parent_list.append(intersected)
+            parent_index = None
             connection_point = None
+            for other in self._old_object[index:]:
+                each = list(filter(None, other.split('|')))
+                intersected = [value for value in old if value in each]
+                if 0 < len(intersected) < len(old):
+                    parent_list.append(intersected)
+                    parent_index = self._old_object.index(other)
+                    break
+
             if len(parent_list) != 0:
                 parent = max(parent_list)
                 short_name = parent[-1]
@@ -169,17 +171,25 @@ class Control(object):
                     connection_point = '|'.join(difference)
                 else:
                     connection_point = short_name
-
+            if parent_index is not None:
+                parent = self._current_object[parent_index].split('|')[suffix_length:-1]
+                parent = '|'.join(parent)
+                cmds.parent(new[suffix_length], parent)
+            if len(old) > 1 and len(parent_list) == 0:
+                connection_point = '|'.join(old[:-1])
             if connection_point is not None:
                 cmds.parent(old[-1], connection_point)
             index += 1
 
+        cmds.select(self._old_object, r=True)
+
     def _unparent_elements(self):
-        if len(self._suffix) == 0:
-            return
         temp = None
         for obj in range(len(self._suffix)):
             cmds.pickWalk(d='up')
             temp = cmds.ls(sl=True, l=True)
+        for each in temp:
+            if cmds.listRelatives(each, p=True) is None:
+                temp.remove(each)
         cmds.parent(self._current_object, temp, w=True)
         cmds.select(cl=True)
