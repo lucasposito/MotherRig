@@ -46,7 +46,7 @@ class Control(object):
         pre = main.split('|')
         comparable = pre[1:-1]
         previous_element = ''
-        if len(comparable) is not 0:
+        if len(comparable) != 0:
             result = ['|'] * (len(comparable) * 2 - 1)
             result[0::2] = comparable
             result.insert(0, '|')
@@ -61,10 +61,10 @@ class Control(object):
         pre = main.split('|')
         # checks if the intersected list between 'pre' and 'item' equals 'pre'
         # it means 'pre' fully fits in 'item'
-        for a in self._current_object[0:self._current_index]:
-            item = a.split('|')
+        for obj in self._current_object[0:self._current_index]:
+            item = obj.split('|')
             intersected = [value for value in pre if value in item]
-            if len(intersected) is len(pre):
+            if len(intersected) == len(pre):
                 temp = [value for value in item if value not in pre]
                 rest_child = ''
                 for c in temp:
@@ -74,7 +74,7 @@ class Control(object):
                 pre_name = ''
                 for b in last_list:
                     pre_name += b
-                self._current_object[self._current_object.index(a)] = pre_name
+                self._current_object[self._current_object.index(obj)] = pre_name
 
         self._object_father = {}
         self._object_translation = {}
@@ -142,7 +142,6 @@ class Control(object):
     def toggle_control(self):
         if len(self._suffix) == 0:
             return
-        self._toggle = not self._toggle
         suffix_length = (len(self._suffix) + 1) * -1
         group_suffix = suffix_length + 1
         index = 0
@@ -189,3 +188,4 @@ class Control(object):
             index += 1
 
         cmds.select(self._old_object, r=True)
+        self._toggle = not self._toggle
