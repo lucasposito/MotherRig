@@ -143,53 +143,49 @@ class Control(object):
         if len(self._suffix) == 0:
             return
         self._toggle = not self._toggle
-        self._unparent_elements()
         suffix_length = (len(self._suffix) + 1) * -1
+        group_suffix = suffix_length + 1
         index = 0
         for old, new in zip(self._old_object, self._current_object):
-            old = list(filter(None, old.split('|')))
             new = list(filter(None, new.split('|')))
-            parent_list = []
-            parent_index = None
+            object_parent = []
+            group_parent = None
             connection_point = None
-            for other in self._old_object[index:]:
+            for other in self._current_object[index:]:
                 each = list(filter(None, other.split('|')))
-                intersected = [value for value in old if value in each]
-                if 0 < len(intersected) < len(old):
-                    parent_list.append(intersected)
-                    parent_index = self._old_object.index(other)
-                    break
+                intersected = [value for value in new if value in each]
+                if 0 < len(intersected) < len(new):
+                    object_parent.append(intersected)
+                    continue
 
-            if len(parent_list) != 0:
-                parent = max(parent_list)
-                short_name = parent[-1]
-                difference = [value for value in old if value not in parent]
-                if old[-1] in difference:
-                    difference.remove(old[-1])
+            if len(object_parent) != 0:
+                parent = max(object_parent)
+                group_parent = '|'.join(parent[:-1])
+                difference = [value for value in new if value not in parent]
+                if [value for value in new[suffix_length:] if value in difference]:
+                    difference = difference[:suffix_length]
                 if len(difference) != 0:
-                    difference.insert(0, short_name)
-                    connection_point = '|'.join(difference)
+                    parent.extend(difference)
+                    connection_point = '|'.join(parent)
                 else:
-                    connection_point = short_name
-            if parent_index is not None:
-                parent = self._current_object[parent_index].split('|')[suffix_length:-1]
-                parent = '|'.join(parent)
-                cmds.parent(new[suffix_length], parent)
-            if len(old) > 1 and len(parent_list) == 0:
-                connection_point = '|'.join(old[:-1])
+                    connection_point = '|'.join(parent)
+
+            if len(object_parent) == 0 and len(new) > (suffix_length * -1):
+                object_parent.extend(new[:suffix_length])
+                connection_point = '|'.join(object_parent)
+                group_parent = []
+
+            group = '|'.join(new[:group_suffix])
+            new = '|'.join(new)
             if connection_point is not None:
-                cmds.parent(old[-1], connection_point)
+                cmds.parent(new, connection_point)
+                if len(group_parent) == 0:
+                    cmds.parent(group, w=True)
+                    continue
+                cmds.parent(group, group_parent)
+                continue
+            cmds.parent(new, w=True)
+
             index += 1
 
         cmds.select(self._old_object, r=True)
-
-    def _unparent_elements(self):
-        temp = None
-        for obj in range(len(self._suffix)):
-            cmds.pickWalk(d='up')
-            temp = cmds.ls(sl=True, l=True)
-        for each in temp:
-            if cmds.listRelatives(each, p=True) is None:
-                temp.remove(each)
-        cmds.parent(self._current_object, temp, w=True)
-        cmds.select(cl=True)
