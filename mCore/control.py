@@ -7,6 +7,7 @@ class Control(object):
         self._toggle = False
         self._old_object = []
         self._current_object = []
+        self._group = []
         self._suffix = ''
 
         self._object_father = {}
@@ -144,6 +145,7 @@ class Control(object):
             return
         suffix_length = (len(self._suffix) + 1) * -1
         group_suffix = suffix_length + 1
+        pre_group = []
         index = 0
         for old, new in zip(self._old_object, self._current_object):
             new = list(filter(None, new.split('|')))
@@ -174,8 +176,14 @@ class Control(object):
                 connection_point = '|'.join(object_parent)
                 group_parent = []
 
+            pre_group.append(new[suffix_length:-1])
+            for item in self._current_object[:index]:
+                if [value for value in new[suffix_length:-1] if value in item]:
+                    pre_group[index - 1][:0] = new[suffix_length:-1]
+
             group = '|'.join(new[:group_suffix])
             new = '|'.join(new)
+            index += 1
             if connection_point is not None:
                 cmds.parent(new, connection_point)
                 if len(group_parent) == 0:
@@ -185,7 +193,9 @@ class Control(object):
                 continue
             cmds.parent(new, w=True)
 
-            index += 1
+        for grp in pre_group:
+            each = '|'.join(grp)
+            self._group.append(each)
 
         cmds.select(self._old_object, r=True)
         self._toggle = not self._toggle
