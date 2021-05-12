@@ -52,6 +52,12 @@ class ControlUI(QtWidgets.QDialog):
         self.toggle_button.setMinimumWidth(self.width - 20)
         self.toggle_button.setMinimumHeight(20)
 
+        # constraint buttons
+        self.parent_button = QtWidgets.QPushButton('PARENT')
+        self.point_button = QtWidgets.QPushButton('POINT')
+        self.orient_button = QtWidgets.QPushButton('ORIENT')
+        self.scale_button = QtWidgets.QPushButton('SCALE')
+
         # generate button
         self.zero_out_button = QtWidgets.QPushButton('ZERO OUT')
         self.zero_out_button.setMinimumWidth(self.width - 20)
@@ -68,6 +74,13 @@ class ControlUI(QtWidgets.QDialog):
         toggle_layout.addStretch()
         toggle_layout.addWidget(self.toggle_button)
 
+        constraint_layout = QtWidgets.QHBoxLayout()
+        constraint_layout.addStretch()
+        constraint_layout.addWidget(self.parent_button)
+        constraint_layout.addWidget(self.point_button)
+        constraint_layout.addWidget(self.orient_button)
+        constraint_layout.addWidget(self.scale_button)
+
         button_layout = QtWidgets.QHBoxLayout()
         button_layout.addStretch()
         button_layout.addWidget(self.zero_out_button)
@@ -76,14 +89,22 @@ class ControlUI(QtWidgets.QDialog):
         main_layout.addLayout(shape_layout)
         main_layout.addLayout(suffix_layout)
         main_layout.addLayout(toggle_layout)
+        main_layout.addLayout(constraint_layout)
         main_layout.addLayout(button_layout)
 
     def create_connections(self):
         self.toggle_button.clicked.connect(self._toggle)
+        self.parent_button.clicked.connect(lambda: self._constraint('parent'))
+        self.point_button.clicked.connect(lambda: self._constraint('point'))
+        self.orient_button.clicked.connect(lambda: self._constraint('orient'))
+        self.scale_button.clicked.connect(lambda: self._constraint('scale'))
         self.zero_out_button.clicked.connect(self._zero_out)
 
     def _toggle(self):
         self.control.toggle_control()
+
+    def _constraint(self, data):
+        self.control.constraint(data)
 
     def _zero_out(self):
         pre_shape = self.shape_field.text()

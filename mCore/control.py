@@ -5,6 +5,10 @@ import mCore
 class Control(object):
     def __init__(self):
         self._toggle = False
+        self._toggle_parent = True
+        self._toggle_point = True
+        self._toggle_orient = True
+        self._toggle_scale = True
         self._old_object = []
         self._current_object = []
         self._group = []
@@ -141,13 +145,14 @@ class Control(object):
                     print('Suffix \'{}\' can\'t be the same'.format(su))
 
     def toggle_control(self):
+        self._group = []
         if len(self._suffix) == 0:
             return
         suffix_length = (len(self._suffix) + 1) * -1
         group_suffix = suffix_length + 1
         pre_group = []
         index = 0
-        for old, new in zip(self._old_object, self._current_object):
+        for new in self._current_object:
             new = list(filter(None, new.split('|')))
             object_parent = []
             group_parent = None
@@ -178,8 +183,10 @@ class Control(object):
 
             pre_group.append(new[suffix_length:-1])
             for item in self._current_object[:index]:
-                if [value for value in new[suffix_length:-1] if value in item]:
-                    pre_group[index - 1][:0] = new[suffix_length:-1]
+                each = list(filter(None, item.split('|')))
+                if [value for value in new[suffix_length:-1] if value in each]:
+                    a = self._current_object.index(item)
+                    pre_group[a][:0] = new[suffix_length:-1]
 
             group = '|'.join(new[:group_suffix])
             new = '|'.join(new)
@@ -197,5 +204,44 @@ class Control(object):
             each = '|'.join(grp)
             self._group.append(each)
 
-        cmds.select(self._old_object, r=True)
+        cmds.select(self._old_object, self._group, r=True)
         self._toggle = not self._toggle
+
+    def constraint(self, type='parent'):
+        if len(self._group) == 0:
+            return
+
+        if type == 'parent':
+            for grp, obj in zip(self._group, self._old_object):
+                if self._toggle_parent:
+                    cmds.parentConstraint(grp, obj)
+                    continue
+                cmds.parentConstraint(grp, obj, rm=True)
+            self._toggle_parent = not self._toggle_parent
+            return
+
+        if type == 'point':
+            for grp, obj in zip(self._group, self._old_object):
+                if self._toggle_point:
+                    cmds.pointConstraint(grp, obj)
+                    continue
+                cmds.pointConstraint(grp, obj, rm=True)
+            self._toggle_point = not self._toggle_point
+            return
+
+        if type == 'orient':
+            for grp, obj in zip(self._group, self._old_object):
+                if self._toggle_orient:
+                    cmds.orientConstraint(grp, obj)
+                    continue
+                cmds.orientConstraint(grp, obj, rm=True)
+            self._toggle_orient = not self._toggle_orient
+            return
+
+        if type == 'scale':
+            for grp, obj in zip(self._group, self._old_object):
+                if self._toggle_scale:
+                    cmds.scaleConstraint(grp, obj)
+                    continue
+                cmds.scaleConstraint(grp, obj, rm=True)
+            self._toggle_scale = not self._toggle_scale
