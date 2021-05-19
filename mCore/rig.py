@@ -3,7 +3,6 @@ from random import uniform as rd
 import mCore
 import mParts
 
-
 _NEW_RIG_ = None
 
 
@@ -142,6 +141,6 @@ def create_rig(*args):
     for key in _NEW_RIG_.modules:
         node = _NEW_RIG_.modules[key]
         if node.capsule.attributes[3] == 'Arm':
-            new_arm = mParts.Arm(node.name, ['{}_root_{}'.format(node.name, _NEW_RIG_.suffix),
-                                            '{}_mid_{}'.format(node.name, _NEW_RIG_.suffix),
-                                            '{}_end_{}'.format(node.name, _NEW_RIG_.suffix)])
+            new_arm = mParts.Arm(['{}_root_{}'.format(node.name, _NEW_RIG_.suffix),
+                                  '{}_mid_{}'.format(node.name, _NEW_RIG_.suffix),
+                                  '{}_end_{}'.format(node.name, _NEW_RIG_.suffix)], node.name)

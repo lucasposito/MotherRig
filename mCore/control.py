@@ -4,7 +4,7 @@ import mCore
 
 class Control(object):
     def __init__(self):
-        self._toggle = False
+        self._toggle = True
         self._toggle_parent = True
         self._toggle_point = True
         self._toggle_orient = True
@@ -12,33 +12,9 @@ class Control(object):
         self._old_object = []
         self._current_object = []
         self._group = []
-        self._suffix = ''
+        self._suffix = []
 
-        self._object_father = {}
-        self._object_translation = {}
-        self._object_rotation = {}
-
-        self._old_parent_index = 1
-        self._parent_index = 0
-        self._current_index = 0
-
-    @property
-    def object(self):
-        return self._current_object
-
-    @object.setter
-    def object(self, element):
-        element.sort(reverse=True)
-        self._current_object = element
-        self.update_position()
-
-    def update_position(self):
-        for elem in self._current_object:
-            self._object_translation[elem] = cmds.xform(elem, q=True, ws=True, piv=True)[0:3]
-            self._object_rotation[elem] = cmds.xform(elem, q=True, ws=True, ro=True)
-            self._object_father[elem] = cmds.listRelatives(elem, p=True, f=True)
-
-    def edit_suffix(self, name):
+    def _edit_suffix(self, name):
         # add the possibility of changing the element to add in between
         old_name = name.split('|')[-1]
         old_name = old_name.split('_')
@@ -47,65 +23,28 @@ class Control(object):
         pre_name = '_'.join(old_name)
         return pre_name
 
-    def find_parent_index(self, main):
-        pre = main.split('|')
-        comparable = pre[1:-1]
-        previous_element = ''
-        if len(comparable) != 0:
-            result = ['|'] * (len(comparable) * 2 - 1)
-            result[0::2] = comparable
-            result.insert(0, '|')
-            for a in result:
-                previous_element += a
-        try:
-            self._parent_index = self._current_object.index(previous_element)
-        except ValueError:
-            pass
-
-    def update_path(self, main):
-        pre = main.split('|')
-        # checks if the intersected list between 'pre' and 'item' equals 'pre'
-        # it means 'pre' fully fits in 'item'
-        for obj in self._current_object[0:self._current_index]:
-            item = obj.split('|')
-            intersected = [value for value in pre if value in item]
-            if len(intersected) == len(pre):
-                temp = [value for value in item if value not in pre]
-                rest_child = ''
-                for c in temp:
-                    rest_child += c
-                    rest_child += '|'
-                last_list = self._current_object[self._current_index] + rest_child
-                pre_name = ''
-                for b in last_list:
-                    pre_name += b
-                self._current_object[self._current_object.index(obj)] = pre_name
-
-        self._object_father = {}
-        self._object_translation = {}
-        self._object_rotation = {}
-
-        self._old_parent_index = 1
-        self._parent_index = 0
-        self._current_index = 0
-        self.update_position()
-
-        cmds.select(self.object, r=True)
-        last = cmds.ls(sl=True, l=True)
-        self.object = last
-
-    def zero_out(self, shape=None, suffix=None):
+    def zero_out(self, shape=None, suffix=None, objects=None):
+        self._toggle_parent = True
+        self._toggle_point = True
+        self._toggle_orient = True
+        self._toggle_scale = True
         self._suffix = suffix
-        self._old_object = cmds.ls(sl=True, l=True)
-        self._old_object.sort(reverse=True)
-        self.object = cmds.ls(sl=True, l=True)
-        if not isinstance(shape, list) or not isinstance(suffix, list):
-            print('shape and suffix have to be inside of a list')
-            return
-        for sh, su in zip(shape, suffix):
-            for obj in self._current_object:
-                new_name = self.edit_suffix(obj)
 
+        if objects is None:
+            self._old_object = cmds.ls(sl=True, l=True)
+        else:
+            if not isinstance(shape, list) or not isinstance(suffix, list) or not isinstance(objects, list):
+                print('shape, suffix and objects have to be within a list')
+                return
+            self._old_object = objects
+
+        self._old_object.sort(reverse=True)
+        self._current_object = list(self._old_object)
+
+        for sh, su in zip(shape, suffix):
+            index = 0
+            for obj in self._current_object:
+                new_name = self._edit_suffix(obj)
                 if sh == 'circle':
                     pre_element = mCore.curve.circle('{}_{}'.format(new_name, su))
                 elif sh == 'cube':
@@ -123,26 +62,34 @@ class Control(object):
                 else:
                     pre_element = cmds.group(n='{}_{}'.format(new_name, su), em=True)
 
-                cmds.xform(pre_element, t=tuple(self._object_translation[obj]))
-                cmds.xform(pre_element, ro=tuple(self._object_rotation[obj]))
-                try:
-                    if self._object_father[obj] is not None:
-                        cmds.parent(pre_element, self._object_father[obj])
-                    zero_element = cmds.ls(pre_element, l=True)
+                obj_translation = cmds.xform(obj, q=True, ws=True, piv=True)[0:3]
+                obj_rotation = cmds.xform(obj, q=True, ws=True, ro=True)
 
-                    self.find_parent_index(obj)
-                    self._current_index = self._current_object.index(obj)
+                cmds.xform(pre_element, t=tuple(obj_translation))
+                cmds.xform(pre_element, ro=tuple(obj_rotation))
 
-                    pre = obj.split('|')
-                    pre = [i for i in pre if i]
-                    self._current_object[self._current_index] = zero_element[0] + '|' + pre[-1] + '|'
-                    cmds.parent(obj, zero_element[0])
+                current = list(filter(None, obj.split('|')))
+                temp = current[:-1]
+                if len(temp) != 0:
+                    cmds.parent(pre_element, '|'.join(temp))
+                grp_temp = temp + [pre_element]
+                cmds.parent(obj, '|'.join(grp_temp))
+                temp.extend(['{}_{}'.format(current[-1], su), current[-1]])
+                new = '|'.join(temp)
 
-                    if self._old_parent_index is self._current_index:
-                        self._old_parent_index = self._parent_index
-                    self.update_path(obj)
-                except IndexError:
-                    print('Suffix \'{}\' can\'t be the same'.format(su))
+                self._current_object[index] = new
+                for child in self._current_object[:index]:
+                    previous = list(filter(None, child.split('|')))
+                    intersected = [value for value in current if value in previous]
+                    if len(intersected) == 0:
+                        continue
+                    prev_index = self._current_object.index(child)
+                    sec_temp = temp + [value for value in previous if value not in current]
+                    new_child = '|'.join(sec_temp)
+                    self._current_object[prev_index] = new_child
+
+                index += 1
+        cmds.select(self._current_object, r=True)
 
     def toggle_control(self):
         self._group = []
