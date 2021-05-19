@@ -9,10 +9,10 @@ class Control(object):
         self._toggle_point = True
         self._toggle_orient = True
         self._toggle_scale = True
-        self._old_object = []
-        self._current_object = []
-        self._group = []
-        self._suffix = []
+        self.old_object = []
+        self.new_object = []
+        self.group = []
+        self.suffix = []
 
     def _edit_suffix(self, name):
         # add the possibility of changing the element to add in between
@@ -28,22 +28,22 @@ class Control(object):
         self._toggle_point = True
         self._toggle_orient = True
         self._toggle_scale = True
-        self._suffix = suffix
+        self.suffix = suffix
 
         if objects is None:
-            self._old_object = cmds.ls(sl=True, l=True)
+            self.old_object = cmds.ls(sl=True, l=True)
         else:
             if not isinstance(shape, list) or not isinstance(suffix, list) or not isinstance(objects, list):
                 print('shape, suffix and objects have to be within a list')
                 return
-            self._old_object = objects
+            self.old_object = objects
 
-        self._old_object.sort(reverse=True)
-        self._current_object = list(self._old_object)
+        self.old_object.sort(reverse=True)
+        self.new_object = list(self.old_object)
 
         for sh, su in zip(shape, suffix):
             index = 0
-            for obj in self._current_object:
+            for obj in self.new_object:
                 new_name = self._edit_suffix(obj)
                 if sh == 'circle':
                     pre_element = mCore.curve.circle('{}_{}'.format(new_name, su))
@@ -77,34 +77,34 @@ class Control(object):
                 temp.extend(['{}_{}'.format(current[-1], su), current[-1]])
                 new = '|'.join(temp)
 
-                self._current_object[index] = new
-                for child in self._current_object[:index]:
+                self.new_object[index] = new
+                for child in self.new_object[:index]:
                     previous = list(filter(None, child.split('|')))
                     intersected = [value for value in current if value in previous]
                     if len(intersected) == 0:
                         continue
-                    prev_index = self._current_object.index(child)
+                    prev_index = self.new_object.index(child)
                     sec_temp = temp + [value for value in previous if value not in current]
                     new_child = '|'.join(sec_temp)
-                    self._current_object[prev_index] = new_child
+                    self.new_object[prev_index] = new_child
 
                 index += 1
-        cmds.select(self._current_object, r=True)
+        cmds.select(self.new_object, r=True)
 
     def toggle_control(self):
-        self._group = []
-        if len(self._suffix) == 0:
+        self.group = []
+        if len(self.suffix) == 0:
             return
-        suffix_length = (len(self._suffix) + 1) * -1
+        suffix_length = (len(self.suffix) + 1) * -1
         group_suffix = suffix_length + 1
         pre_group = []
         index = 0
-        for new in self._current_object:
+        for new in self.new_object:
             new = list(filter(None, new.split('|')))
             object_parent = []
             group_parent = None
             connection_point = None
-            for other in self._current_object[index:]:
+            for other in self.new_object[index:]:
                 each = list(filter(None, other.split('|')))
                 intersected = [value for value in new if value in each]
                 if 0 < len(intersected) < len(new):
@@ -129,10 +129,10 @@ class Control(object):
                 group_parent = []
 
             pre_group.append(new[suffix_length:-1])
-            for item in self._current_object[:index]:
+            for item in self.new_object[:index]:
                 each = list(filter(None, item.split('|')))
                 if [value for value in new[suffix_length:-1] if value in each]:
-                    a = self._current_object.index(item)
+                    a = self.new_object.index(item)
                     pre_group[a][:0] = new[suffix_length:-1]
 
             group = '|'.join(new[:group_suffix])
@@ -149,17 +149,17 @@ class Control(object):
 
         for grp in pre_group:
             each = '|'.join(grp)
-            self._group.append(each)
+            self.group.append(each)
 
-        cmds.select(self._old_object, self._group, r=True)
+        cmds.select(self.old_object, self.group, r=True)
         self._toggle = not self._toggle
 
     def constraint(self, type='parent'):
-        if len(self._group) == 0:
+        if len(self.group) == 0:
             return
 
         if type == 'parent':
-            for grp, obj in zip(self._group, self._old_object):
+            for grp, obj in zip(self.group, self.old_object):
                 if self._toggle_parent:
                     cmds.parentConstraint(grp, obj)
                     continue
@@ -168,7 +168,7 @@ class Control(object):
             return
 
         if type == 'point':
-            for grp, obj in zip(self._group, self._old_object):
+            for grp, obj in zip(self.group, self.old_object):
                 if self._toggle_point:
                     cmds.pointConstraint(grp, obj)
                     continue
@@ -177,7 +177,7 @@ class Control(object):
             return
 
         if type == 'orient':
-            for grp, obj in zip(self._group, self._old_object):
+            for grp, obj in zip(self.group, self.old_object):
                 if self._toggle_orient:
                     cmds.orientConstraint(grp, obj)
                     continue
@@ -186,7 +186,7 @@ class Control(object):
             return
 
         if type == 'scale':
-            for grp, obj in zip(self._group, self._old_object):
+            for grp, obj in zip(self.group, self.old_object):
                 if self._toggle_scale:
                     cmds.scaleConstraint(grp, obj)
                     continue

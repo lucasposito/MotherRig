@@ -1,8 +1,10 @@
 import maya.cmds as cmds
 
+import mCore
+
 
 class Arm:
-    def __init__(self, name=None, points=None):
+    def __init__(self, points=None, name=None):
         self.main_arm = []
         self._toggle = False
         self.position = {}
@@ -31,10 +33,10 @@ class Arm:
 
     def _get_position(self):
         arm_key = ['Arm', 'ForeArm', 'Hand']
-        x = 0
+        count = 0
         for a in self.selected:
-            self.position[arm_key[x]] = cmds.xform(a, q=True, ws=True, t=True)
-            x += 1
+            self.position[arm_key[count]] = cmds.xform(a, q=True, ws=True, t=True)
+            count += 1
 
     def _set_limbo(self):
         cmds.xform(cmds.spaceLocator(p=self.position['ForeArm']), cp=True)
@@ -68,11 +70,11 @@ class Arm:
 
     def reset_limb(self):
         arm_key = ['Arm', 'ForeArm', 'Hand']
-        x = 0
+        count = 0
         try:
             for a in self.selected:
-                self.position[arm_key[x]] = cmds.xform(a, q=True, ws=True, t=True)
-                x += 1
+                self.position[arm_key[count]] = cmds.xform(a, q=True, ws=True, t=True)
+                count += 1
         except ValueError:
             raise ValueError('Proxy is missing, please reset it')
 
@@ -81,10 +83,10 @@ class Arm:
         cmds.select(d=True)
 
         cmds.parent(self.main_arm[1], self.main_arm[-1], w=True)
-        x = 0
+        count = 0
         for a in self.main_arm:
-            cmds.xform(a, ws=True, t=self.position[arm_key[x]])
-            x += 1
+            cmds.xform(a, ws=True, t=self.position[arm_key[count]])
+            count += 1
         cmds.parent(self.main_arm[-1], self.main_arm[1])
         cmds.parent(self.main_arm[1], self.main_arm[0])
 
@@ -106,10 +108,33 @@ class Arm:
         cmds.select(cl=True)
 
     def set_ik(self):
-        # first duplicate chain and replace jnt suffix to ik
-        # create zeroed out controls
-        #
-        pass
+        arm_copy = cmds.listRelatives(cmds.duplicate(self.main_arm[0])[0], ad=True, f=True)
+        arm_copy.append(list(filter(None, arm_copy[0].split('|')))[0])
+        self.name.sort(reverse=True)
+        ik_chain = None
+        for jnt, new in zip(arm_copy, self.name):
+            ik_chain = cmds.listRelatives(cmds.rename(jnt, '{}_IK'.format(new)), ad=True, f=True)
+            self.name.sort()
+        ik_chain.append(list(filter(None, ik_chain[0].split('|')))[0])
+        ik_chain.sort()
+
+        ctr = mCore.Control()
+
+        ctr.zero_out(['null', 'cube'], ['hrc', 'ctr'], [ik_chain[-1]])
+        ctr.toggle_control()
+        hand_ctr = list(ctr.group)[0]
+
+        ctr.zero_out(['null', 'null', 'diamond'], ['hrc', 'srt', 'ctr'], [ik_chain[1]])
+        ctr.toggle_control()
+        pole_ctr = list(ctr.group)[0]
+
+        ctr.zero_out(['null'], ['hrc'], [ik_chain[0]])
+        ik_chain = list(ctr.new_object)[0]
+
+        # pole vector position:
+        point_a = mCore.utility.create_vector(self.position['Arm'])
+        point_b = mCore.utility.create_vector(self.position['ForeArm'])
+        point_c = mCore.utility.create_vector(self.position['Hand'])
 
     def set_fk(self):
         pass
