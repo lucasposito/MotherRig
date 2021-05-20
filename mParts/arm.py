@@ -107,6 +107,26 @@ class Arm:
             cmds.makeIdentity(b, a=True, t=1, r=1, s=1, n=0)
         cmds.select(cl=True)
 
+    def access(self, element):
+        return
+
+    def _pole_vector(self):
+        point_a = mCore.utility.create_vector(self.position['Arm'])
+        point_b = mCore.utility.create_vector(self.position['ForeArm'])
+        point_c = mCore.utility.create_vector(self.position['Hand'])
+
+        vector_ab = point_b - point_a
+        vector_ac = point_c - point_a
+        ac_normal = vector_ac.normalize()
+
+        proj_length = vector_ab * ac_normal
+        proj_vector = (ac_normal * proj_length) + point_a
+
+        vector_pb = point_b - proj_vector
+        pb_normal = vector_pb.normalize()
+        pole_position = point_b + (pb_normal * 10)
+        return pole_position
+
     def set_ik(self):
         arm_copy = cmds.listRelatives(cmds.duplicate(self.main_arm[0])[0], ad=True, f=True)
         arm_copy.append(list(filter(None, arm_copy[0].split('|')))[0])
@@ -129,12 +149,24 @@ class Arm:
         pole_ctr = list(ctr.group)[0]
 
         ctr.zero_out(['null'], ['hrc'], [ik_chain[0]])
-        ik_chain = list(ctr.new_object)[0]
+        ik_chain = list(ctr.new_object)
+        temp = cmds.listRelatives(ik_chain, ad=True, f=True)
+        temp.sort()
+        ik_chain.extend(temp)
 
-        # pole vector position:
-        point_a = mCore.utility.create_vector(self.position['Arm'])
-        point_b = mCore.utility.create_vector(self.position['ForeArm'])
-        point_c = mCore.utility.create_vector(self.position['Hand'])
+        srt_group = list(filter(None, pole_ctr.split('|')[:-1]))
+        pole_position = self._pole_vector()
+        cmds.move(pole_position.x, pole_position.y, pole_position.z, '|'.join(srt_group), ws=True)
+
+        for copy, main in zip(ik_chain[:-1], self.main_arm[:-1]):
+            cmds.parentConstraint(copy, main)
+        cmds.parentConstraint(hand_ctr, self.main_arm[-1])
+
+        pre_ik_handle = cmds.ikHandle(sj=ik_chain[0], ee=ik_chain[-1])
+        ik_handle = cmds.rename(pre_ik_handle[0], '{}_hdl'.format(self.name[-1]))
+        cmds.poleVectorConstraint(pole_ctr, ik_handle)
+        cmds.parent(ik_handle, hand_ctr)
+        cmds.select(cl=True)
 
     def set_fk(self):
         pass

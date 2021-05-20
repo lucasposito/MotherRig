@@ -1,4 +1,4 @@
-import maya.OpenMaya as om
+import maya.api.OpenMaya as om2
 import maya.cmds as cmds
 
 
@@ -110,7 +110,7 @@ def object_position(obj):
 
 
 def create_vector(pos):
-    vector = om.MVector(pos[0], pos[1], pos[2])
+    vector = om2.MVector(pos[0], pos[1], pos[2])
     return vector
 
 
