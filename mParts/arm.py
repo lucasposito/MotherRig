@@ -4,39 +4,57 @@ import mCore
 
 
 class Arm:
-    def __init__(self, points=None, name=None):
-        self.main_arm = []
+    def __init__(self, objects=None, name=None):
         self._toggle = False
+        self.main_arm = []
         self.position = {}
-        if len(points) is not 3:
-            raise ValueError('Please select three objects')
-        self.selected = points
-        self.suffix = 'jnt'
         self.name = name
+
+        if objects is None:
+            self.selected = cmds.ls(sl=True, l=True)
+        else:
+            self.selected = objects
+        if len(self.selected) != 3:
+            raise ValueError('Please select three objects')
+        self.suffix = 'jnt'
+
         self._get_position()
         self._limb_name()
         self._set_limbo()
 
     def _limb_name(self):
+        index = 0
         if self.name is None:
-            self.name = ['Arm', 'ForeArm', 'Hand']
-        elif self.name[-1].isdigit():
-            root = '{}Arm{}'.format(self.name[:-5], self.name[-2:])
-            mid = '{}ForeArm{}'.format(self.name[:-5], self.name[-2:])
-            end = '{}Hand{}'.format(self.name[:-5], self.name[-2:])
+            self.name = self.selected[0].split('|')[-1]
+
+        for each in reversed(self.name):
+            if not each.isdigit():
+                break
+            index += 1
+
+        if index != 0:
+            number = self.name[-index:]
+            name = self.name[:-index]
+            if name[-3:] == 'Arm':
+                name = name[:-3]
+            root = '{}Arm{}'.format(name, number)
+            mid = '{}ForeArm{}'.format(name, number)
+            end = '{}Hand{}'.format(name, number)
             self.name = [root, mid, end]
-        else:
-            root = '{}Arm'.format(self.name[:-3])
-            mid = '{}ForeArm'.format(self.name[:-3])
-            end = '{}Hand'.format(self.name[:-3])
-            self.name = [root, mid, end]
+            return
+
+        if self.name[-3:] == 'Arm':
+            self.name = self.name[:-3]
+
+        root = '{}Arm'.format(self.name)
+        mid = '{}ForeArm'.format(self.name)
+        end = '{}Hand'.format(self.name)
+        self.name = [root, mid, end]
 
     def _get_position(self):
         arm_key = ['Arm', 'ForeArm', 'Hand']
-        count = 0
-        for a in self.selected:
-            self.position[arm_key[count]] = cmds.xform(a, q=True, ws=True, t=True)
-            count += 1
+        for name, obj in zip(arm_key, self.selected):
+            self.position[name] = cmds.xform(obj, q=True, ws=True, t=True)
 
     def _set_limbo(self):
         cmds.xform(cmds.spaceLocator(p=self.position['ForeArm']), cp=True)
