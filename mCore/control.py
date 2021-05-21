@@ -73,6 +73,8 @@ class Control(object):
                 if len(temp) != 0:
                     cmds.parent(pre_element, '|'.join(temp))
                 grp_temp = temp + [pre_element]
+                print(grp_temp)
+
                 cmds.parent(obj, '|'.join(grp_temp))
                 temp.extend(['{}_{}'.format(current[-1], su), current[-1]])
                 new = '|'.join(temp)
@@ -81,7 +83,7 @@ class Control(object):
                 for child in self.new_object[:index]:
                     previous = list(filter(None, child.split('|')))
                     intersected = [value for value in current if value in previous]
-                    if len(intersected) == 0:
+                    if len(intersected) != len(current):
                         continue
                     prev_index = self.new_object.index(child)
                     sec_temp = temp + [value for value in previous if value not in current]

@@ -142,7 +142,7 @@ class Arm:
 
         vector_pb = point_b - proj_vector
         pb_normal = vector_pb.normalize()
-        pole_position = point_b + (pb_normal * 10)
+        pole_position = point_b + (pb_normal * 20)
         return pole_position
 
     def set_ik(self):

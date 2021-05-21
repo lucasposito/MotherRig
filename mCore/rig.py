@@ -144,3 +144,5 @@ def create_rig(*args):
             new_arm = mParts.Arm(['{}_root_{}'.format(node.name, _NEW_RIG_.suffix),
                                   '{}_mid_{}'.format(node.name, _NEW_RIG_.suffix),
                                   '{}_end_{}'.format(node.name, _NEW_RIG_.suffix)], node.name)
+            if node.capsule.attributes[4] == 'IK':
+                new_arm.set_ik()

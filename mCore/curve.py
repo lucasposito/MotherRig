@@ -128,4 +128,4 @@ def quad_arrow(name='quadArrow_ctr'):
 
 def circle(name='circle_ctr'):
     curve_object = cmds.circle(n=name, r=1, nr=(0, 1, 0), ch=False)
-    return curve_object
+    return curve_object[0]
