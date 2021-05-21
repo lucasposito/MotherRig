@@ -18,7 +18,7 @@ class Control(object):
         # add the possibility of changing the element to add in between
         old_name = name.split('|')[-1]
         old_name = old_name.split('_')
-        if len(old_name[-1]) == 3:
+        if old_name[-1] in mCore.universal_suffix:
             del (old_name[-1])
         pre_name = '_'.join(old_name)
         return pre_name
@@ -73,10 +73,9 @@ class Control(object):
                 if len(temp) != 0:
                     cmds.parent(pre_element, '|'.join(temp))
                 grp_temp = temp + [pre_element]
-                print(grp_temp)
 
                 cmds.parent(obj, '|'.join(grp_temp))
-                temp.extend(['{}_{}'.format(current[-1], su), current[-1]])
+                temp.extend(['{}_{}'.format(self._edit_suffix(current[-1]), su), current[-1]])
                 new = '|'.join(temp)
 
                 self.new_object[index] = new
