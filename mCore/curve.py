@@ -4,8 +4,10 @@ import maya.cmds as cmds
 color_value = {'grey': 3, 'blue': 6, 'red': 13, 'yellow': 17, 'lightBlue': 18, 'rose': 20, 'green': 28}
 
 
-def curve_color(value=6):
+def curve_color(value):
     object_list = cmds.listRelatives(cmds.ls(sl=True, l=True), s=True, f=True)
+    if not object_list:
+        return
     for each in object_list:
         cmds.setAttr('{}.overrideEnabled'.format(each), 1)
         cmds.setAttr('{}.overrideColor'.format(each), value)
