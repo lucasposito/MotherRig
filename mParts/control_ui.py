@@ -1,6 +1,7 @@
 import maya.OpenMayaUI as omui
 import mCore
 import re
+import mIcon
 from PySide2 import QtWidgets
 from PySide2 import QtCore
 from PySide2 import QtGui
@@ -64,15 +65,54 @@ class ControlUI(QtWidgets.QDialog):
         self.zero_out_button.setMinimumHeight(40)
 
         # -------RIGHT SIDE------- #
+        size = 40
         self.circle_button = QtWidgets.QPushButton()
-        self.circle_button.setIcon(QtGui.QIcon('circle2.png'))
+        self.circle_button.setMaximumWidth(size)
+        self.circle_button.setMaximumHeight(size)
+        self.circle_button.setStyleSheet('background-image: url(:circle.png)')
+        self.circle_button.setToolTip('circle')
+
         self.drop_button = QtWidgets.QPushButton()
+        self.drop_button.setMaximumWidth(size)
+        self.drop_button.setMaximumHeight(size)
+        self.drop_button.setStyleSheet('background-image: url(:cone.png)')
+        self.drop_button.setToolTip('drop')
+
         self.diamond_button = QtWidgets.QPushButton()
+        self.diamond_button.setMaximumWidth(size)
+        self.diamond_button.setMaximumHeight(size)
+        self.diamond_button.setStyleSheet('background-image: url(:polyPlatonic.png)')
+        self.diamond_button.setToolTip('diamond')
+
         self.knot_button = QtWidgets.QPushButton()
+        self.knot_button.setMaximumWidth(size)
+        self.knot_button.setMaximumHeight(size)
+        self.knot_button.setStyleSheet('background-image: url(:sphere.png)')
+        self.knot_button.setToolTip('knot')
+
         self.square_button = QtWidgets.QPushButton()
+        self.square_button.setMaximumWidth(size)
+        self.square_button.setMaximumHeight(size)
+        self.square_button.setStyleSheet('background-image: url(:square.png)')
+        self.square_button.setToolTip('square')
+
         self.star_button = QtWidgets.QPushButton()
+        self.star_button.setMaximumWidth(size)
+        self.star_button.setMaximumHeight(size)
+        self.star_button.setStyleSheet('background-image: url(:polySuperEllipse.png)')
+        self.star_button.setToolTip('star')
+
         self.quadarrow_button = QtWidgets.QPushButton()
+        self.quadarrow_button.setMaximumWidth(size)
+        self.quadarrow_button.setMaximumHeight(size)
+        self.quadarrow_button.setStyleSheet('background-image: url(:move_M.png)')
+        self.quadarrow_button.setToolTip('quad_arrow')
+
         self.cube_button = QtWidgets.QPushButton()
+        self.cube_button.setMaximumWidth(size)
+        self.cube_button.setMaximumHeight(size)
+        self.cube_button.setStyleSheet('background-image: url(:cube.png)')
+        self.cube_button.setToolTip('cube')
 
         self.color_1_button = QtWidgets.QPushButton()
         self.color_1_button.setStyleSheet('background-color: #2b2b2b')
