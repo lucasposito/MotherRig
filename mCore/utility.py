@@ -15,8 +15,49 @@ def clean_namespaces():
     for d in diff:
         cmds.namespace(removeNamespace=d + ":", mergeNamespaceWithRoot=True)
     print('All namespaces deleted')
-    
-    
+
+
+def limb_name(limb, name=None):
+    final_name = name
+    selected = cmds.ls(sl=True, l=True)
+
+    if limb == 'Arm':
+        size = 3
+        chain = ['Arm', 'ForeArm', 'Hand']
+    elif limb == 'Leg':
+        size = 5
+        chain = ['UpLeg', 'Leg', 'Foot']
+    else:
+        return
+
+    index = 0
+    if final_name is None:
+        final_name = selected[0].split('|')[-1]
+
+    for each in reversed(final_name):
+        if not each.isdigit():
+            break
+        index += 1
+
+    if index != 0:
+        number = final_name[-index:]
+        final_name = final_name[:-index]
+        if final_name[-size:] == chain[0]:
+            final_name = final_name[:-size]
+        root = '{}{}{}'.format(final_name, chain[0], number)
+        mid = '{}{}{}'.format(final_name, chain[1], number)
+        end = '{}{}{}'.format(final_name, chain[2], number)
+        return [root, mid, end]
+
+    if final_name[-size:] == chain[0]:
+        final_name = final_name[:-size]
+
+    root = '{}{}'.format(final_name, chain[0])
+    mid = '{}{}'.format(final_name, chain[1])
+    end = '{}{}'.format(final_name, chain[2])
+    return [root, mid, end]
+
+
 def manipulate_name(full_name, action=None, name=None, position=None, separator='_'):
     if not full_name:
         return
@@ -74,6 +115,7 @@ def joint_hierarchy():
         temp = cmds.objectType(obj)
         if temp == 'joint':
             return True
+
     skeleton = []
     parent = cmds.ls(sl=True, l=True)
     upper_parent = cmds.listRelatives(p=True, f=True)

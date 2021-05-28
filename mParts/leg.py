@@ -3,12 +3,12 @@ import maya.cmds as cmds
 import mCore
 
 
-class Arm:
+class Leg:
     def __init__(self, objects=None, name=None):
         self._toggle = False
         self.main = []
         self.position = {}
-        self.name = mCore.utility.limb_name('Arm', name)
+        self.name = mCore.utility.limb_name('Leg', name)
 
         self.inner_plug = None
         self.outer_plug = None
@@ -24,27 +24,27 @@ class Arm:
         self._set_main()
 
     def _get_position(self):
-        arm_key = ['Arm', 'ForeArm', 'Hand']
+        arm_key = ['UpLeg', 'Leg', 'Foot']
         for name, obj in zip(arm_key, self.selected):
             self.position[name] = cmds.xform(obj, q=True, ws=True, t=True)
 
     def _set_main(self):
-        cmds.xform(cmds.spaceLocator(p=self.position['ForeArm']), cp=True)
+        cmds.xform(cmds.spaceLocator(p=self.position['Leg']), cp=True)
         locator = cmds.ls(sl=True, l=True)
         cmds.select(d=True)
-        self.main.append(cmds.joint(n='{}_{}'.format(self.name[0], mCore.universal_suffix[-1]), p=self.position['Arm']))
-        self.main.append(cmds.joint(n='{}_{}'.format(self.name[1], mCore.universal_suffix[-1]), p=self.position['ForeArm']))
-        self.main.append(cmds.joint(n='{}_{}'.format(self.name[2], mCore.universal_suffix[-1]), p=self.position['Hand']))
+        self.main.append(cmds.joint(n='{}_{}'.format(self.name[0], mCore.universal_suffix[-1]), p=self.position['UpLeg']))
+        self.main.append(cmds.joint(n='{}_{}'.format(self.name[1], mCore.universal_suffix[-1]), p=self.position['Leg']))
+        self.main.append(cmds.joint(n='{}_{}'.format(self.name[2], mCore.universal_suffix[-1]), p=self.position['Foot']))
         cmds.joint(self.main[0], e=True, oj="yxz", sao="xup", ch=True, zso=True)
         self._orient(locator)
 
     def _orient(self, locator):
-        wrist = self.position['Hand']
+        foot = self.position['Foot']
         for a in self.main:
             cmds.setAttr(a + '.jointOrient', 0, 0, 0)
         cmds.setAttr('{}.preferredAngleX'.format(self.main[1]), 90)
         ik_handle = cmds.ikHandle(sj=self.main[0], ee=self.main[-1])
-        cmds.move(wrist[0], wrist[1], wrist[-1], a=True)
+        cmds.move(foot[0], foot[1], foot[-1], a=True)
         cmds.poleVectorConstraint(locator, ik_handle[0])
         cmds.delete(locator)
         for b in self.main:
@@ -53,57 +53,15 @@ class Arm:
         cmds.setAttr('{}.preferredAngleX'.format(self.main[1]), 0)
 
     def reset_proxy(self):
-        self.selected = cmds.ls(sl=True, l=True)
-        cmds.select(cl=True)
-        if len(self.selected) is not 3:
-            raise ValueError('Please select three objects')
+        pass
 
     def reset_main(self):
-        arm_key = ['Arm', 'ForeArm', 'Hand']
-        count = 0
-        try:
-            for a in self.selected:
-                self.position[arm_key[count]] = cmds.xform(a, q=True, ws=True, t=True)
-                count += 1
-        except ValueError:
-            raise ValueError('Proxy is missing, please reset it')
-
-        cmds.xform(cmds.spaceLocator(p=self.position['ForeArm']), cp=True)
-        locator = cmds.ls(sl=True, l=True)
-        cmds.select(d=True)
-
-        cmds.parent(self.main[1], self.main[-1], w=True)
-        count = 0
-        for a in self.main:
-            cmds.xform(a, ws=True, t=self.position[arm_key[count]])
-            count += 1
-        cmds.parent(self.main[-1], self.main[1])
-        cmds.parent(self.main[1], self.main[0])
-
-        cmds.joint(self.main[0], e=True, oj="yxz", sao="xup", ch=True, zso=True)
-        self._orient(locator)
-        if self._toggle:
-            self.toggle_orient()
-            self._toggle = True
-
-    def toggle_orient(self):
-        self._toggle = not self._toggle
-        cmds.parent(self.main[1], self.main[-1], w=True)
-        for a in self.main:
-            cmds.setAttr('{}.rotateX'.format(a), 180)
-        cmds.parent(self.main[-1], self.main[1])
-        cmds.parent(self.main[1], self.main[0])
-        for b in self.main:
-            cmds.makeIdentity(b, a=True, t=1, r=1, s=1, n=0)
-        cmds.select(cl=True)
-
-    def access(self, element):
-        return
+        pass
 
     def _pole_vector(self):
-        point_a = mCore.utility.create_vector(self.position['Arm'])
-        point_b = mCore.utility.create_vector(self.position['ForeArm'])
-        point_c = mCore.utility.create_vector(self.position['Hand'])
+        point_a = mCore.utility.create_vector(self.position['UpLeg'])
+        point_b = mCore.utility.create_vector(self.position['Leg'])
+        point_c = mCore.utility.create_vector(self.position['Foot'])
 
         vector_ab = point_b - point_a
         vector_ac = point_c - point_a
@@ -118,11 +76,11 @@ class Arm:
         return pole_position
 
     def set_ik(self):
-        arm_copy = cmds.listRelatives(cmds.duplicate(self.main[0])[0], ad=True, f=True)
-        arm_copy.append(list(filter(None, arm_copy[0].split('|')))[0])
+        leg_copy = cmds.listRelatives(cmds.duplicate(self.main[0])[0], ad=True, f=True)
+        leg_copy.append(list(filter(None, leg_copy[0].split('|')))[0])
         self.name.sort(reverse=True)
         ik_chain = None
-        for jnt, new in zip(arm_copy, self.name):
+        for jnt, new in zip(leg_copy, self.name):
             ik_chain = cmds.listRelatives(cmds.rename(jnt, '{}_IK'.format(new)), ad=True, f=True)
         self.name.sort()
         ik_chain.append(list(filter(None, ik_chain[0].split('|')))[0])
@@ -132,7 +90,7 @@ class Arm:
 
         ctr.zero_out(['null', 'cube'], ['hrc', 'ctr'], [ik_chain[-1]])
         ctr.toggle_control()
-        hand_ctr = list(ctr.group)[0]
+        foot_ctr = list(ctr.group)[0]
 
         ctr.zero_out(['null', 'null', 'diamond'], ['hrc', 'srt', 'ctr'], [ik_chain[1]])
         ctr.toggle_control()
@@ -150,15 +108,15 @@ class Arm:
 
         for copy, main in zip(ik_chain[:-1], self.main[:-1]):
             cmds.parentConstraint(copy, main)
-        cmds.parentConstraint(hand_ctr, self.main[-1])
+        cmds.parentConstraint(foot_ctr, self.main[-1])
 
         pre_ik_handle = cmds.ikHandle(sj=ik_chain[0], ee=ik_chain[-1])
         ik_handle = cmds.rename(pre_ik_handle[0], '{}_hdl'.format(self.name[-1]))
         cmds.poleVectorConstraint(pole_ctr, ik_handle)
-        cmds.parent(ik_handle, hand_ctr)
+        cmds.parent(ik_handle, foot_ctr)
 
         hrc_pole_group = list(filter(None, pole_ctr.split('|')))[0]
-        hrc_hand_group = list(filter(None, hand_ctr.split('|')))[0]
+        hrc_hand_group = list(filter(None, foot_ctr.split('|')))[0]
         outer_group = cmds.group(hrc_pole_group, hrc_hand_group, n='{}_grp'.format(self.name[0]))
         cmds.select(cl=True)
 
