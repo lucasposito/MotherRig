@@ -22,10 +22,8 @@ def limb_name(limb, name=None):
     selected = cmds.ls(sl=True, l=True)
 
     if limb == 'Arm':
-        size = 3
         chain = ['Arm', 'ForeArm', 'Hand']
     elif limb == 'Leg':
-        size = 5
         chain = ['UpLeg', 'Leg', 'Foot']
     else:
         return
@@ -42,15 +40,15 @@ def limb_name(limb, name=None):
     if index != 0:
         number = final_name[-index:]
         final_name = final_name[:-index]
-        if final_name[-size:] == chain[0]:
-            final_name = final_name[:-size]
+        if final_name[-3:] == limb:
+            final_name = final_name[:-3]
         root = '{}{}{}'.format(final_name, chain[0], number)
         mid = '{}{}{}'.format(final_name, chain[1], number)
         end = '{}{}{}'.format(final_name, chain[2], number)
         return [root, mid, end]
 
-    if final_name[-size:] == chain[0]:
-        final_name = final_name[:-size]
+    if final_name[-3:] == limb:
+        final_name = final_name[:-3]
 
     root = '{}{}'.format(final_name, chain[0])
     mid = '{}{}'.format(final_name, chain[1])

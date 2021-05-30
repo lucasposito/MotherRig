@@ -60,7 +60,7 @@ class Structure(object):
         result.capsule.name_node = name
         result.capsule.attributes = data
 
-        if data[3] == 'Arm':
+        if data[3] == 'Arm' or data[3] == 'Leg':
             proxy = mCore.curve.pyramid('{}_{}'.format(result.name, self.suffix))
             root = mCore.curve.proxy('{}_root_{}'.format(result.name, self.suffix))
             mid = mCore.curve.proxy('{}_mid_{}'.format(result.name, self.suffix))
@@ -141,8 +141,13 @@ def create_rig(*args):
     for key in _NEW_RIG_.modules:
         node = _NEW_RIG_.modules[key]
         if node.capsule.attributes[3] == 'Arm':
-            new_arm = mParts.Arm(['{}_root_{}'.format(node.name, _NEW_RIG_.suffix),
-                                  '{}_mid_{}'.format(node.name, _NEW_RIG_.suffix),
-                                  '{}_end_{}'.format(node.name, _NEW_RIG_.suffix)], node.name)
-            if node.capsule.attributes[4] == 'IK':
-                new_arm.set_ik()
+            node.capsule.rig = mParts.Arm(['{}_root_{}'.format(node.name, _NEW_RIG_.suffix),
+                                           '{}_mid_{}'.format(node.name, _NEW_RIG_.suffix),
+                                           '{}_end_{}'.format(node.name, _NEW_RIG_.suffix)], node.name)
+        elif node.capsule.attributes[3] == 'Leg':
+            node.capsule.rig = mParts.Leg(['{}_root_{}'.format(node.name, _NEW_RIG_.suffix),
+                                           '{}_mid_{}'.format(node.name, _NEW_RIG_.suffix),
+                                           '{}_end_{}'.format(node.name, _NEW_RIG_.suffix)], node.name)
+
+        if node.capsule.attributes[4] == 'IK':
+            node.capsule.rig.set_ik()
