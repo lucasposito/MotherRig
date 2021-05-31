@@ -78,11 +78,11 @@ class Leg:
     def set_ik(self):
         leg_copy = cmds.listRelatives(cmds.duplicate(self.main[0])[0], ad=True, f=True)
         leg_copy.append(list(filter(None, leg_copy[0].split('|')))[0])
-        self.name.sort(reverse=True)
+        self.name.sort()
         ik_chain = None
         for jnt, new in zip(leg_copy, self.name):
             ik_chain = cmds.listRelatives(cmds.rename(jnt, '{}_IK'.format(new)), ad=True, f=True)
-        self.name.sort()
+        self.name.sort(reverse=True)
         ik_chain.append(list(filter(None, ik_chain[0].split('|')))[0])
         ik_chain.sort()
 
