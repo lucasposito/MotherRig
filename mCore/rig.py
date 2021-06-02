@@ -11,6 +11,8 @@ class Structure(object):
     def __init__(self):
         self._mother = mCore.Tree()
         self._naming = mCore.Tree()
+
+        self._mother.separator = '|'
         self.suffix = 'pxy'
         self.modules = {}
 
@@ -20,10 +22,17 @@ class Structure(object):
             return
         if mCore.utility.manipulate_name(selected[0], 'check', self.suffix, -1) is True:
             new_name = mCore.utility.manipulate_name(selected[0], 'delete', position=-1)
+            part = None
+            for each in ['root', 'mid', 'end']:
+                if mCore.utility.manipulate_name(selected[0], 'check', each, -1) is True:
+                    part = each
+                    break
+            if part:
+                new_name = mCore.utility.manipulate_name(new_name, 'delete', position=-1)
             node = self._naming.find_node(new_name)
             if isinstance(node, tuple):
                 node = None
-            return node
+            return node, part
 
     def execute(self):
         pass
@@ -74,30 +83,30 @@ class Structure(object):
         cmds.select(cl=True)
         return result
 
-    def add_module(self, data):
-        char_name = data[0]
-        selection = self._check_selection()
-        if not selection:
-            if char_name:
-                parent_result = self._naming.create_node(char_name)
-                cmds.group(n='{}_{}'.format(parent_result.name, self.suffix), em=True)
-                node = self._prepare_node('{}_{}{}'.format(parent_result.name, data[2], data[3]), data)
-                return node
-            node = self._prepare_node('{}{}'.format(data[2], data[3]), data)
-            return node
-        if selection:
-            if char_name:
-                if not mCore.utility.manipulate_name(selection.name, 'find', char_name):
-                    parent_result = self._naming.create_node('{}_{}'.format(selection.name, char_name))
-                    cmds.group(n='{}_{}'.format(parent_result.name, self.suffix), em=True)
-                    node = self._prepare_node('{}_{}{}'.format(parent_result.name, data[2], data[3]), data)
-                    return node
-                node = self._prepare_node('{}_{}{}'.format(selection.name, data[2], data[3]), data)
-                return node
-
-            if not char_name:
-                node = self._prepare_node('{}_{}{}'.format(selection.name, data[2], data[3]), data)
-                return node
+    # def add_module(self, data):
+    #     char_name = data[0]
+    #     selection = self._check_selection()
+    #     if not selection:
+    #         if char_name:
+    #             parent_result = self._naming.create_node(char_name)
+    #             cmds.group(n='{}_{}'.format(parent_result.name, self.suffix), em=True)
+    #             node = self._prepare_node('{}_{}{}'.format(parent_result.name, data[2], data[3]), data)
+    #             return node
+    #         node = self._prepare_node('{}{}'.format(data[2], data[3]), data)
+    #         return node
+    #     if selection:
+    #         if char_name:
+    #             if not mCore.utility.manipulate_name(selection.name, 'find', char_name):
+    #                 parent_result = self._naming.create_node('{}_{}'.format(selection.name, char_name))
+    #                 cmds.group(n='{}_{}'.format(parent_result.name, self.suffix), em=True)
+    #                 node = self._prepare_node('{}_{}{}'.format(parent_result.name, data[2], data[3]), data)
+    #                 return node
+    #             node = self._prepare_node('{}_{}{}'.format(selection.name, data[2], data[3]), data)
+    #             return node
+    #
+    #         if not char_name:
+    #             node = self._prepare_node('{}_{}{}'.format(selection.name, data[2], data[3]), data)
+    #             return node
 
         # print(name_result.name)
         # John and LeftArm
@@ -111,6 +120,43 @@ class Structure(object):
         # these two pieces will have to be connected (it'll be stored in a variable)
         # this variable has to have a name connected to the module named after the generated name
         # where I can access it later by its new name
+
+    def add_module(self, data):
+        char_name = data[0]
+        selection = self._check_selection()
+        if not selection[0]:
+            if char_name:
+                parent_result = self._naming.create_node(char_name)
+                cmds.group(n='{}_{}'.format(parent_result.name, self.suffix), em=True)
+                node = self._prepare_node('{}_{}{}'.format(parent_result.name, data[2], data[3]), data)
+                self.test(node, selection)
+                return node
+            node = self._prepare_node('{}{}'.format(data[2], data[3]), data)
+            return node
+        if selection[0]:
+            # selected needs to give start or end node
+            plug_node = None
+            if selection[-1] == 'end':
+                plug_node = selection[0].capsule.end_node
+            else:
+                plug_node = selection[0].capsule.start_node
+            # I need to check if the parent is new
+            temp = self._mother.create_node('{}|{}{}'.format(plug_node.name, data[2], data[3]))
+
+
+
+            if char_name:
+                if not mCore.utility.manipulate_name(selection.name, 'find', char_name):
+                    parent_result = self._naming.create_node('{}_{}'.format(selection.name, char_name))
+                    cmds.group(n='{}_{}'.format(parent_result.name, self.suffix), em=True)
+                    node = self._prepare_node('{}_{}{}'.format(parent_result.name, data[2], data[3]), data)
+                    return node
+                node = self._prepare_node('{}_{}{}'.format(selection.name, data[2], data[3]), data)
+                return node
+
+            if not char_name:
+                node = self._prepare_node('{}_{}{}'.format(selection.name, data[2], data[3]), data)
+                return node
 
 
 def create_proxy(info, *args):
