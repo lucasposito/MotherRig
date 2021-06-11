@@ -2,6 +2,7 @@
 class LeafNode(object):
     def __init__(self):
         self.name = None  # it's the path as well character|module|side|extra
+        self.group_node = False
         self.child_group = []  # unique child will have counter, [node, 1]
         # for siblings with same name, eg: None <-- John <--> John02 <--> John03 --> None
         self.parent = None
@@ -11,7 +12,7 @@ class LeafNode(object):
 
 class CapsuleNode(object):
     def __init__(self):
-        self.name_node = None
+        self.short_name = None
         self.start_node = None
         self.end_node = None
         self.rig = None

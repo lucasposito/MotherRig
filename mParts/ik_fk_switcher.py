@@ -32,8 +32,8 @@ class IKFK(object):
         self.limbs = ['Leg', 'Arm']
         self.side = ['Left', 'Right']
 
-        self.leg_module = ['Foot', 'Leg', 'UpLeg', 'Foot_IK', 'Leg_pole']
-        self.arm_module = ['Hand', 'ForeArm', 'Arm', 'Hand_IK', 'ForeArm_pole']
+        self.leg_module = ['Foot', 'Leg', 'UpLeg', 'Foot_IK', 'Leg_IK']
+        self.arm_module = ['Hand', 'ForeArm', 'Arm', 'Hand_IK', 'ForeArm_IK']
 
         self.start_frame = None
         self.end_frame = None
