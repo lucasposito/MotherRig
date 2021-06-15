@@ -24,7 +24,7 @@ class Structure(object):
         if mCore.utility.manipulate_name(selected[0], 'check', self.suffix, -1) is True:
             new_name = mCore.utility.manipulate_name(selected[0], 'delete', position=-1)
             part_name = None
-            for each in ['root', 'mid', 'end']:
+            for each in ['root', 'mid', 'end', 'left', 'right']:
                 if mCore.utility.manipulate_name(new_name, 'check', each, -1) is True:
                     part_name = each
                     break
@@ -77,10 +77,14 @@ class Structure(object):
             root = mCore.curve.proxy('{}_root_{}'.format(result.name, self.suffix))
             mid = mCore.curve.proxy('{}_mid_{}'.format(result.name, self.suffix))
             end = mCore.curve.proxy('{}_end_{}'.format(result.name, self.suffix))
-            cmds.move(rd(position[0] + 5, position[0]), rd(position[1] + 10, position[1] + 5), rd(position[2], position[2]), proxy)
-            cmds.move(rd(position[0] + 5, position[0]), rd(position[1], position[1]), rd(position[2], position[2]), root)
-            cmds.move(rd(position[0] + 15, position[0] + 10), rd(position[1], position[1]), rd(position[2], position[2]), mid)
-            cmds.move(rd(position[0] + 25, position[0] + 20), rd(position[1], position[1]), rd(position[2], position[2]), end)
+            cmds.move(rd(position[0] + 5, position[0]), rd(position[1] + 10, position[1] + 5),
+                      rd(position[2], position[2]), proxy)
+            cmds.move(rd(position[0] + 5, position[0]), rd(position[1], position[1]), rd(position[2], position[2]),
+                      root)
+            cmds.move(rd(position[0] + 15, position[0] + 10), rd(position[1], position[1]),
+                      rd(position[2], position[2]), mid)
+            cmds.move(rd(position[0] + 25, position[0] + 20), rd(position[1], position[1]),
+                      rd(position[2], position[2]), end)
             cmds.parent([root, mid, end], proxy)
 
             cmds.select(cl=True)
@@ -90,39 +94,66 @@ class Structure(object):
             proxy = mCore.curve.pyramid('{}_{}'.format(result.name, self.suffix))
             root = mCore.curve.proxy('{}_root_{}'.format(result.name, self.suffix))
             end = mCore.curve.proxy('{}_end_{}'.format(result.name, self.suffix))
-            cmds.move(rd(position[0] + 5, position[0]), rd(position[1] + 10, position[1] + 5), rd(position[2], position[2]), proxy)
-            cmds.move(rd(position[0], position[0]), rd(position[1] + 5, position[1]), rd(position[2], position[2]), root)
-            cmds.move(rd(position[0], position[0]), rd(position[1] + 25, position[1] + 20), rd(position[2], position[2]), end)
-            cmds.parent([root, end], proxy)
+
+            left = mCore.curve.proxy('{}_left_{}'.format(result.name, self.suffix))
+            right = mCore.curve.proxy('{}_right_{}'.format(result.name, self.suffix))
+            cmds.move(rd(position[0] + 5, position[0]), rd(position[1] + 10, position[1] + 5),
+                      rd(position[2], position[2]), proxy)
+            cmds.move(rd(position[0], position[0]), rd(position[1] + 5, position[1]), rd(position[2], position[2]),
+                      root)
+            cmds.move(rd(position[0], position[0]), rd(position[1] + 25, position[1] + 20),
+                      rd(position[2], position[2]), end)
+            cmds.move(rd(position[0] + 10, position[0] + 5), rd(position[1] + 25, position[1] + 20),
+                      rd(position[2], position[2]), left)
+            cmds.move(rd(position[0] - 10, position[0] - 5), rd(position[1] + 25, position[1] + 20),
+                      rd(position[2], position[2]), right)
+
+            cmds.parent([root, end, left, right], proxy)
 
             cmds.select(cl=True)
             return result
 
     def add_module(self, data):
         char_name = data[0]
+        module = '{}{}'.format(data[2], data[3])
+        if data[2] == 'Center':
+            module = data[3]
         selection = self._check_selection()
+
+        def spine_wings(main_node, parent_node):
+            object_left = self._objects_tree.create_node('{}|{}_left'.format(parent_node, module))
+            object_right = self._objects_tree.create_node('{}|{}_right'.format(parent_node, module))
+
+            main_node.capsule.left_node = object_left
+            main_node.capsule.left_node = object_right
+            return main_node
+
         if not selection:
             if char_name:
                 shape_parent = self._shapes_tree.create_node(char_name)
                 shape_parent.group_node = True
-                node = self._prepare_node('{}_{}{}'.format(char_name, data[2], data[3]), data)
+                node = self._prepare_node('{}_{}'.format(char_name, module), data)
 
                 object_parent = self._objects_tree.create_node('{}'.format(char_name))
-                object_start = self._objects_tree.create_node('{}|{}{}_start'.format(object_parent, data[2], data[3]))
-                object_end = self._objects_tree.create_node('{}|{}{}_end'.format(object_start, data[2], data[3]))
+                object_start = self._objects_tree.create_node('{}|{}_start'.format(object_parent, module))
+                object_end = self._objects_tree.create_node('{}|{}_end'.format(object_start, module))
 
                 node.capsule.start_node = object_start
                 node.capsule.end_node = object_end
+                if data[3] == 'Spine':
+                    node = spine_wings(node, object_start)
                 return node
 
-            node = self._prepare_node('{}{}'.format(data[2], data[3]), data)
+            node = self._prepare_node('{}'.format(module), data)
             node.group_node = True
 
-            object_start = self._objects_tree.create_node('{}{}_start'.format(data[2], data[3]))
-            object_end = self._objects_tree.create_node('{}|{}{}_end'.format(object_start, data[2], data[3]))
+            object_start = self._objects_tree.create_node('{}_start'.format(module))
+            object_end = self._objects_tree.create_node('{}|{}_end'.format(object_start, module))
 
             node.capsule.start_node = object_start
             node.capsule.end_node = object_end
+            if data[3] == 'Spine':
+                node = spine_wings(node, object_start)
             return node
 
         if selection[0]:
@@ -133,6 +164,12 @@ class Structure(object):
             if selection[-1] == 'end':
                 plug_node = selection[0].capsule.end_node
                 plug_name = 'end'
+            elif selection[-1] == 'left':
+                plug_node = selection[0].capsule.left_node
+                plug_name = 'left'
+            elif selection[-1] == 'right':
+                plug_node = selection[0].capsule.right_node
+                plug_name = 'right'
             else:
                 plug_node = selection[0].capsule.start_node
                 plug_name = 'root'
@@ -144,38 +181,47 @@ class Structure(object):
                 if not mCore.utility.manipulate_name(selection_name, 'find', char_name):
                     shape_parent = self._shapes_tree.create_node('{}_{}'.format(selection_name, char_name))
                     shape_parent.group_node = True
-                    plug_trans = cmds.xform('{}_{}_pxy'.format(selection_name, plug_name), q=True, ws=True, piv=True)[0:3]
-                    node = self._prepare_node('{}_{}{}'.format(shape_parent.name, data[2], data[3]), data, plug_trans)
+                    plug_trans = cmds.xform('{}_{}_pxy'.format(selection_name, plug_name), q=True, ws=True, piv=True)[
+                                 0:3]
+                    node = self._prepare_node('{}_{}'.format(shape_parent.name, module), data, plug_trans)
                     cmds.parent('{}_pxy'.format(node.name), '{}_{}_pxy'.format(selection_name, plug_name))
 
                     object_parent = self._objects_tree.create_node('{}|{}'.format(plug_node.name, char_name))
-                    object_start = self._objects_tree.create_node('{}|{}{}_start'.format(object_parent.name, data[2], data[3]))
-                    object_end = self._objects_tree.create_node('{}|{}{}_end'.format(object_start.name, data[2], data[3]))
+                    object_start = self._objects_tree.create_node(
+                        '{}|{}_start'.format(object_parent.name, module))
+                    object_end = self._objects_tree.create_node(
+                        '{}|{}_end'.format(object_start.name, module))
 
                     node.capsule.start_node = object_start
                     node.capsule.end_node = object_end
+                    if data[3] == 'Spine':
+                        node = spine_wings(node, object_start)
                     return node
 
                 # here is the shit
                 plug_trans = cmds.xform('{}_{}_pxy'.format(selection_name, plug_name), q=True, ws=True, piv=True)[0:3]
-                node = self._prepare_node('{}_{}{}'.format(parent_group.name, data[2], data[3]), data, plug_trans)
+                node = self._prepare_node('{}_{}'.format(parent_group.name, module), data, plug_trans)
                 cmds.parent('{}_pxy'.format(node.name), '{}_{}_pxy'.format(selection[0].name, plug_name))
-                object_start = self._objects_tree.create_node('{}|{}{}_start'.format(plug_node.name, data[2], data[3]))
-                object_end = self._objects_tree.create_node('{}|{}{}_end'.format(object_start.name, data[2], data[3]))
+                object_start = self._objects_tree.create_node('{}|{}_start'.format(plug_node.name, module))
+                object_end = self._objects_tree.create_node('{}|{}_end'.format(object_start.name, module))
 
                 node.capsule.start_node = object_start
                 node.capsule.end_node = object_end
+                if data[3] == 'Spine':
+                    node = spine_wings(node, object_start)
                 return node
 
             if not char_name:
                 plug_trans = cmds.xform('{}_{}_pxy'.format(selection_name, plug_name), q=True, ws=True, piv=True)[0:3]
-                node = self._prepare_node('{}_{}{}'.format(parent_group.name, data[2], data[3]), data, plug_trans)
+                node = self._prepare_node('{}_{}'.format(parent_group.name, module), data, plug_trans)
                 cmds.parent('{}_pxy'.format(node.name), '{}_{}_pxy'.format(selection[0].name, plug_name))
-                object_start = self._objects_tree.create_node('{}|{}{}_start'.format(plug_node.name, data[2], data[3]))
-                object_end = self._objects_tree.create_node('{}|{}{}_end'.format(object_start.name, data[2], data[3]))
+                object_start = self._objects_tree.create_node('{}|{}_start'.format(plug_node.name, module))
+                object_end = self._objects_tree.create_node('{}|{}_end'.format(object_start.name, module))
 
                 node.capsule.start_node = object_start
                 node.capsule.end_node = object_end
+                if data[3] == 'Spine':
+                    node = spine_wings(node, object_start)
                 return node
 
 
@@ -214,6 +260,11 @@ def create_rig(*args):
             node.capsule.rig = mParts.Leg(['{}_root_{}'.format(node.name, _NEW_RIG_.suffix),
                                            '{}_mid_{}'.format(node.name, _NEW_RIG_.suffix),
                                            '{}_end_{}'.format(node.name, _NEW_RIG_.suffix)], node.name)
+        elif node.capsule.attributes[3] == 'Spine':
+            node.capsule.rig = mParts.Spine(['{}_root_{}'.format(node.name, _NEW_RIG_.suffix),
+                                             '{}_end_{}'.format(node.name, _NEW_RIG_.suffix),
+                                             '{}_left_{}'.format(node.name, _NEW_RIG_.suffix),
+                                             '{}_right_{}'.format(node.name, _NEW_RIG_.suffix)], node.name)
 
         if node.capsule.attributes[4] == 'IK':
             node.capsule.rig.set_ik()

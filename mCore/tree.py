@@ -15,6 +15,8 @@ class CapsuleNode(object):
         self.short_name = None
         self.start_node = None
         self.end_node = None
+        self.left_node = None
+        self.right_node = None
         self.rig = None
         self.attributes = None  # [name, order, side, module, type, size]
 

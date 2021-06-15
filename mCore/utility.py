@@ -56,6 +56,52 @@ def limb_name(limb, name=None):
     return [root, mid, end]
 
 
+def chain_name(element, name=None):
+    final_name = name
+    selected = cmds.ls(sl=True, l=True)
+
+    extra_clean = None
+
+    if element == 'Spine':
+        name_len = 5
+        chain = ['Hips', 'Spine', 'LeftShoulder', 'RightShoulder']
+    else:
+        return
+
+    index = 0
+    if final_name is None:
+        final_name = selected[0].split('|')[-1]
+
+    for each in reversed(final_name):
+        if not each.isdigit():
+            break
+        index += 1
+
+    if index != 0:
+        number = final_name[-index:]
+        final_name = final_name[:-index]
+        if final_name[-name_len:] == element:
+            final_name = final_name[:-name_len]
+        if extra_clean == final_name[-5:]:
+            final_name = final_name[:-5]
+        root = '{}{}{}'.format(final_name, chain[0], number)
+        end = '{}{}{}'.format(final_name, chain[1], number)
+        left = '{}{}{}'.format(final_name, chain[2], number)
+        right = '{}{}{}'.format(final_name, chain[-1], number)
+        return [root, end, left, right]
+
+    if final_name[-name_len:] == element:
+        final_name = final_name[:-name_len]
+    if extra_clean == final_name[-5:]:
+        final_name = final_name[:-5]
+
+    root = '{}{}'.format(final_name, chain[0])
+    end = '{}{}'.format(final_name, chain[1])
+    left = '{}{}'.format(final_name, chain[2])
+    right = '{}{}'.format(final_name, chain[-1])
+    return [root, end, left, right]
+
+
 def manipulate_name(full_name, action=None, name=None, position=None, separator='_'):
     if not full_name:
         return
