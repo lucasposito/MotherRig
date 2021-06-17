@@ -131,3 +131,39 @@ def quad_arrow(name='quadArrow_ctr'):
 def circle(name='circle_ctr'):
     curve_object = cmds.circle(n=name, r=1, nr=(0, 1, 0), ch=False)
     return curve_object[0]
+
+
+def replace(shape):
+    selected = cmds.ls(sl=True)
+
+    for each in selected:
+        if shape == 'circle':
+            curve = circle()
+        elif shape == 'drop':
+            return
+        elif shape == 'diamond':
+            curve = diamond()
+        elif shape == 'knot':
+            curve = knot()
+        elif shape == 'square':
+            return
+        elif shape == 'star':
+            return
+        elif shape == 'quad_arrow':
+            curve = quad_arrow()
+        elif shape == 'cube':
+            curve = cube()
+        else:
+            return
+
+        each_shape = cmds.listRelatives(each, s=True, f=True)
+        curve_shape = cmds.listRelatives(curve, s=True, f=True)
+
+        null = cmds.group(em=True)
+        cmds.parent(each_shape, null, r=True, s=True)
+        cmds.delete(null)
+
+        cmds.rename(curve_shape, '{}Shape'.format(each))
+        cmds.parent(cmds.listRelatives(curve, s=True, f=True), each, r=True, s=True)
+        cmds.delete(curve)
+    cmds.select(selected, r=True)

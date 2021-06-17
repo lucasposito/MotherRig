@@ -1,6 +1,8 @@
 import maya.api.OpenMaya as om2
 import maya.cmds as cmds
 
+import mCore
+
 
 def clean_namespaces():
     refs = cmds.file(q=True, r=True)
@@ -176,6 +178,80 @@ def joint_hierarchy():
                 if joint_type(each) is True:
                     skeleton.append(each)
             return skeleton
+
+
+def pose_reader(order):
+    a = cmds.ls(sl=True, l=True)
+    b = cmds.listRelatives(p=True, f=True)
+    cmds.select(cl=True)
+    rotation_order = ['xyz', 'xzy', 'yxz', 'yzx', 'zxy', 'zyx']
+    main_axis = order[0].capitalize()
+    sec_axis = order[-1].capitalize()
+
+    if order not in rotation_order:
+        raise ValueError('Please insert a valued axis order')
+    elif len(a) is not 1:
+        raise ValueError('Please select only one object')
+
+    pre_suffix = a[0].split('|')[-1].split('_')
+    if pre_suffix[-1] in mCore.universal_suffix:
+        pre_suffix.pop(-1)
+    pre_name = '_'.join(pre_suffix)
+
+    position = cmds.xform(a, q=True, ws=True, piv=True)[0:3]
+    rotation = cmds.xform(a, q=True, ws=True, ro=True)
+    nodes = ['pose_main', 'pose_target', 'pose_up', 'twist_main',
+             'twist_target', 'twist_up']
+    suffix = ['hrc', 'loc', 'cst']
+
+    # main
+    main = cmds.group(n='{0}_{1}_{2}'.format(pre_name, nodes[0], suffix[1]), em=True)
+    cmds.xform(r=True, t=position, ro=rotation)
+    cmds.parent(main, a)
+    main_parent = cmds.group(n='{0}_{1}_{2}'.format(pre_name, nodes[0], suffix[0]))
+    cmds.setAttr('{0}.translate{1}'.format(main_parent, main_axis), -1)
+
+    # target
+    target = cmds.group(n='{0}_{1}_{2}'.format(pre_name, nodes[1], suffix[1]), em=True)
+    cmds.xform(r=True, t=position, ro=rotation)
+    cmds.parent(target, a)
+    target_parent = cmds.group(n='{0}_{1}_{2}'.format(pre_name, nodes[1], suffix[0]))
+    cmds.setAttr('{0}.translate{1}'.format(target_parent, main_axis), 1)
+
+    # up
+    up = cmds.group(n='{0}_{1}_{2}'.format(pre_name, nodes[2], suffix[1]), em=True)
+    cmds.xform(r=True, t=position, ro=rotation)
+    cmds.parent(up, a)
+    up_parent = cmds.group(n='{0}_{1}_{2}'.format(pre_name, nodes[2], suffix[0]))
+    cmds.setAttr('{0}.translate{1}'.format(up_parent, main_axis), -1)
+    cmds.setAttr('{0}.translate{1}'.format(up_parent, sec_axis), -0.5)
+
+    # twist_main
+    twist_main = cmds.group(n='{0}_{1}_{2}'.format(pre_name, nodes[3], suffix[1]), em=True)
+    cmds.xform(r=True, t=position, ro=rotation)
+    cmds.parent(twist_main, a)
+    cmds.group(n='{0}_{1}_{2}'.format(pre_name, nodes[3], suffix[0]))
+    twist_main_parent = cmds.group(n='{0}_{1}_{2}'.format(pre_name, nodes[3], suffix[-1]))
+    twist_parent = cmds.group(n='{0}_twist_{1}'.format(pre_name, suffix[0]))
+
+    # twist_target
+    twist_target = cmds.group(n='{0}_{1}_{2}'.format(pre_name, nodes[4], suffix[1]), em=True)
+    cmds.xform(r=True, t=position, ro=rotation)
+    cmds.parent(twist_target, a)
+    twist_target_parent = cmds.group(n='{0}_{1}_{2}'.format(pre_name, nodes[4], suffix[0]))
+    cmds.setAttr('{0}.translate{1}'.format(twist_target_parent, sec_axis), -1)
+
+    # twist_up
+    twist_up = cmds.group(n='{0}_{1}_{2}'.format(pre_name, nodes[5], suffix[1]), em=True)
+    cmds.xform(r=True, t=position, ro=rotation)
+    cmds.parent(twist_up, twist_main_parent)
+    twist_up_parent = cmds.group(n='{0}_{1}_{2}'.format(pre_name, nodes[5], suffix[0]))
+    cmds.setAttr('{0}.translate{1}'.format(twist_up_parent, main_axis), -0.5)
+
+    if b is None:
+        cmds.parent(main_parent, up_parent, twist_parent, w=True)
+    else:
+        cmds.parent(main_parent, up_parent, twist_parent, b)
 
 
 def object_size(obj):
