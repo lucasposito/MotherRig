@@ -146,7 +146,7 @@ def replace(shape):
         elif shape == 'knot':
             curve = knot()
         elif shape == 'square':
-            return
+            curve = square()
         elif shape == 'star':
             return
         elif shape == 'quad_arrow':

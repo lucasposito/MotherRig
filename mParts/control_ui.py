@@ -14,7 +14,6 @@ def maya_main_window():
 
 
 class ControlUI(QtWidgets.QDialog):
-
     ui_instance = None
 
     @classmethod
@@ -30,6 +29,8 @@ class ControlUI(QtWidgets.QDialog):
 
     def __init__(self, parent=maya_main_window()):
         super(ControlUI, self).__init__(parent)
+
+        self._shapes = {0: 'circle', 1: 'drop', 2: 'diamond', 3: 'knot', 4: 'square', 5: 'star', 6: 'quad_arrow', 7: 'cube'}
 
         self.setWindowTitle("Zero Out Control")
         self.control = mCore.Control()
@@ -114,6 +115,8 @@ class ControlUI(QtWidgets.QDialog):
         self.cube_button.setStyleSheet('background-image: url(:cube.png)')
         self.cube_button.setToolTip('cube')
 
+        self.replace_checkbox = QtWidgets.QCheckBox('Replace Shape')
+
         self.color_1_button = QtWidgets.QPushButton()
         self.color_1_button.setStyleSheet('background-color: #2b2b2b')
         self.color_2_button = QtWidgets.QPushButton()
@@ -165,6 +168,9 @@ class ControlUI(QtWidgets.QDialog):
         lower_layout.addWidget(self.quadarrow_button)
         lower_layout.addWidget(self.cube_button)
 
+        replace_layout = QtWidgets.QHBoxLayout()
+        replace_layout.addWidget(self.replace_checkbox)
+
         color_layout = QtWidgets.QHBoxLayout()
         color_layout.addWidget(self.color_1_button)
         color_layout.addWidget(self.color_2_button)
@@ -189,6 +195,7 @@ class ControlUI(QtWidgets.QDialog):
         right_layout = QtWidgets.QVBoxLayout()
         right_layout.addLayout(upper_curve_layout)
         right_layout.addLayout(lower_layout)
+        right_layout.addLayout(replace_layout)
         right_layout.addLayout(color_layout)
         right_layout.addLayout(scale_layout)
 
@@ -226,6 +233,10 @@ class ControlUI(QtWidgets.QDialog):
         self.scale_up_button.clicked.connect(lambda: self._curve_size(1.2))
 
     def _curve_shape(self, shape):
+        if self.replace_checkbox.isChecked():
+            mCore.curve.replace(self._shapes[shape])
+            return
+
         if shape == 0:
             mCore.curve.circle()
         elif shape == 1:
@@ -235,7 +246,7 @@ class ControlUI(QtWidgets.QDialog):
         elif shape == 3:
             mCore.curve.knot()
         elif shape == 4:
-            print('square')
+            mCore.curve.square()
         elif shape == 5:
             print('star')
         elif shape == 6:
