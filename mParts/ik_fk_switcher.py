@@ -1,4 +1,5 @@
 import maya.cmds as cmds
+import maya.api.OpenMaya as om
 import maya.OpenMayaUI as omui
 from PySide2 import QtWidgets
 from PySide2 import QtCore
@@ -23,8 +24,6 @@ def maya_main_window():
 
 class IKFK(object):
     def __init__(self):
-        # Look inside namespaces
-        # Working by selection too
         # Name order: Character _ Side + Limb _ Suffix
         self.suffix = 'ctr'
         self.separator = ':'
@@ -40,8 +39,9 @@ class IKFK(object):
 
         self._modules = []
         self._content = {}
-        # mParts = ['John_LeftLeg', 'John_RightLeg', 'John_LeftArm', 'John_RightArm']
-        # content = {'John_LeftLeg':['John_LeftFoot', 'John_LeftLeg', 'John_LeftFoot_IK',
+        self._selection = {}
+        # _modules = ['John_LeftLeg', 'John_RightLeg', 'John_LeftArm', 'John_RightArm']
+        # _content = {'John_LeftLeg':['John_LeftFoot', 'John_LeftLeg', 'John_LeftFoot_IK',
         # 'John_LeftKnee_pole'], 'John_RightLeg':['John_RightFoot', 'John_RightLeg', 'John_RightFoot_IK',
         # 'John_RightKnee_pole'], 'John_LeftArm', 'John_RightArm'}
 
@@ -66,33 +66,34 @@ class IKFK(object):
                     self._modules.append(fk_control)
                     mod_element = [pre_mod + a for a in temp]
                     self._content[fk_control] = mod_element
+                    for obj in mod_element:
+                        control = '{}_{}'.format(obj, self.suffix)
+                        self._selection[control] = fk_control
 
     def check_selection(self):
         selection = cmds.ls(sl=True)
-        modules = []
-        name = None
-        if len(selection) == 0:
-            return self._modules
+        selected = []
+        mods = []
         for each in selection:
-            try:
-                cache = each.split(self.separator)
-                name = '{0}_{1}'.format(cache[0], cache[1])
-            except ValueError:
-                cache = each.split('_')
-                name = cache[0]
-            if name in self._modules:
-                modules.append(name)
-                return modules
-        print(modules)
+            if each in self._selection:
+                selected.append(each)
+        if len(selected) != 0:
+            for each in selected:
+                if self._selection[each] in mods:
+                    continue
+                mods.append(self._selection[each])
+            return mods
         return self._modules
 
     def match_tip(self, position, rotation, main_object, fk=False):
-        if fk is True:
+        if fk:
             driver = 3
             driven = 0
-        elif fk is False:
+        elif not fk:
             driver = 0
             driven = 3
+        else:
+            return
 
         temp_group = cmds.group(em=True)
         cmds.move(position[0], position[1], position[2], temp_group)
@@ -108,23 +109,64 @@ class IKFK(object):
         cmds.delete(temp_aim)
         cmds.delete(temp_group)
 
-    def match_ik_to_fk(self):
-        self.check_selection()
-        for mod in self._modules:
+    # def _pole_vector(self, root, mid, end):
+    #     point_a = om.MVector(root[0], root[1], root[2])
+    #     point_b = om.MVector(mid[0], mid[1], mid[2])
+    #     point_c = om.MVector(end[0], end[1], end[2])
+    #
+    #     vector_ab = point_b - point_a
+    #     vector_ac = point_c - point_a
+    #     ac_normal = vector_ac.normalize()
+    #
+    #     proj_length = vector_ab * ac_normal
+    #     proj_vector = (ac_normal * proj_length) + point_a
+    #
+    #     vector_pb = point_b - proj_vector
+    #     pb_normal = vector_pb.normalize()
+    #     pole_position = point_b + (pb_normal * 10)
+    #     return pole_position.x, pole_position.y, pole_position.z
+
+    def _pole_vector(self, root, mid, end):
+        point_a = om.MVector(root[0], root[1], root[2])
+        point_b = om.MVector(mid[0], mid[1], mid[2])
+        point_c = om.MVector(end[0], end[1], end[2])
+
+        vector_ac = (point_c - point_a)
+        vector_ab = (point_b - point_a)
+
+        scale_value = (vector_ac * vector_ab) / (vector_ac * vector_ac)
+        new_vector = vector_ac * scale_value + point_a
+
+        length_ab = (point_b - point_a).length()
+        length_bc = (point_c - point_b).length()
+        total_length = length_ab + length_bc
+
+        pole_position = (point_b - new_vector).normal() * total_length + point_b
+
+        return pole_position.x, pole_position.y, pole_position.z
+
+    def match_ik_to_fk(self, mods=None):
+        if not mods:
+            mods = self.check_selection()
+
+        for mod in mods:
             try:
                 # Query FK position
+                root = cmds.xform('{0}_{1}'.format(self._content[mod][2], self.suffix), q=True, ws=True, piv=True)[0:3]
+                mid = cmds.xform('{0}_{1}'.format(self._content[mod][1], self.suffix), q=True, ws=True, piv=True)[0:3]
                 tip = cmds.xform('{0}_{1}'.format(self._content[mod][0], self.suffix), q=True, ws=True, piv=True)[0:3]
                 tip_rotation = cmds.xform('{0}_{1}'.format(self._content[mod][0], self.suffix), q=True, ws=True, ro=True)
-                mid = cmds.xform('{0}_{1}'.format(self._content[mod][1], self.suffix), q=True, ws=True, piv=True)[0:3]
 
+                pole = self._pole_vector(root, mid, tip)
                 # Move IK to FK
                 cmds.move(tip[0], tip[1], tip[2], '{0}_{1}'.format(self._content[mod][3], self.suffix))
-                cmds.move(mid[0], mid[1], mid[2], '{0}_{1}'.format(self._content[mod][4], self.suffix))
+                cmds.move(pole[0], pole[1], pole[2], '{0}_{1}'.format(self._content[mod][4], self.suffix))
                 self.match_tip(tip, tip_rotation, mod)
             except ValueError:
                 print('Module {} has failed'.format(mod))
 
     def bake_ik_to_fk(self):
+        mods = self.check_selection()
         playback_start = self.start_frame
         playback_end = self.end_frame
         timeline = range(int(playback_start), int(playback_end))
@@ -137,16 +179,19 @@ class IKFK(object):
                 cmds.currentTime(frame, edit=True)
 
                 cmds.cutKey(controllers, time=(frame, frame), option="keys")
-                self.match_ik_to_fk()
+                self.match_ik_to_fk(mods)
                 cmds.setKeyframe(controllers, hi='none', at=['translate', 'rotate'], s=False, t=frame)
             cmds.delete(controllers, sc=True)
         except ValueError:
-            print('Make sure the names of the mParts are correct')
+            print('Make sure the names of the modules are correct')
         except KeyboardInterrupt:
             pass
 
-    def match_fk_to_ik(self):
-        for mod in self._modules:
+    def match_fk_to_ik(self, mods=None):
+        if not mods:
+            mods = self.check_selection()
+
+        for mod in mods:
             try:
                 # Query IK rotation
                 root_rot = cmds.getAttr('{0}_{1}.rotate'.format(self._content[mod][2], self.ik_suffix))[0]
@@ -163,6 +208,7 @@ class IKFK(object):
                 print('Module {} has failed'.format(mod))
 
     def bake_fk_to_ik(self):
+        mods = self.check_selection()
         playback_start = self.start_frame
         playback_end = self.end_frame
         timeline = range(int(playback_start), int(playback_end))
@@ -177,11 +223,11 @@ class IKFK(object):
                 cmds.currentTime(frame, edit=True)
                 cmds.cutKey(controllers, time=(frame, frame), option="keys")
 
-                self.match_fk_to_ik()
+                self.match_fk_to_ik(mods)
                 cmds.setKeyframe(controllers, hi='none', at=['translate', 'rotate'], s=False, t=frame)
             cmds.delete(controllers, sc=True)
         except ValueError:
-            print('Make sure the names of the mParts are correct')
+            print('Make sure the names of the modules are correct')
 
 
 class ikfkUI(QtWidgets.QDialog):

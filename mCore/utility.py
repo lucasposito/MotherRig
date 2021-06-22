@@ -1,4 +1,4 @@
-import maya.api.OpenMaya as om2
+import maya.api.OpenMaya as om
 import maya.cmds as cmds
 
 import mCore
@@ -272,7 +272,7 @@ def object_position(obj):
 
 
 def create_vector(pos):
-    vector = om2.MVector(pos[0], pos[1], pos[2])
+    vector = om.MVector(pos[0], pos[1], pos[2])
     return vector
 
 
