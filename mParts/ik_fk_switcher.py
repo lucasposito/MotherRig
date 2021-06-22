@@ -37,6 +37,7 @@ class IKFK(object):
         self.start_frame = None
         self.end_frame = None
 
+        self.temp_new_mods = []
         self._modules = []
         self._content = {}
         self._selection = {}
@@ -51,6 +52,7 @@ class IKFK(object):
 
     @characters.setter
     def characters(self, char):
+        self.temp_new_mods = []
         for sid in self.side:
             for limb in self.limbs:
                 pre_mod = '{0}{1}{2}'.format(char, self.separator, sid)
@@ -65,6 +67,7 @@ class IKFK(object):
                 if cmds.objExists('{0}_{1}'.format(fk_control, self.suffix)) and cmds.objExists('{0}_{1}'.format(ik_control, self.suffix)) and fk_control not in self._modules:
                     self._modules.append(fk_control)
                     mod_element = [pre_mod + a for a in temp]
+                    self.temp_new_mods.append(fk_control)
                     self._content[fk_control] = mod_element
                     for obj in mod_element:
                         control = '{}_{}'.format(obj, self.suffix)
@@ -251,9 +254,11 @@ class ikfkUI(QtWidgets.QDialog):
         self.setWindowTitle("IK FK Switcher")
         self.ik_fk = IKFK()
         self.width = 280
-        self.setFixedSize(self.width + 10, 180)
-        self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
         self.setMinimumWidth(self.width)
+        self.setMaximumWidth(self.width + 10)
+        self.setMinimumHeight(self.width)
+
+        self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
 
         self.start_frame = int(cmds.playbackOptions(q=True, minTime=True))
         self.ik_fk.start_frame = self.start_frame
@@ -276,6 +281,17 @@ class ikfkUI(QtWidgets.QDialog):
         self.add_char_button = QtWidgets.QPushButton('ADD')
         self.add_char_button.setMaximumWidth(35)
         self.add_char_button.setMinimumHeight(30)
+
+        self.table = QtWidgets.QTableWidget()
+        self.table.setColumnCount(1)
+        self.table.setHorizontalHeaderLabels(['Modules Detected'])
+        header_view = self.table.horizontalHeader()
+        header_view.setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
+
+        self.custom_button = QtWidgets.QPushButton('CUSTOMIZE')
+        self.custom_button.setMaximumWidth(70)
+        self.clear_button = QtWidgets.QPushButton('CLEAR')
+        self.clear_button.setMaximumWidth(70)
 
         self.start_frame_field = QtWidgets.QLineEdit(str(self.start_frame))
         self.start_frame_field.setMaximumWidth(60)
@@ -327,8 +343,15 @@ class ikfkUI(QtWidgets.QDialog):
         header_layout.addLayout(separator_field)
         header_layout.addLayout(add_button_layout)
 
+        extra_buttons_layout = QtWidgets.QHBoxLayout()
+        extra_buttons_layout.addStretch()
+        extra_buttons_layout.addWidget(self.custom_button)
+        extra_buttons_layout.addWidget(self.clear_button)
+
         main_layout = QtWidgets.QVBoxLayout(self)
         main_layout.addLayout(header_layout)
+        main_layout.addWidget(self.table)
+        main_layout.addLayout(extra_buttons_layout)
         main_layout.addLayout(frame_layout)
         main_layout.addLayout(match_layout)
         main_layout.addLayout(bake_layout)
@@ -337,6 +360,8 @@ class ikfkUI(QtWidgets.QDialog):
         self.name_field.returnPressed.connect(self.add_character)
         self.separator_field.returnPressed.connect(self.add_character)
         self.add_char_button.clicked.connect(self.add_character)
+
+        self.clear_button.clicked.connect(self.clear_modules)
 
         self.start_frame_field.textChanged.connect(self.set_start_frame)
         self.end_frame_field.textChanged.connect(self.set_end_frame)
@@ -352,12 +377,25 @@ class ikfkUI(QtWidgets.QDialog):
     def set_end_frame(self):
         self.ik_fk.end_frame = int(self.end_frame_field.text())
 
+    def clear_modules(self):
+        self.ik_fk.temp_new_mods = []
+        self.ik_fk._modules = []
+        self.ik_fk._content = {}
+        self.ik_fk._selection = {}
+        self.table.clear()
+        self.table.setRowCount(0)
+        self.table.setHorizontalHeaderLabels(['Modules Detected'])
+
     def add_character(self):
         name = self.name_field.text()
         sep = self.separator_field.text()
         self.ik_fk.separator = sep
         self.ik_fk.characters = name
-        print('\n\n--------Detected mParts:--------\n')
-        for mod in self.ik_fk.characters:
-            print(mod)
-        print('\n---------------------------------\n')
+
+        for i in range(len(self.ik_fk.temp_new_mods)):
+            self.table.insertRow(i)
+            self.insert_item(i, 0, self.ik_fk.temp_new_mods[i])
+
+    def insert_item(self, row, column, text):
+        item = QtWidgets.QTableWidgetItem(text)
+        self.table.setItem(row, column, item)
