@@ -169,6 +169,8 @@ class IKFK(object):
                 print('Module {} has failed'.format(mod))
 
     def bake_ik_to_fk(self):
+        if len(self._modules) == 0:
+            return
         mods = self.check_selection()
         playback_start = self.start_frame
         playback_end = self.end_frame
@@ -211,6 +213,8 @@ class IKFK(object):
                 print('Module {} has failed'.format(mod))
 
     def bake_fk_to_ik(self):
+        if len(self._modules) == 0:
+            return
         mods = self.check_selection()
         playback_start = self.start_frame
         playback_end = self.end_frame
