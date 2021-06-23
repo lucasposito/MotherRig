@@ -58,21 +58,39 @@ class Leg:
     def reset_main(self):
         pass
 
+    # def _pole_vector(self):
+    #     point_a = mCore.utility.create_vector(self.position['UpLeg'])
+    #     point_b = mCore.utility.create_vector(self.position['Leg'])
+    #     point_c = mCore.utility.create_vector(self.position['Foot'])
+    #
+    #     vector_ab = point_b - point_a
+    #     vector_ac = point_c - point_a
+    #     ac_normal = vector_ac.normalize()
+    #
+    #     proj_length = vector_ab * ac_normal
+    #     proj_vector = (ac_normal * proj_length) + point_a
+    #
+    #     vector_pb = point_b - proj_vector
+    #     pb_normal = vector_pb.normalize()
+    #     pole_position = point_b + (pb_normal * 20)
+    #     return pole_position
+
     def _pole_vector(self):
         point_a = mCore.utility.create_vector(self.position['UpLeg'])
         point_b = mCore.utility.create_vector(self.position['Leg'])
         point_c = mCore.utility.create_vector(self.position['Foot'])
 
-        vector_ab = point_b - point_a
-        vector_ac = point_c - point_a
-        ac_normal = vector_ac.normalize()
+        vector_ac = (point_c - point_a)
+        vector_ab = (point_b - point_a)
 
-        proj_length = vector_ab * ac_normal
-        proj_vector = (ac_normal * proj_length) + point_a
+        scale_value = (vector_ac * vector_ab) / (vector_ac * vector_ac)
+        new_vector = vector_ac * scale_value + point_a
 
-        vector_pb = point_b - proj_vector
-        pb_normal = vector_pb.normalize()
-        pole_position = point_b + (pb_normal * 20)
+        length_ab = (point_b - point_a).length()
+        length_bc = (point_c - point_b).length()
+        total_length = length_ab + length_bc
+
+        pole_position = (point_b - new_vector).normal() * total_length + point_b
         return pole_position
 
     def set_ik(self):
