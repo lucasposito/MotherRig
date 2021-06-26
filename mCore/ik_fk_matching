@@ -1,0 +1,62 @@
+global string $fk_root_ctr = "Arm_ctr";
+global string $fk_mid_ctr = "ForeArm_ctr";
+global string $fk_end_ctr = "Hand_ctr";
+
+global string $ik_root_jnt = "Arm_IK_jnt";
+global string $ik_mid_jnt = "Arm_IK_jnt";
+
+global string $ik_mid_ctr = "ForeArm_IK_ctr";
+global string $ik_end_ctr = "Hand_IK_ctr";
+
+
+proc float[] pole_vector(float $root[], float $mid[], float $end[]){
+    vector $point_a = <<$root[0], $root[1], $root[2]>>;
+    vector $point_b = <<$mid[0], $mid[1], $mid[2]>>;
+    vector $point_c = <<$end[0], $end[1], $end[2]>>;
+
+    vector $vector_ac = $point_c - $point_a;
+    vector $vector_ab = $point_b - $point_a;
+
+    vector $normal_ac = unit($vector_ac);
+
+    float $projLength = dot($vector_ab, $normal_ac);
+    vector $mid_vector = ($normal_ac * $projLength) + $point_a;
+
+    vector $pole_vector = $point_b - $mid_vector;
+    vector $normal_pole = unit($pole_vector);
+
+    float $length = mag($vector_ab);
+    vector $final_pole = $point_b + ($normal_pole * $length);
+
+    float $pole_position[] = {$final_pole.x, $final_pole.y, $final_pole.z};
+    return $pole_position;
+}
+
+
+proc match_ik_to_fk(){
+    global string $fk_root_ctr;
+    global string $fk_mid_ctr;
+    global string $fk_end_ctr;
+    global string $ik_mid_ctr;
+
+    float $root_pos[] = `xform -q -ws -piv $fk_root_ctr`;
+    float $mid_pos[] = `xform -q -ws -piv $fk_mid_ctr`;
+    float $end_pos[] = `xform -q -ws -piv $fk_end_ctr`;
+
+    float $pole_position[] = pole_vector($root_pos, $mid_pos, $end_pos);
+    move $pole_position[0] $pole_position[1] $pole_position[2] $ik_mid_ctr;
+}
+
+
+proc match_fk_to_ik(){
+
+}
+
+
+proc match_tip(){
+
+}
+
+// fk toggle is on, delete ik scriptjob if exists and create fk scriptJob
+// else delete fk scriptjob and create ik scriptjob
+int $upper_fk_arm = `scriptJob -attributeChange ($fk_root_ctr + ".rotate") "move_pole"`;
