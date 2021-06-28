@@ -88,64 +88,36 @@ class IKFK(object):
             return mods
         return self._modules
 
-    def match_tip(self, position, rotation, main_object, fk=False):
-        if fk:
-            driver = 3
-            driven = 0
-        elif not fk:
+    def match_tip(self, main_object, fk=False):
+        if not fk:
             driver = 0
             driven = 3
         else:
-            return
+            driver = 3
+            driven = 0
 
-        temp_group = cmds.group(em=True)
-        cmds.move(position[0], position[1], position[2], temp_group)
-        cmds.xform(temp_group, ro=tuple(rotation))
-        cmds.parent(temp_group, '{0}_{1}'.format(self._content[main_object][driver], self.suffix))
-        cmds.move(10, temp_group, z=True, ls=True)
-        temp_aim = cmds.aimConstraint(temp_group, '{0}_{1}'.format(self._content[main_object][driven], self.suffix), w=True, aim=[0, 0, 1], u=[0, 1, 0],
-                                      wut='objectrotation', wu=[0, 1, 0], wuo=temp_group)
+        temp_constraint = cmds.parentConstraint('{}_{}'.format(self._content[main_object][driver], self.suffix),
+                                                '{}_{}'.format(self._content[main_object][driven], self.suffix))
+        if cmds.keyframe('{0}_{1}'.format(self._content[main_object][driven], self.suffix), query=True, at=['translate', 'rotate'], vc=True) is not None:
+            cmds.setKeyframe('{0}_{1}'.format(self._content[main_object][driven], self.suffix), hi='none', at=['translate', 'rotate'], s=False)
 
-        if cmds.keyframe('{0}_{1}'.format(self._content[main_object][driven], self.suffix), query=True, at='rotate', vc=True) is not None:
-            cmds.setKeyframe('{0}_{1}'.format(self._content[main_object][driven], self.suffix), hi='none', at='rotate', s=False)
-
-        cmds.delete(temp_aim)
-        cmds.delete(temp_group)
-
-    # def _pole_vector(self, root, mid, end):
-    #     point_a = om.MVector(root[0], root[1], root[2])
-    #     point_b = om.MVector(mid[0], mid[1], mid[2])
-    #     point_c = om.MVector(end[0], end[1], end[2])
-    #
-    #     vector_ab = point_b - point_a
-    #     vector_ac = point_c - point_a
-    #     ac_normal = vector_ac.normalize()
-    #
-    #     proj_length = vector_ab * ac_normal
-    #     proj_vector = (ac_normal * proj_length) + point_a
-    #
-    #     vector_pb = point_b - proj_vector
-    #     pb_normal = vector_pb.normalize()
-    #     pole_position = point_b + (pb_normal * 10)
-    #     return pole_position.x, pole_position.y, pole_position.z
+        cmds.delete(temp_constraint)
 
     def _pole_vector(self, root, mid, end):
         point_a = om.MVector(root[0], root[1], root[2])
         point_b = om.MVector(mid[0], mid[1], mid[2])
         point_c = om.MVector(end[0], end[1], end[2])
 
-        vector_ac = (point_c - point_a)
-        vector_ab = (point_b - point_a)
+        vector_ab = point_b - point_a
+        vector_ac = point_c - point_a
+        ac_normal = vector_ac.normalize()
 
-        scale_value = (vector_ac * vector_ab) / (vector_ac * vector_ac)
-        new_vector = vector_ac * scale_value + point_a
+        proj_length = vector_ab * ac_normal
+        proj_vector = (ac_normal * proj_length) + point_a
 
-        length_ab = (point_b - point_a).length()
-        length_bc = (point_c - point_b).length()
-        total_length = length_ab + length_bc
-
-        pole_position = (point_b - new_vector).normal() * total_length + point_b
-
+        vector_pb = point_b - proj_vector
+        pb_normal = vector_pb.normalize()
+        pole_position = point_b + (pb_normal * vector_ab.length())
         return pole_position.x, pole_position.y, pole_position.z
 
     def match_ik_to_fk(self, mods=None):
@@ -158,13 +130,11 @@ class IKFK(object):
                 root = cmds.xform('{0}_{1}'.format(self._content[mod][2], self.suffix), q=True, ws=True, piv=True)[0:3]
                 mid = cmds.xform('{0}_{1}'.format(self._content[mod][1], self.suffix), q=True, ws=True, piv=True)[0:3]
                 tip = cmds.xform('{0}_{1}'.format(self._content[mod][0], self.suffix), q=True, ws=True, piv=True)[0:3]
-                tip_rotation = cmds.xform('{0}_{1}'.format(self._content[mod][0], self.suffix), q=True, ws=True, ro=True)
 
                 pole = self._pole_vector(root, mid, tip)
                 # Move IK to FK
-                cmds.move(tip[0], tip[1], tip[2], '{0}_{1}'.format(self._content[mod][3], self.suffix))
                 cmds.move(pole[0], pole[1], pole[2], '{0}_{1}'.format(self._content[mod][4], self.suffix))
-                self.match_tip(tip, tip_rotation, mod)
+                self.match_tip(mod)
             except ValueError:
                 print('Module {} has failed'.format(mod))
 
@@ -202,13 +172,10 @@ class IKFK(object):
                 root_rot = cmds.getAttr('{0}_{1}.rotate'.format(self._content[mod][2], self.ik_suffix))[0]
                 mid_rot = cmds.getAttr('{0}_{1}.rotate'.format(self._content[mod][1], self.ik_suffix))[0]
 
-                tip = cmds.xform('{0}_{1}'.format(self._content[mod][3], self.suffix), q=True, ws=True, piv=True)[0:3]
-                tip_rot = cmds.xform('{0}_{1}'.format(self._content[mod][3], self.suffix), q=True, ws=True, ro=True)
-
                 # Rotate FK to IK
                 cmds.setAttr('{0}_{1}.rotate'.format(self._content[mod][2], self.suffix), root_rot[0], root_rot[1], root_rot[2])
                 cmds.setAttr('{0}_{1}.rotate'.format(self._content[mod][1], self.suffix), mid_rot[0], mid_rot[1], mid_rot[2])
-                self.match_tip(tip, tip_rot, mod, fk=True)
+                self.match_tip(mod, fk=True)
             except ValueError:
                 print('Module {} has failed'.format(mod))
 
