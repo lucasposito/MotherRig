@@ -75,7 +75,17 @@ proc match_ik_to_fk(){
 
 
 proc match_fk_to_ik(){
+    global string $fk_root_ctr;
+    global string $fk_mid_ctr;
+    global string $ik_root_jnt;
+    global string $ik_mid_jnt;
 
+    float $root_rot[] = `xform -q -ws -r $fk_root_ctr`;
+    float $mid_rot[] = `xform -q -ws -r $fk_mid_ctr`;
+
+    setAttr
+    setAttr
+    match_tip(true);
 }
 
 
