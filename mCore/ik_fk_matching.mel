@@ -2,8 +2,8 @@ global string $fk_root_ctr = "Arm_ctr";
 global string $fk_mid_ctr = "ForeArm_ctr";
 global string $fk_end_ctr = "Hand_ctr";
 
-global string $ik_root_jnt = "Arm_IK_jnt";
-global string $ik_mid_jnt = "Arm_IK_jnt";
+global string $ik_root_jnt = "Arm_IK";
+global string $ik_mid_jnt = "ForeArm_IK";
 
 global string $ik_mid_ctr = "ForeArm_IK_ctr";
 global string $ik_end_ctr = "Hand_IK_ctr";
@@ -33,6 +33,31 @@ proc float[] pole_vector(float $root[], float $mid[], float $end[]){
 }
 
 
+proc match_tip(int $fk){
+    global string $fk_end_ctr;
+    global string $ik_end_ctr;
+    string $driver = $fk_end_ctr;
+    string $driven = $ik_end_ctr;
+
+    if (!$fk){
+        string $driver = $ik_end_ctr;
+        string $driven = $fk_end_ctr;
+    }
+
+    string $temp_constraint[] = `parentConstraint $driver $driven`;
+
+    float $translate[] = `keyframe -at "translate" -q -vc $driven`;
+    float $rotate[] = `keyframe -at "rotate" -q -vc $driven`;
+
+    if (size($translate) || size($rotate)){
+        setKeyframe -at "translate" -hi none -s 0 $driven;
+        setKeyframe -at "rotate" -hi none -s 0 $driven;
+    }
+
+    delete $temp_constraint;
+}
+
+
 proc match_ik_to_fk(){
     global string $fk_root_ctr;
     global string $fk_mid_ctr;
@@ -45,6 +70,7 @@ proc match_ik_to_fk(){
 
     float $pole_position[] = pole_vector($root_pos, $mid_pos, $end_pos);
     move $pole_position[0] $pole_position[1] $pole_position[2] $ik_mid_ctr;
+    match_tip(false);
 }
 
 
@@ -52,10 +78,6 @@ proc match_fk_to_ik(){
 
 }
 
-
-proc match_tip(){
-
-}
 
 // fk toggle is on, delete ik scriptjob if exists and create fk scriptJob
 // else delete fk scriptjob and create ik scriptjob
