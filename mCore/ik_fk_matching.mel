@@ -1,3 +1,6 @@
+global string $switch_ctr = "SwitchIKFK";
+global string $switch_attr = "IKFK";
+
 global string $fk_root_ctr = "Arm_ctr";
 global string $fk_mid_ctr = "ForeArm_ctr";
 global string $fk_end_ctr = "Hand_ctr";
@@ -36,12 +39,16 @@ proc float[] pole_vector(float $root[], float $mid[], float $end[]){
 proc match_tip(int $fk){
     global string $fk_end_ctr;
     global string $ik_end_ctr;
-    string $driver = $fk_end_ctr;
-    string $driven = $ik_end_ctr;
+    string $driver;
+    string $driven;
+
 
     if (!$fk){
-        string $driver = $ik_end_ctr;
-        string $driven = $fk_end_ctr;
+        $driver = $fk_end_ctr;
+        $driven = $ik_end_ctr;
+    } else {
+        $driver = $ik_end_ctr;
+        $driven = $fk_end_ctr;
     }
 
     string $temp_constraint[] = `parentConstraint $driver $driven`;
@@ -58,7 +65,14 @@ proc match_tip(int $fk){
 }
 
 
-proc match_ik_to_fk(){
+proc int match_ik_to_fk(){
+    global string $switch_ctr;
+    global string $switch_attr;
+    int $switch = `getAttr ($switch_ctr + "." + $switch_attr)`;
+    if ($switch){
+        return 0;
+    }
+
     global string $fk_root_ctr;
     global string $fk_mid_ctr;
     global string $fk_end_ctr;
@@ -71,24 +85,36 @@ proc match_ik_to_fk(){
     float $pole_position[] = pole_vector($root_pos, $mid_pos, $end_pos);
     move $pole_position[0] $pole_position[1] $pole_position[2] $ik_mid_ctr;
     match_tip(false);
+    return 1;
 }
 
 
-proc match_fk_to_ik(){
+proc int match_fk_to_ik(){
+    global string $switch_ctr;
+    global string $switch_attr;
+    int $switch = `getAttr ($switch_ctr + "." + $switch_attr)`;
+    if (!$switch){
+        return 1;
+    }
+
     global string $fk_root_ctr;
     global string $fk_mid_ctr;
     global string $ik_root_jnt;
     global string $ik_mid_jnt;
 
-    float $root_rot[] = `xform -q -ws -r $fk_root_ctr`;
-    float $mid_rot[] = `xform -q -ws -r $fk_mid_ctr`;
+    float $root_rot[] = `getAttr ($ik_root_jnt + ".rotate")`;
+    float $mid_rot[] = `getAttr ($ik_mid_jnt + ".rotate")`;
 
-    setAttr
-    setAttr
+    setAttr ($fk_root_ctr + ".rotate") $root_rot[0] $root_rot[1] $root_rot[2];
+    setAttr ($fk_mid_ctr + ".rotate") $mid_rot[0] $mid_rot[1] $mid_rot[2];
     match_tip(true);
+    return 0;
 }
 
+int $fk_root_job = `scriptJob -attributeChange ($fk_root_ctr + ".rotate") "match_ik_to_fk"`;
+int $fk_mid_job = `scriptJob -attributeChange ($fk_mid_ctr + ".rotate") "match_ik_to_fk"`;
+int $fk_end_job = `scriptJob -attributeChange ($fk_end_ctr + ".rotate") "match_ik_to_fk"`;
 
-// fk toggle is on, delete ik scriptjob if exists and create fk scriptJob
-// else delete fk scriptjob and create ik scriptjob
-int $upper_fk_arm = `scriptJob -attributeChange ($fk_root_ctr + ".rotate") "move_pole"`;
+int $ik_mid_job = `scriptJob -attributeChange ($ik_mid_ctr + ".translate") "match_fk_to_ik"`;
+int $ik_end_tra_job = `scriptJob -attributeChange ($ik_end_ctr + ".translate") "match_fk_to_ik"`;
+int $ik_end_rot_job = `scriptJob -attributeChange ($ik_end_ctr + ".rotate") "match_fk_to_ik"`;
