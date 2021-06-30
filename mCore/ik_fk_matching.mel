@@ -12,6 +12,23 @@ global string $ik_mid_ctr = "ForeArm_IK_ctr";
 global string $ik_end_ctr = "Hand_IK_ctr";
 
 
+proc int check_keys(){
+    global string $fk_root_ctr;
+    global string $fk_mid_ctr;
+    global string $ik_mid_ctr;
+
+    float $fk_root_rot[] = `keyframe -at "rotate" -q -vc $fk_root_ctr`;
+    float $fk_mid_rot[] = `keyframe -at "rotate" -q -vc $fk_mid_ctr`;
+    float $ik_mid_tra[] = `keyframe -at "translate" -q -vc $ik_mid_ctr`;
+    
+
+    if (size($fk_root_rot) || size($fk_mid_rot) || size($ik_mid_tra)){
+        return 1;
+    }
+    return 0;
+}
+
+
 proc float[] pole_vector(float $root[], float $mid[], float $end[]){
     vector $point_a = <<$root[0], $root[1], $root[2]>>;
     vector $point_b = <<$mid[0], $mid[1], $mid[2]>>;
@@ -84,6 +101,9 @@ proc int match_ik_to_fk(){
 
     float $pole_position[] = pole_vector($root_pos, $mid_pos, $end_pos);
     move $pole_position[0] $pole_position[1] $pole_position[2] $ik_mid_ctr;
+    if (check_keys()){
+        setKeyframe -at "translate" -hi none -s 0 $ik_mid_ctr;
+    }
     match_tip(false);
     return 1;
 }
@@ -107,6 +127,10 @@ proc int match_fk_to_ik(){
 
     setAttr ($fk_root_ctr + ".rotate") $root_rot[0] $root_rot[1] $root_rot[2];
     setAttr ($fk_mid_ctr + ".rotate") $mid_rot[0] $mid_rot[1] $mid_rot[2];
+    if (check_keys()){
+        setKeyframe -at "rotate" -hi none -s 0 $fk_root_ctr;
+        setKeyframe -at "rotate" -hi none -s 0 $fk_mid_ctr;
+    }
     match_tip(true);
     return 0;
 }
