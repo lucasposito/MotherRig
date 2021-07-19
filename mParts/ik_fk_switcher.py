@@ -112,7 +112,7 @@ class IKFK(object):
         quat = om.MQuaternion(py_quat)
         return quat
 
-    def copy_transformations(self, driver, driven):
+    def paste_transformations(self, driver, driven):
         driver_quat = self.get_quaternion(driver)
         driver_matrix = self.get_matrix(driver)
         driver_pos = self.get_matrix_row(3, driver_matrix)
@@ -120,8 +120,8 @@ class IKFK(object):
         result_matrix = driver_quat.asMatrix()
         self.set_matrix_row(3, driver_pos, result_matrix)
 
-        if cmds.listRelatives(p=True):
-            parent_matrix = self.get_matrix(cmds.listRelatives(p=True)[0])
+        if cmds.listRelatives(driven, p=True):
+            parent_matrix = self.get_matrix(cmds.listRelatives(driven, p=True, f=True)[0])
             result_matrix = result_matrix * parent_matrix.inverse()
 
         cmds.xform(driven, m=result_matrix)
@@ -134,8 +134,8 @@ class IKFK(object):
             driver = 3
             driven = 0
 
-        self.copy_transformations('{}_{}'.format(self._content[main_object][driver], self.suffix),
-                                  '{}_{}'.format(self._content[main_object][driven], self.suffix))
+        self.paste_transformations('{}_{}'.format(self._content[main_object][driver], self.suffix),
+                                   '{}_{}'.format(self._content[main_object][driven], self.suffix))
 
     def _pole_vector(self, root, mid, end):
         point_a = om.MVector(root[0], root[1], root[2])
@@ -159,18 +159,15 @@ class IKFK(object):
             mods = self.check_selection()
 
         for mod in mods:
-            try:
-                # Query FK position
-                root = cmds.xform('{0}_{1}'.format(self._content[mod][2], self.suffix), q=True, ws=True, piv=True)[0:3]
-                mid = cmds.xform('{0}_{1}'.format(self._content[mod][1], self.suffix), q=True, ws=True, piv=True)[0:3]
-                tip = cmds.xform('{0}_{1}'.format(self._content[mod][0], self.suffix), q=True, ws=True, piv=True)[0:3]
+            # Query FK position
+            root = cmds.xform('{0}_{1}'.format(self._content[mod][2], self.suffix), q=True, ws=True, piv=True)[0:3]
+            mid = cmds.xform('{0}_{1}'.format(self._content[mod][1], self.suffix), q=True, ws=True, piv=True)[0:3]
+            tip = cmds.xform('{0}_{1}'.format(self._content[mod][0], self.suffix), q=True, ws=True, piv=True)[0:3]
 
-                pole = self._pole_vector(root, mid, tip)
-                # Move IK to FK
-                cmds.move(pole[0], pole[1], pole[2], '{0}_{1}'.format(self._content[mod][4], self.suffix))
-                self.match_tip(mod)
-            except ValueError:
-                print('Module {} has failed'.format(mod))
+            pole = self._pole_vector(root, mid, tip)
+            # Move IK to FK
+            cmds.move(pole[0], pole[1], pole[2], '{0}_{1}'.format(self._content[mod][4], self.suffix))
+            self.match_tip(mod)
 
     def bake_ik_to_fk(self):
         if len(self._modules) == 0:
@@ -201,14 +198,11 @@ class IKFK(object):
             mods = self.check_selection()
 
         for mod in mods:
-            try:
-                self.copy_transformations('{0}_{1}'.format(self._content[mod][2], self.ik_suffix),
-                                          '{0}_{1}'.format(self._content[mod][2], self.suffix))
-                self.copy_transformations('{0}_{1}'.format(self._content[mod][1], self.ik_suffix),
-                                          '{0}_{1}'.format(self._content[mod][1], self.suffix))
-                self.match_tip(mod, fk=True)
-            except ValueError:
-                print('Module {} has failed'.format(mod))
+            self.paste_transformations('{0}_{1}'.format(self._content[mod][2], self.ik_suffix),
+                                       '{0}_{1}'.format(self._content[mod][2], self.suffix))
+            self.paste_transformations('{0}_{1}'.format(self._content[mod][1], self.ik_suffix),
+                                       '{0}_{1}'.format(self._content[mod][1], self.suffix))
+            self.match_tip(mod, fk=True)
 
     def bake_fk_to_ik(self):
         if len(self._modules) == 0:
