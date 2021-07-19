@@ -5,7 +5,6 @@ from PySide2 import QtWidgets
 from PySide2 import QtCore
 from shiboken2 import wrapInstance
 
-
 '''
 Author: Lucas Esposito
 
@@ -30,6 +29,7 @@ class IKFK(object):
         self.ik_suffix = 'IK'  # that's for the IK Skeleton, it'll replace ctr suffix
         self.limbs = ['Leg', 'Arm']
         self.side = ['Left', 'Right']
+        self.__start_index__ = {0: 0, 1: 4, 2: 8, 3: 12}
 
         self.leg_module = ['Foot', 'Leg', 'UpLeg', 'Foot_IK', 'Leg_IK']
         self.arm_module = ['Hand', 'ForeArm', 'Arm', 'Hand_IK', 'ForeArm_IK']
@@ -64,7 +64,8 @@ class IKFK(object):
                 else:
                     ik_control = '{0}{1}{2}{3}'.format(char, self.separator, sid, self.arm_module[3])
                     temp = self.arm_module
-                if cmds.objExists('{0}_{1}'.format(fk_control, self.suffix)) and cmds.objExists('{0}_{1}'.format(ik_control, self.suffix)) and fk_control not in self._modules:
+                if cmds.objExists('{0}_{1}'.format(fk_control, self.suffix)) and cmds.objExists(
+                        '{0}_{1}'.format(ik_control, self.suffix)) and fk_control not in self._modules:
                     self._modules.append(fk_control)
                     mod_element = [pre_mod + a for a in temp]
                     self.temp_new_mods.append(fk_control)
@@ -88,6 +89,43 @@ class IKFK(object):
             return mods
         return self._modules
 
+    def set_matrix_row(self, row=0, vec=None, matrix=None):
+        matrix[self.__start_index__[row]] = vec[0]
+        matrix[self.__start_index__[row] + 1] = vec[1]
+        matrix[self.__start_index__[row] + 2] = vec[2]
+
+    def get_matrix_row(self, row=0, in_mat=None):
+        out_vec = om.MVector(in_mat[self.__start_index__[row]],
+                             in_mat[self.__start_index__[row] + 1],
+                             in_mat[self.__start_index__[row] + 2])
+        return out_vec
+
+    def get_matrix(self, transform, mat_attr='worldMatrix[0]'):
+        mat_data = cmds.getAttr(transform + '.' + mat_attr)
+        mat = om.MMatrix(mat_data)
+        return mat
+
+    def get_quaternion(self, transform):
+        mat_a = self.get_matrix(transform)
+        tm_in_mat = om.MTransformationMatrix(mat_a)
+        py_quat = tm_in_mat.rotationComponents(asQuaternion=True)
+        quat = om.MQuaternion(py_quat)
+        return quat
+
+    def copy_transformations(self, driver, driven):
+        driver_quat = self.get_quaternion(driver)
+        driver_matrix = self.get_matrix(driver)
+        driver_pos = self.get_matrix_row(3, driver_matrix)
+
+        result_matrix = driver_quat.asMatrix()
+        self.set_matrix_row(3, driver_pos, result_matrix)
+
+        if cmds.listRelatives(p=True):
+            parent_matrix = self.get_matrix(cmds.listRelatives(p=True)[0])
+            result_matrix = result_matrix * parent_matrix.inverse()
+
+        cmds.xform(driven, m=result_matrix)
+
     def match_tip(self, main_object, fk=False):
         if not fk:
             driver = 0
@@ -96,12 +134,8 @@ class IKFK(object):
             driver = 3
             driven = 0
 
-        temp_constraint = cmds.parentConstraint('{}_{}'.format(self._content[main_object][driver], self.suffix),
-                                                '{}_{}'.format(self._content[main_object][driven], self.suffix))
-        if cmds.keyframe('{0}_{1}'.format(self._content[main_object][driven], self.suffix), query=True, at=['translate', 'rotate'], vc=True) is not None:
-            cmds.setKeyframe('{0}_{1}'.format(self._content[main_object][driven], self.suffix), hi='none', at=['translate', 'rotate'], s=False)
-
-        cmds.delete(temp_constraint)
+        self.copy_transformations('{}_{}'.format(self._content[main_object][driver], self.suffix),
+                                  '{}_{}'.format(self._content[main_object][driven], self.suffix))
 
     def _pole_vector(self, root, mid, end):
         point_a = om.MVector(root[0], root[1], root[2])
@@ -168,13 +202,10 @@ class IKFK(object):
 
         for mod in mods:
             try:
-                # Query IK rotation
-                root_rot = cmds.getAttr('{0}_{1}.rotate'.format(self._content[mod][2], self.ik_suffix))[0]
-                mid_rot = cmds.getAttr('{0}_{1}.rotate'.format(self._content[mod][1], self.ik_suffix))[0]
-
-                # Rotate FK to IK
-                cmds.setAttr('{0}_{1}.rotate'.format(self._content[mod][2], self.suffix), root_rot[0], root_rot[1], root_rot[2])
-                cmds.setAttr('{0}_{1}.rotate'.format(self._content[mod][1], self.suffix), mid_rot[0], mid_rot[1], mid_rot[2])
+                self.copy_transformations('{0}_{1}'.format(self._content[mod][2], self.ik_suffix),
+                                          '{0}_{1}'.format(self._content[mod][2], self.suffix))
+                self.copy_transformations('{0}_{1}'.format(self._content[mod][1], self.ik_suffix),
+                                          '{0}_{1}'.format(self._content[mod][1], self.suffix))
                 self.match_tip(mod, fk=True)
             except ValueError:
                 print('Module {} has failed'.format(mod))
@@ -189,7 +220,6 @@ class IKFK(object):
         controllers = []
         try:
             for a in self._content:
-
                 controllers.append('{0}_{1}'.format(self._content[a][0], self.suffix))
                 controllers.append('{0}_{1}'.format(self._content[a][1], self.suffix))
                 controllers.append('{0}_{1}'.format(self._content[a][2], self.suffix))
@@ -205,7 +235,6 @@ class IKFK(object):
 
 
 class ikfkUI(QtWidgets.QDialog):
-
     ui_instance = None
 
     @classmethod
