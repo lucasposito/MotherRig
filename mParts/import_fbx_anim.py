@@ -121,7 +121,7 @@ class ImportAnimation(QtWidgets.QDialog):
                 pass
 
         cmds.bakeResults(controllers, t=(self.start_frame_field.text(), self.end_frame_field.text()), dic=False, preserveOutsideKeys=True,
-                         simulation=True)
+                         simulation=True, sr=[True, 5.0])
         cmds.delete(controllers, sc=True, cn=True)
 
     def reference_file(self):
