@@ -1,18 +1,13 @@
 import maya.cmds as cmds
 import maya.api.OpenMaya as om
 import maya.OpenMayaUI as omui
+from mCore import utility
 from PySide2 import QtWidgets
 from PySide2 import QtCore
 from shiboken2 import wrapInstance
 
 '''
 Author: Lucas Esposito
-
-if you need to clear all mParts run the following code on python script editor:
-
-ikfkUI.dialog_instance.ik_fk._modules = []
-ikfkUI.dialog_instance.ik_fk._content = {}
-
 '''
 
 
@@ -29,7 +24,6 @@ class IKFK(object):
         self.ik_suffix = 'IK'  # that's for the IK Skeleton, it'll replace ctr suffix
         self.limbs = ['Leg', 'Arm']
         self.side = ['Left', 'Right']
-        self.__start_index__ = {0: 0, 1: 4, 2: 8, 3: 12}
 
         self.leg_module = ['Foot', 'Leg', 'UpLeg', 'Foot_IK', 'Leg_IK']
         self.arm_module = ['Hand', 'ForeArm', 'Arm', 'Hand_IK', 'ForeArm_IK']
@@ -89,43 +83,6 @@ class IKFK(object):
             return mods
         return self._modules
 
-    def set_matrix_row(self, row=0, vec=None, matrix=None):
-        matrix[self.__start_index__[row]] = vec[0]
-        matrix[self.__start_index__[row] + 1] = vec[1]
-        matrix[self.__start_index__[row] + 2] = vec[2]
-
-    def get_matrix_row(self, row=0, in_mat=None):
-        out_vec = om.MVector(in_mat[self.__start_index__[row]],
-                             in_mat[self.__start_index__[row] + 1],
-                             in_mat[self.__start_index__[row] + 2])
-        return out_vec
-
-    def get_matrix(self, transform, mat_attr='worldMatrix[0]'):
-        mat_data = cmds.getAttr(transform + '.' + mat_attr)
-        mat = om.MMatrix(mat_data)
-        return mat
-
-    def get_quaternion(self, transform):
-        mat_a = self.get_matrix(transform)
-        tm_in_mat = om.MTransformationMatrix(mat_a)
-        py_quat = tm_in_mat.rotationComponents(asQuaternion=True)
-        quat = om.MQuaternion(py_quat)
-        return quat
-
-    def paste_transformations(self, driver, driven):
-        driver_quat = self.get_quaternion(driver)
-        driver_matrix = self.get_matrix(driver)
-        driver_pos = self.get_matrix_row(3, driver_matrix)
-
-        result_matrix = driver_quat.asMatrix()
-        self.set_matrix_row(3, driver_pos, result_matrix)
-
-        if cmds.listRelatives(driven, p=True):
-            parent_matrix = self.get_matrix(cmds.listRelatives(driven, p=True, f=True)[0])
-            result_matrix = result_matrix * parent_matrix.inverse()
-
-        cmds.xform(driven, m=result_matrix)
-
     def match_tip(self, main_object, fk=False):
         if not fk:
             driver = 0
@@ -134,8 +91,8 @@ class IKFK(object):
             driver = 3
             driven = 0
 
-        self.paste_transformations('{}_{}'.format(self._content[main_object][driver], self.suffix),
-                                   '{}_{}'.format(self._content[main_object][driven], self.suffix))
+        utility.quaternion_constrain('{}_{}'.format(self._content[main_object][driver], self.suffix),
+                                     '{}_{}'.format(self._content[main_object][driven], self.suffix))
 
     def _pole_vector(self, root, mid, end):
         point_a = om.MVector(root[0], root[1], root[2])
@@ -177,31 +134,26 @@ class IKFK(object):
         playback_end = self.end_frame
         timeline = range(int(playback_start), int(playback_end))
         controllers = []
-        try:
-            for a in self._content:
-                controllers.append('{0}_{1}'.format(self._content[a][3], self.suffix))
-                controllers.append('{0}_{1}'.format(self._content[a][4], self.suffix))
-            for frame in timeline:
-                cmds.currentTime(frame, edit=True)
+        for a in self._content:
+            controllers.append('{0}_{1}'.format(self._content[a][3], self.suffix))
+            controllers.append('{0}_{1}'.format(self._content[a][4], self.suffix))
+        for frame in timeline:
+            cmds.currentTime(frame, edit=True)
 
-                cmds.cutKey(controllers, time=(frame, frame), option="keys")
-                self.match_ik_to_fk(mods)
-                cmds.setKeyframe(controllers, hi='none', at=['translate', 'rotate'], s=False, t=frame)
-            cmds.delete(controllers, sc=True)
-        except ValueError:
-            print('Make sure the names of the modules are correct')
-        except KeyboardInterrupt:
-            pass
+            cmds.cutKey(controllers, time=(frame, frame), option="keys")
+            self.match_ik_to_fk(mods)
+            cmds.setKeyframe(controllers, hi='none', at=['translate', 'rotate'], s=False, t=frame)
+        cmds.delete(controllers, sc=True)
 
     def match_fk_to_ik(self, mods=None):
         if not mods:
             mods = self.check_selection()
 
         for mod in mods:
-            self.paste_transformations('{0}_{1}'.format(self._content[mod][2], self.ik_suffix),
-                                       '{0}_{1}'.format(self._content[mod][2], self.suffix))
-            self.paste_transformations('{0}_{1}'.format(self._content[mod][1], self.ik_suffix),
-                                       '{0}_{1}'.format(self._content[mod][1], self.suffix))
+            utility.quaternion_constrain('{0}_{1}'.format(self._content[mod][2], self.ik_suffix),
+                                         '{0}_{1}'.format(self._content[mod][2], self.suffix))
+            utility.quaternion_constrain('{0}_{1}'.format(self._content[mod][1], self.ik_suffix),
+                                         '{0}_{1}'.format(self._content[mod][1], self.suffix))
             self.match_tip(mod, fk=True)
 
     def bake_fk_to_ik(self):
@@ -212,20 +164,17 @@ class IKFK(object):
         playback_end = self.end_frame
         timeline = range(int(playback_start), int(playback_end))
         controllers = []
-        try:
-            for a in self._content:
-                controllers.append('{0}_{1}'.format(self._content[a][0], self.suffix))
-                controllers.append('{0}_{1}'.format(self._content[a][1], self.suffix))
-                controllers.append('{0}_{1}'.format(self._content[a][2], self.suffix))
-            for frame in timeline:
-                cmds.currentTime(frame, edit=True)
-                cmds.cutKey(controllers, time=(frame, frame), option="keys")
+        for a in self._content:
+            controllers.append('{0}_{1}'.format(self._content[a][0], self.suffix))
+            controllers.append('{0}_{1}'.format(self._content[a][1], self.suffix))
+            controllers.append('{0}_{1}'.format(self._content[a][2], self.suffix))
+        for frame in timeline:
+            cmds.currentTime(frame, edit=True)
+            cmds.cutKey(controllers, time=(frame, frame), option="keys")
 
-                self.match_fk_to_ik(mods)
-                cmds.setKeyframe(controllers, hi='none', at=['translate', 'rotate'], s=False, t=frame)
-            cmds.delete(controllers, sc=True)
-        except ValueError:
-            print('Make sure the names of the modules are correct')
+            self.match_fk_to_ik(mods)
+            cmds.setKeyframe(controllers, hi='none', at=['translate', 'rotate'], s=False, t=frame)
+        cmds.delete(controllers, sc=True)
 
 
 class ikfkUI(QtWidgets.QDialog):
