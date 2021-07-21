@@ -180,6 +180,37 @@ def joint_hierarchy():
             return skeleton
 
 
+def twist_roll(twist_target, end_joint, twist_roll, reverse=False):
+    if not isinstance(twist_roll, list) or len(twist_roll) == 0:
+        return
+    if reverse:
+        twist_roll.reverse()
+
+    twist_reference = twist_target
+    chain_end = end_joint
+    mult_matrix = cmds.createNode('multMatrix')
+    dec_matrix = cmds.createNode('decomposeMatrix')
+    quat = cmds.createNode('quatToEuler')
+
+    cmds.connectAttr(chain_end + '.worldMatrix', mult_matrix + '.matrixIn[0]')
+    cmds.connectAttr(twist_reference + '.worldInverseMatrix', mult_matrix + '.matrixIn[1]')
+    cmds.connectAttr(mult_matrix + '.matrixSum', dec_matrix + '.inputMatrix')
+    cmds.connectAttr(dec_matrix + '.outputQuatX', quat + '.inputQuatX')
+    cmds.connectAttr(dec_matrix + '.outputQuatW', quat + '.inputQuatW')
+
+    roll_amount = len(twist_roll) + 1
+    index = 1
+    for i in twist_roll:
+        mult = cmds.createNode('multiplyDivide')
+        twist_amount = float(index) / float(roll_amount)
+        cmds.setAttr(mult + '.input2X', twist_amount)
+        cmds.setAttr(mult + '.input2Y', twist_amount)
+        cmds.setAttr(mult + '.input2Z', twist_amount)
+        cmds.connectAttr(quat + '.outputRotate', mult + '.input1')
+        cmds.connectAttr(mult + '.output', i + '.input1')
+        index += 1
+
+
 def pose_reader(order):
     a = cmds.ls(sl=True, l=True)
     b = cmds.listRelatives(p=True, f=True)
