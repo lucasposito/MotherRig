@@ -319,3 +319,49 @@ def distance_between():
 
     distance = vector1 - vector2
     return distance.length()
+
+
+__start_index__ = {0: 0, 1: 4, 2: 8, 3: 12}
+
+
+def set_matrix_row(row=0, vec=None, matrix=None):
+    matrix[__start_index__[row]] = vec[0]
+    matrix[__start_index__[row] + 1] = vec[1]
+    matrix[__start_index__[row] + 2] = vec[2]
+
+
+def get_matrix_row(row=0, in_mat=None):
+    out_vec = om.MVector(in_mat[__start_index__[row]],
+                         in_mat[__start_index__[row] + 1],
+                         in_mat[__start_index__[row] + 2])
+    return out_vec
+
+
+def get_matrix(transform, mat_attr='worldMatrix[0]'):
+    mat_data = cmds.getAttr(transform + '.' + mat_attr)
+    mat = om.MMatrix(mat_data)
+    return mat
+
+
+def get_quaternion(transform):
+    mat_a = get_matrix(transform)
+    tm_in_mat = om.MTransformationMatrix(mat_a)
+    py_quat = tm_in_mat.rotationComponents(asQuaternion=True)
+    quat = om.MQuaternion(py_quat)
+    return quat
+
+
+def quaternion_constrain(driver, driven):
+    driver_quat = get_quaternion(driver)
+    driver_matrix = get_matrix(driver)
+    driver_pos = get_matrix_row(3, driver_matrix)
+
+    result_matrix = driver_quat.asMatrix()
+    set_matrix_row(3, driver_pos, result_matrix)
+
+    if cmds.listRelatives(driven, p=True):
+        parent_matrix = get_matrix(cmds.listRelatives(driven, p=True, f=True)[0])
+        result_matrix = result_matrix * parent_matrix.inverse()
+
+    cmds.xform(driven, m=result_matrix)
+
