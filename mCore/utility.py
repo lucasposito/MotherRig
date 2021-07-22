@@ -187,9 +187,9 @@ def twist_roll(twist_target, twist_end, twist_rolls, reverse=False, axis='y'):
         twist_rolls.reverse()
 
     axis = axis.upper()
-    mult_matrix = cmds.createNode('multMatrix')
-    dec_matrix = cmds.createNode('decomposeMatrix')
-    quat = cmds.createNode('quatToEuler')
+    mult_matrix = cmds.createNode('multMatrix', n=twist_target + '_multMatrix_twist')
+    dec_matrix = cmds.createNode('decomposeMatrix', n=twist_target + '_decomposeMatrix_twist')
+    quat = cmds.createNode('quatToEuler', n=twist_target + '_quatToEuler_twist')
 
     cmds.connectAttr(twist_target + '.worldMatrix', mult_matrix + '.matrixIn[0]')
     cmds.connectAttr(twist_end + '.worldInverseMatrix', mult_matrix + '.matrixIn[1]')
@@ -201,7 +201,7 @@ def twist_roll(twist_target, twist_end, twist_rolls, reverse=False, axis='y'):
     index = 1
     for i in twist_rolls:
         twist_amount = float(index) / float(roll_amount)
-        mult = cmds.createNode('multiplyDivide')
+        mult = cmds.createNode('multiplyDivide', n='{}_{}_twistStrength'.format(i, int(twist_amount * 100)))
         cmds.setAttr(mult + '.input2X', twist_amount)
         cmds.setAttr(mult + '.input2Y', twist_amount)
         cmds.setAttr(mult + '.input2Z', twist_amount)

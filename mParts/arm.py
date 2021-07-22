@@ -32,9 +32,12 @@ class Arm:
         cmds.xform(cmds.spaceLocator(p=self.position['ForeArm']), cp=True)
         locator = cmds.ls(sl=True, l=True)
         cmds.select(d=True)
-        self.main.append(cmds.joint(n='{}_{}'.format(self.name[0], mCore.universal_suffix[-1]), p=self.position['Arm']))
-        self.main.append(cmds.joint(n='{}_{}'.format(self.name[1], mCore.universal_suffix[-1]), p=self.position['ForeArm']))
-        self.main.append(cmds.joint(n='{}_{}'.format(self.name[2], mCore.universal_suffix[-1]), p=self.position['Hand']))
+        first = cmds.joint(n='{}_{}'.format(self.name[0], mCore.universal_suffix[-1]), p=self.position['Arm'])
+        second = cmds.joint(n='{}_{}'.format(self.name[1], mCore.universal_suffix[-1]), p=self.position['ForeArm'])
+        third = cmds.joint(n='{}_{}'.format(self.name[2], mCore.universal_suffix[-1]), p=self.position['Hand'])
+        self.main.append(first)
+        self.main.append('{}|{}'.format(first, second))
+        self.main.append('{}|{}|{}'.format(first, second, third))
         cmds.joint(self.main[0], e=True, oj="yxz", sao="xup", ch=True, zso=True)
         self._orient(locator)
 
@@ -100,39 +103,21 @@ class Arm:
     def access(self, element):
         return
 
-    # def _pole_vector(self):
-    #     point_a = mCore.utility.create_vector(self.position['Arm'])
-    #     point_b = mCore.utility.create_vector(self.position['ForeArm'])
-    #     point_c = mCore.utility.create_vector(self.position['Hand'])
-    #
-    #     vector_ab = point_b - point_a
-    #     vector_ac = point_c - point_a
-    #     ac_normal = vector_ac.normalize()
-    #
-    #     proj_length = vector_ab * ac_normal
-    #     proj_vector = (ac_normal * proj_length) + point_a
-    #
-    #     vector_pb = point_b - proj_vector
-    #     pb_normal = vector_pb.normalize()
-    #     pole_position = point_b + (pb_normal * 20)
-    #     return pole_position
-
     def _pole_vector(self):
         point_a = mCore.utility.create_vector(self.position['Arm'])
         point_b = mCore.utility.create_vector(self.position['ForeArm'])
         point_c = mCore.utility.create_vector(self.position['Hand'])
 
-        vector_ac = (point_c - point_a)
-        vector_ab = (point_b - point_a)
+        vector_ab = point_b - point_a
+        vector_ac = point_c - point_a
+        ac_normal = vector_ac.normalize()
 
-        scale_value = (vector_ac * vector_ab) / (vector_ac * vector_ac)
-        new_vector = vector_ac * scale_value + point_a
+        proj_length = vector_ab * ac_normal
+        proj_vector = (ac_normal * proj_length) + point_a
 
-        length_ab = (point_b - point_a).length()
-        length_bc = (point_c - point_b).length()
-        total_length = length_ab + length_bc
-
-        pole_position = (point_b - new_vector).normal() * total_length + point_b
+        vector_pb = point_b - proj_vector
+        pb_normal = vector_pb.normalize()
+        pole_position = point_b + (pb_normal * vector_ab.length())
         return pole_position
 
     def set_ik(self):
@@ -147,7 +132,6 @@ class Arm:
         ik_chain.sort()
 
         ctr = mCore.Control()
-
         ctr.zero_out(['null', 'cube'], ['hrc', 'ctr'], [ik_chain[-1]])
         ctr.toggle_control()
         hand_ctr = list(ctr.group)[0]
@@ -184,7 +168,10 @@ class Arm:
         self.outer_plug = outer_group
 
     def set_fk(self):
-        pass
+        ctr = mCore.Control()
+        ctr.zero_out(['null', 'circle'], ['hrc', 'ctr'], self.main)
+        ctr.toggle_control()
+        ctr.constraint()
 
     def set_ik_fk(self):
         pass

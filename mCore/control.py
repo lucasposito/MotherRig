@@ -36,11 +36,9 @@ class Control(object):
             if not isinstance(shape, list) or not isinstance(suffix, list) or not isinstance(objects, list):
                 print('shape, suffix and objects have to be within a list')
                 return
-            self.old_object = objects
-
+            self.old_object = list(objects)
         self.old_object.sort(reverse=True)
         self.new_object = list(self.old_object)
-
         for sh, su in zip(shape, suffix):
             index = 0
             for obj in self.new_object:
