@@ -180,34 +180,60 @@ def joint_hierarchy():
             return skeleton
 
 
-def twist_roll(twist_target, end_joint, twist_roll, reverse=False):
-    if not isinstance(twist_roll, list) or len(twist_roll) == 0:
+def twist_roll(twist_target, twist_end, twist_rolls, reverse=False, axis='y'):
+    if not isinstance(twist_rolls, list) or len(twist_rolls) == 0:
         return
     if reverse:
-        twist_roll.reverse()
+        twist_rolls.reverse()
 
-    twist_reference = twist_target
-    chain_end = end_joint
+    axis = axis.upper()
     mult_matrix = cmds.createNode('multMatrix')
     dec_matrix = cmds.createNode('decomposeMatrix')
     quat = cmds.createNode('quatToEuler')
 
-    cmds.connectAttr(chain_end + '.worldMatrix', mult_matrix + '.matrixIn[0]')
-    cmds.connectAttr(twist_reference + '.worldInverseMatrix', mult_matrix + '.matrixIn[1]')
+    cmds.connectAttr(twist_target + '.worldMatrix', mult_matrix + '.matrixIn[0]')
+    cmds.connectAttr(twist_end + '.worldInverseMatrix', mult_matrix + '.matrixIn[1]')
     cmds.connectAttr(mult_matrix + '.matrixSum', dec_matrix + '.inputMatrix')
-    cmds.connectAttr(dec_matrix + '.outputQuatX', quat + '.inputQuatX')
+    cmds.connectAttr(dec_matrix + '.outputQuat' + axis, quat + '.inputQuat' + axis)
     cmds.connectAttr(dec_matrix + '.outputQuatW', quat + '.inputQuatW')
 
-    roll_amount = len(twist_roll) + 1
+    roll_amount = len(twist_rolls) + 1
     index = 1
-    for i in twist_roll:
-        mult = cmds.createNode('multiplyDivide')
+    for i in twist_rolls:
         twist_amount = float(index) / float(roll_amount)
+        mult = cmds.createNode('multiplyDivide')
         cmds.setAttr(mult + '.input2X', twist_amount)
         cmds.setAttr(mult + '.input2Y', twist_amount)
         cmds.setAttr(mult + '.input2Z', twist_amount)
         cmds.connectAttr(quat + '.outputRotate', mult + '.input1')
-        cmds.connectAttr(mult + '.output', i + '.input1')
+        cmds.connectAttr(mult + '.output', i + '.rotate')
+        index += 1
+
+
+def negative_twist(twist_target, twist_rolls, reverse=False, axis='y'):
+    if not isinstance(twist_rolls, list) or len(twist_rolls) == 0:
+        return
+    if reverse:
+        twist_rolls.reverse()
+
+    axis = axis.upper()
+    dec_matrix = cmds.createNode('decomposeMatrix')
+    quat = cmds.createNode('quatToEuler')
+
+    cmds.connectAttr(twist_target + '.worldMatrix', dec_matrix + '.inputMatrix')
+    cmds.connectAttr(dec_matrix + '.outputQuat' + axis, quat + '.inputQuat' + axis)
+    cmds.connectAttr(dec_matrix + '.outputQuatW', quat + '.inputQuatW')
+
+    roll_amount = len(twist_rolls)
+    index = 0
+    for i in twist_rolls:
+        twist_amount = (float(roll_amount - index) / float(roll_amount)) * -1
+        mult = cmds.createNode('multiplyDivide')
+        cmds.setAttr(mult + '.input2X', twist_amount)
+        cmds.setAttr(mult + '.input2Y', twist_amount)
+        cmds.setAttr(mult + '.input2Z', twist_amount)
+        cmds.connectAttr(quat + '.outputRotate', mult + '.input1')
+        cmds.connectAttr(mult + '.output', i + '.rotate')
         index += 1
 
 
