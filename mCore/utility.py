@@ -220,7 +220,7 @@ def negative_twist(twist_target, twist_rolls, reverse=False, axis='y'):
     dec_matrix = cmds.createNode('decomposeMatrix')
     quat = cmds.createNode('quatToEuler')
 
-    cmds.connectAttr(twist_target + '.worldMatrix', dec_matrix + '.inputMatrix')
+    cmds.connectAttr(twist_target + '.matrix', dec_matrix + '.inputMatrix')
     cmds.connectAttr(dec_matrix + '.outputQuat' + axis, quat + '.inputQuat' + axis)
     cmds.connectAttr(dec_matrix + '.outputQuatW', quat + '.inputQuatW')
 
