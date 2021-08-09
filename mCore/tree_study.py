@@ -136,6 +136,14 @@ class RigUI(QtWidgets.QDialog):
         self.arm_button.clicked.connect(self.send_arm)
         self.leg_button.clicked.connect(self.send_leg)
 
+    def check_selection(self):
+        selected = om.MGlobal.getActiveSelectionList()
+        if selected.length != 1:
+            return
+        obj = selected.getDependNode(0)
+        if obj in self._modules:
+            return self._modules[obj]
+
     def get_maya_object(self, string):
         obj_list = om.MSelectionList()
         obj_list.add(string)
@@ -146,6 +154,7 @@ class RigUI(QtWidgets.QDialog):
         module = '{}{}'.format(self.parameter['side'], self.parameter['module'])
         if self.parameter['side'] == 'Center':
             module = self.parameter['module']
+        selected = self.check_selection()
         # creating proxies shouldn't affect the tree structure
         # _modules dictionary should connect all maya objects to a tree leaf
         # {object1:leaf1, object2:leaf1, object3:leaf1}
@@ -155,16 +164,27 @@ class RigUI(QtWidgets.QDialog):
             # then second layer for module
             if self.parameter['name']:
                 self._objects_tree.create_node(self.parameter['name'])
-                self._shapes_tree.create_node(self.parameter['name'])
+                shape_parent = self._shapes_tree.create_node(self.parameter['name'])
+                shape_parent.group_node = True
                 module = '{}_{}'.format(self.parameter['name'], module)
+                qt_item = QtWidgets.QTreeWidgetItem([module])
+                self.tree_widget.addTopLevelItem(qt_item)
 
             obj = self._objects_tree.create_node(module)
-            self._shapes_tree.create_node(module)
+            shape = self._shapes_tree.create_node(module)
             self._modules[module] = obj
-
-            qt_item = QtWidgets.QTreeWidgetItem([module])
-            self.tree_widget.addTopLevelItem(qt_item)
+            qt_child = QtWidgets.QTreeWidgetItem([module])
+            qt_item.addChild(qt_child)
             return
+        if not selected:
+            if self.parameter['name']:
+                return
+            return
+
+        # here will be the selected and more complicated
+        if self.parameter['name']:
+            return
+        return
 
     def update_name(self, data):
         self.parameter['name'] = data
