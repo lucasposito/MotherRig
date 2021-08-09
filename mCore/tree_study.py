@@ -1,4 +1,5 @@
 import sys
+from . import Tree
 
 from PySide2 import QtCore
 from PySide2 import QtGui
@@ -6,6 +7,7 @@ from PySide2 import QtWidgets
 from shiboken2 import wrapInstance
 
 import maya.cmds as cmds
+import maya.api.OpenMaya as om
 import maya.OpenMayaUI as omui
 
 
@@ -32,7 +34,12 @@ class RigUI(QtWidgets.QDialog):
 
         self.setMinimumWidth(300)
 
-        self.parameter = {'name': None, 'order': None, 'side': None, 'type': None, 'module': None}
+        self.parameter = {'name': None, 'order': None, 'side': '', 'type': None, 'module': None}
+        self._modules = {}
+        self._objects_tree = Tree()
+        self._shapes_tree = Tree()
+        self._objects_tree.separator = '|'
+
         self.create_widgets()
         self.create_layout()
         self.create_connections()
@@ -129,8 +136,35 @@ class RigUI(QtWidgets.QDialog):
         self.arm_button.clicked.connect(self.send_arm)
         self.leg_button.clicked.connect(self.send_leg)
 
-    def add_module(self, data):
-        pass
+    def get_maya_object(self, string):
+        obj_list = om.MSelectionList()
+        obj_list.add(string)
+        obj = obj_list.getDependNode(0)
+        return obj
+
+    def add_module(self):
+        module = '{}{}'.format(self.parameter['side'], self.parameter['module'])
+        if self.parameter['side'] == 'Center':
+            module = self.parameter['module']
+        # creating proxies shouldn't affect the tree structure
+        # _modules dictionary should connect all maya objects to a tree leaf
+        # {object1:leaf1, object2:leaf1, object3:leaf1}
+        if len(self._modules) == 0:
+            # means this is the first input
+            # I have to create first layer for character that will be char type
+            # then second layer for module
+            if self.parameter['name']:
+                self._objects_tree.create_node(self.parameter['name'])
+                self._shapes_tree.create_node(self.parameter['name'])
+                module = '{}_{}'.format(self.parameter['name'], module)
+
+            obj = self._objects_tree.create_node(module)
+            self._shapes_tree.create_node(module)
+            self._modules[module] = obj
+
+            qt_item = QtWidgets.QTreeWidgetItem([module])
+            self.tree_widget.addTopLevelItem(qt_item)
+            return
 
     def update_name(self, data):
         self.parameter['name'] = data
@@ -152,17 +186,17 @@ class RigUI(QtWidgets.QDialog):
 
     def send_spine(self):
         self.parameter['module'] = 'Spine'
-        self.add_module(self.parameter)
+        self.add_module()
         print(self.parameter)
 
     def send_arm(self):
         self.parameter['module'] = 'Arm'
-        self.add_module(self.parameter)
+        self.add_module()
         print(self.parameter)
 
     def send_leg(self):
         self.parameter['module'] = 'Leg'
-        self.add_module(self.parameter)
+        self.add_module()
         print(self.parameter)
 
     def refresh_tree_widget(self):
