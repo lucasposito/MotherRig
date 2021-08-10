@@ -10,8 +10,6 @@ class Arm:
         self.main = []
         self.position = {}
         self.name = mCore.utility.limb_name('Arm', name)
-        self.proxy = []
-
         self.inner_plug = None
         self.outer_plug = None
 
@@ -24,7 +22,6 @@ class Arm:
         if len(self.selected) != 3:
             self.set_proxy()
         else:
-            self._get_position()
             self._set_main()
 
     def _get_position(self):
@@ -33,6 +30,7 @@ class Arm:
             self.position[name] = cmds.xform(obj, q=True, ws=True, t=True)
 
     def _set_main(self):
+        self._get_position()
         cmds.xform(cmds.spaceLocator(p=self.position['ForeArm']), cp=True)
         locator = cmds.ls(sl=True, l=True)
         cmds.select(d=True)
@@ -61,10 +59,10 @@ class Arm:
 
     def set_proxy(self):
         position = [1, 1, 1]
-        proxy = mCore.curve.pyramid('{}_pxy'.format(self.name))
-        root = mCore.curve.proxy('{}_root_pxy'.format(self.name))
-        mid = mCore.curve.proxy('{}_mid_pxy'.format(self.name))
-        end = mCore.curve.proxy('{}_end_pxy'.format(self.name))
+        proxy = mCore.curve.pyramid('{}_pxy'.format(self.name[0]))
+        root = mCore.curve.proxy('{}_root_pxy'.format(self.name[0]))
+        mid = mCore.curve.proxy('{}_mid_pxy'.format(self.name[1]))
+        end = mCore.curve.proxy('{}_end_pxy'.format(self.name[2]))
         cmds.move(rd(position[0] + 5, position[0]), rd(position[1] + 10, position[1] + 5),
                   rd(position[2], position[2]), proxy)
         cmds.move(rd(position[0] + 5, position[0]), rd(position[1], position[1]), rd(position[2], position[2]),
@@ -75,7 +73,8 @@ class Arm:
                   rd(position[2], position[2]), end)
         cmds.parent([root, mid, end], proxy)
         cmds.select(cl=True)
-        self.proxy = [proxy, root, mid, end]
+        self.selected = [root, mid, end]
+        self.connectors.update({'start': root, 'end': end})
 
     def reset_proxy(self):
         self.selected = cmds.ls(sl=True, l=True)

@@ -31,8 +31,11 @@ def limb_name(limb, name=None):
         return
 
     index = 0
-    if final_name is None:
-        final_name = selected[0].split('|')[-1]
+    if not final_name:
+        if selected:
+            final_name = selected[0].split('|')[-1]
+        else:
+            final_name = limb
 
     for each in reversed(final_name):
         if not each.isdigit():

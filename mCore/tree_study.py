@@ -146,25 +146,16 @@ class RigUI(QtWidgets.QDialog):
         if obj in self._modules:
             return self._modules[obj]
 
-    def create_module(self, name, module, option, proxy=False):
+    def create_module(self, name, module, option):
         if module == 'Spine':
             spine = self.mods['Spine'][option](name=name)
-            if proxy:
-                spine.set_proxy()
-                return spine
-            return
+            return spine
         if module == 'Arm':
             arm = self.mods['Arm'][option](name=name)
-            if proxy:
-                arm.set_proxy()
-                return arm
-            return
+            return arm
         if module == 'Leg':
             leg = self.mods['Leg'][option](name=name)
-            if proxy:
-                leg.set_proxy()
-                return leg
-            return
+            return leg
 
     def get_maya_object(self, string):
         obj_list = om.MSelectionList()
@@ -188,18 +179,22 @@ class RigUI(QtWidgets.QDialog):
                 parent = self._shapes_tree.create_node(self.parameter['name'])
                 parent.group_node = True
                 qt_parent = QtWidgets.QTreeWidgetItem([parent.name])
+                parent.qt_node = qt_parent
                 self.tree_widget.addTopLevelItem(qt_parent)
 
                 child = self._shapes_tree.create_node('{}_{}'.format(self.parameter['name'], module))
 
                 qt_child = QtWidgets.QTreeWidgetItem([module])
+                child.qt_node = qt_child
+                for value in self.parameter.values():
+                    child.attributes.append(value)
                 qt_parent.addChild(qt_child)
 
-                mod_object = self.create_module(child.name, self.parameter['module'], 0, True)
+                mod_object = self.create_module(child.name, self.parameter['module'], 0)
                 if mod_object:
-                    for pxy in mod_object.proxy:
-                        obj = self.get_maya_object(pxy)
-                        self._modules[obj] = child
+                    child.module = mod_object
+                    for pxy in mod_object.selected:
+                        self._modules[pxy] = child
                     for plug in mod_object.connectors:
                         qt_plug = QtWidgets.QTreeWidgetItem([plug])
                         qt_child.addChild(qt_plug)
