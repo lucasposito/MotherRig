@@ -15,13 +15,10 @@ class Spine:
         self.inner_group = None
         self.outer_group = None
 
-        self.start_plug = None
-        self.end_plug = None
-        self.left_plug = None
-        self.right_plug = None
+        self.connectors = {'start': None, 'end': None, 'left': None, 'right': None}
 
         if proxies is None:
-            self._set_proxy()
+            self.set_proxy()
         else:
             self.selected = proxies
             if len(self.selected) != 4:
@@ -50,7 +47,7 @@ class Spine:
         cmds.parent(self.main[-1], self.main[1])
         cmds.select(d=True)
 
-    def _set_proxy(self):
+    def set_proxy(self):
         proxy = mCore.curve.pyramid('{}_{}'.format(self.name[0], self.proxy_suffix))
         root = mCore.curve.proxy('{}_root_{}'.format(self.name[0], self.proxy_suffix))
         end = mCore.curve.proxy('{}_end_{}'.format(self.name[0], self.proxy_suffix))

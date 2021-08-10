@@ -1,5 +1,6 @@
 import sys
 from . import Tree
+from mParts import Spine, Arm, Leg
 
 from PySide2 import QtCore
 from PySide2 import QtGui
@@ -36,6 +37,7 @@ class RigUI(QtWidgets.QDialog):
 
         self.parameter = {'name': None, 'order': None, 'side': '', 'type': None, 'module': None}
         self._modules = {}
+        self.mods = {'Spine': [Spine], 'Arm': [Arm], 'Leg': [Leg]}
         self._objects_tree = Tree()
         self._shapes_tree = Tree()
         self._objects_tree.separator = '|'
@@ -144,6 +146,26 @@ class RigUI(QtWidgets.QDialog):
         if obj in self._modules:
             return self._modules[obj]
 
+    def create_module(self, name, module, option, proxy=False):
+        if module == 'Spine':
+            spine = self.mods['Spine'][option](name=name)
+            if proxy:
+                spine.set_proxy()
+                return spine
+            return
+        if module == 'Arm':
+            arm = self.mods['Arm'][option](name=name)
+            if proxy:
+                arm.set_proxy()
+                return arm
+            return
+        if module == 'Leg':
+            leg = self.mods['Leg'][option](name=name)
+            if proxy:
+                leg.set_proxy()
+                return leg
+            return
+
     def get_maya_object(self, string):
         obj_list = om.MSelectionList()
         obj_list.add(string)
@@ -163,18 +185,30 @@ class RigUI(QtWidgets.QDialog):
             # I have to create first layer for character that will be char type
             # then second layer for module
             if self.parameter['name']:
-                self._objects_tree.create_node(self.parameter['name'])
-                shape_parent = self._shapes_tree.create_node(self.parameter['name'])
-                shape_parent.group_node = True
-                module = '{}_{}'.format(self.parameter['name'], module)
-                qt_item = QtWidgets.QTreeWidgetItem([module])
-                self.tree_widget.addTopLevelItem(qt_item)
+                parent = self._shapes_tree.create_node(self.parameter['name'])
+                parent.group_node = True
+                qt_parent = QtWidgets.QTreeWidgetItem([parent.name])
+                self.tree_widget.addTopLevelItem(qt_parent)
+
+                child = self._shapes_tree.create_node('{}_{}'.format(self.parameter['name'], module))
+
+                qt_child = QtWidgets.QTreeWidgetItem([module])
+                qt_parent.addChild(qt_child)
+
+                mod_object = self.create_module(child.name, self.parameter['module'], 0, True)
+                if mod_object:
+                    for pxy in mod_object.proxy:
+                        obj = self.get_maya_object(pxy)
+                        self._modules[obj] = child
+                    for plug in mod_object.connectors:
+                        qt_plug = QtWidgets.QTreeWidgetItem([plug])
+                        qt_child.addChild(qt_plug)
+                return
 
             obj = self._objects_tree.create_node(module)
             shape = self._shapes_tree.create_node(module)
             self._modules[module] = obj
             qt_child = QtWidgets.QTreeWidgetItem([module])
-            qt_item.addChild(qt_child)
             return
         if not selected:
             if self.parameter['name']:
@@ -207,17 +241,14 @@ class RigUI(QtWidgets.QDialog):
     def send_spine(self):
         self.parameter['module'] = 'Spine'
         self.add_module()
-        print(self.parameter)
 
     def send_arm(self):
         self.parameter['module'] = 'Arm'
         self.add_module()
-        print(self.parameter)
 
     def send_leg(self):
         self.parameter['module'] = 'Leg'
         self.add_module()
-        print(self.parameter)
 
     def refresh_tree_widget(self):
         self.tree_widget.clear()

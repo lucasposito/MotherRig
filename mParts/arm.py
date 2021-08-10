@@ -1,4 +1,5 @@
 import maya.cmds as cmds
+from random import uniform as rd
 
 import mCore
 
@@ -9,19 +10,22 @@ class Arm:
         self.main = []
         self.position = {}
         self.name = mCore.utility.limb_name('Arm', name)
+        self.proxy = []
 
         self.inner_plug = None
         self.outer_plug = None
+
+        self.connectors = {'start': None, 'end': None}
 
         if objects is None:
             self.selected = cmds.ls(sl=True, l=True)
         else:
             self.selected = objects
         if len(self.selected) != 3:
-            raise ValueError('Please select three objects')
-
-        self._get_position()
-        self._set_main()
+            self.set_proxy()
+        else:
+            self._get_position()
+            self._set_main()
 
     def _get_position(self):
         arm_key = ['Arm', 'ForeArm', 'Hand']
@@ -54,6 +58,24 @@ class Arm:
             cmds.makeIdentity(b, a=True, t=1, r=1, s=1, n=0)
         cmds.delete()
         cmds.setAttr('{}.preferredAngleX'.format(self.main[1]), 0)
+
+    def set_proxy(self):
+        position = [1, 1, 1]
+        proxy = mCore.curve.pyramid('{}_pxy'.format(self.name))
+        root = mCore.curve.proxy('{}_root_pxy'.format(self.name))
+        mid = mCore.curve.proxy('{}_mid_pxy'.format(self.name))
+        end = mCore.curve.proxy('{}_end_pxy'.format(self.name))
+        cmds.move(rd(position[0] + 5, position[0]), rd(position[1] + 10, position[1] + 5),
+                  rd(position[2], position[2]), proxy)
+        cmds.move(rd(position[0] + 5, position[0]), rd(position[1], position[1]), rd(position[2], position[2]),
+                  root)
+        cmds.move(rd(position[0] + 15, position[0] + 10), rd(position[1], position[1]),
+                  rd(position[2], position[2]), mid)
+        cmds.move(rd(position[0] + 25, position[0] + 20), rd(position[1], position[1]),
+                  rd(position[2], position[2]), end)
+        cmds.parent([root, mid, end], proxy)
+        cmds.select(cl=True)
+        self.proxy = [proxy, root, mid, end]
 
     def reset_proxy(self):
         self.selected = cmds.ls(sl=True, l=True)

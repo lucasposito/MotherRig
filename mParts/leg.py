@@ -13,15 +13,17 @@ class Leg:
         self.inner_plug = None
         self.outer_plug = None
 
+        self.connectors = {'start': None, 'end': None}
+
         if objects is None:
             self.selected = cmds.ls(sl=True, l=True)
         else:
             self.selected = objects
         if len(self.selected) != 3:
-            raise ValueError('Please select three objects')
-
-        self._get_position()
-        self._set_main()
+            a = self.set_proxy()
+        else:
+            self._get_position()
+            self._set_main()
 
     def _get_position(self):
         arm_key = ['UpLeg', 'Leg', 'Foot']
@@ -51,6 +53,10 @@ class Leg:
             cmds.makeIdentity(b, a=True, t=1, r=1, s=1, n=0)
         cmds.delete()
         cmds.setAttr('{}.preferredAngleX'.format(self.main[1]), 0)
+
+    def set_proxy(self):
+        result = [0, 1, 2]
+        return result
 
     def reset_proxy(self):
         pass
