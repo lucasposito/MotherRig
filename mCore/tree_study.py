@@ -1,6 +1,7 @@
 import sys
 from . import Tree
 from mParts import Spine, Arm, Leg
+from mCore import utility
 
 from PySide2 import QtCore
 from PySide2 import QtGui
@@ -140,9 +141,9 @@ class RigUI(QtWidgets.QDialog):
 
     def check_selection(self):
         selected = om.MGlobal.getActiveSelectionList()
-        if selected.length != 1:
+        if selected.length() != 1:
             return
-        obj = selected.getDependNode(0)
+        obj = cmds.ls(sl=True)[0]
         if obj in self._modules:
             return self._modules[obj]
 
@@ -171,19 +172,19 @@ class RigUI(QtWidgets.QDialog):
         # creating proxies shouldn't affect the tree structure
         # _modules dictionary should connect all maya objects to a tree leaf
         # {object1:leaf1, object2:leaf1, object3:leaf1}
-        if len(self._modules) == 0:
+        if len(self._modules) == 0 or not selected:
             # means this is the first input
             # I have to create first layer for character that will be char type
             # then second layer for module
             if self.parameter['name']:
                 parent = self._shapes_tree.create_node(self.parameter['name'])
+                parent.attributes.append(self.parameter['name'])
                 parent.group_node = True
                 qt_parent = QtWidgets.QTreeWidgetItem([parent.name])
                 parent.qt_node = qt_parent
                 self.tree_widget.addTopLevelItem(qt_parent)
 
-                child = self._shapes_tree.create_node('{}_{}'.format(self.parameter['name'], module))
-
+                child = self._shapes_tree.create_node('{}_{}'.format(parent.name, module))
                 qt_child = QtWidgets.QTreeWidgetItem([module])
                 child.qt_node = qt_child
                 for value in self.parameter.values():
@@ -197,22 +198,41 @@ class RigUI(QtWidgets.QDialog):
                         self._modules[pxy] = child
                     for plug in mod_object.connectors:
                         qt_plug = QtWidgets.QTreeWidgetItem([plug])
+                        mod_object.connectors[plug].append(qt_plug)
                         qt_child.addChild(qt_plug)
                 return
 
-            obj = self._objects_tree.create_node(module)
-            shape = self._shapes_tree.create_node(module)
-            self._modules[module] = obj
-            qt_child = QtWidgets.QTreeWidgetItem([module])
-            return
-        if not selected:
-            if self.parameter['name']:
-                return
+            parent = self._shapes_tree.create_node(module)
+            parent.group_node = True
+            qt_parent = QtWidgets.QTreeWidgetItem([parent.name])
+            parent.qt_node = qt_parent
+            self.tree_widget.addTopLevelItem(qt_parent)
+            for value in self.parameter.values():
+                parent.attributes.append(value)
+
+            mod_object = self.create_module(parent.name, self.parameter['module'], 0)
+            if mod_object:
+                parent.module = mod_object
+                for pxy in mod_object.selected:
+                    self._modules[pxy] = parent
+                for plug in mod_object.connectors:
+                    qt_plug = QtWidgets.QTreeWidgetItem([plug])
+                    mod_object.connectors[plug].append(qt_plug)
+                    qt_parent.addChild(qt_plug)
             return
 
-        # here will be the selected and more complicated
+        parent_group = selected.parent
+        while parent_group.group_node is False:
+            parent_group = parent_group.parent
+
         if self.parameter['name']:
-            return
+            pass
+        if parent_group.attributes:
+            if parent_group.attributes[0] == self.parameter['name']:
+                print('dont use name')
+                return
+        # here will be the selected and more complicated
+        print('use name')
         return
 
     def update_name(self, data):

@@ -13,7 +13,7 @@ class Arm:
         self.inner_plug = None
         self.outer_plug = None
 
-        self.connectors = {'start': None, 'end': None}
+        self.connectors = {'start': [], 'end': []}
 
         if objects is None:
             self.selected = cmds.ls(sl=True, l=True)
@@ -74,7 +74,8 @@ class Arm:
         cmds.parent([root, mid, end], proxy)
         cmds.select(cl=True)
         self.selected = [root, mid, end]
-        self.connectors.update({'start': root, 'end': end})
+        self.connectors['start'].append(root)
+        self.connectors['end'].append(end)
 
     def reset_proxy(self):
         self.selected = cmds.ls(sl=True, l=True)

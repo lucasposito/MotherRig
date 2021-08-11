@@ -12,21 +12,11 @@ class LeafNode(object):
         self.attributes = []
 
 
-class CapsuleNode(object):
-    def __init__(self):
-        self.short_name = None
-        self.start_node = None
-        self.end_node = None
-        self.left_node = None
-        self.right_node = None
-        self.rig = None
-        self.attributes = None  # [name, order, side, module, type, size]
-
-
 class Tree(object):
     def __init__(self):
         self.head = LeafNode()
         self.head.name = 'Root'
+        self.head.group_node = True
         self._separator = '_'
         self._cache = []
         # self.mParts = ['Spine', 'Arm', 'Leg']
