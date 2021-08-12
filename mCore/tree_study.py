@@ -226,13 +226,17 @@ class RigUI(QtWidgets.QDialog):
             parent_group = parent_group.parent
 
         if self.parameter['name']:
-            pass
-        if parent_group.attributes:
-            if parent_group.attributes[0] == self.parameter['name']:
-                print('dont use name')
+            if parent_group.attributes:  # that tells the name of the character
+                if parent_group.attributes[0] == self.parameter['name']:
+                    print('dont use name')  # code A
+                    return
+                print('use name')  # code B
                 return
+            print('use name 2')  # code B
+            return
         # here will be the selected and more complicated
-        print('use name')
+
+        print('use only limb name')  # code A
         return
 
     def update_name(self, data):
