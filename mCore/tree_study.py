@@ -230,6 +230,16 @@ class RigUI(QtWidgets.QDialog):
                 if parent_group.attributes[0] == self.parameter['name']:
                     print('dont use name')  # code A
                     return
+                # take selected name and attach
+                selected_name = selected.name
+                parent = self._shapes_tree.create_node('{}_{}'.format(selected_name, self.parameter['name']))
+                parent.attributes.append(self.parameter['name'])
+                parent.group_node = True
+                short_name = parent.name.split('_')[-1]
+                qt_parent = QtWidgets.QTreeWidgetItem([short_name])
+                parent.qt_node = qt_parent
+                selected.qt_node.addChild(qt_parent)
+
                 print('use name')  # code B
                 return
             print('use name 2')  # code B
