@@ -180,15 +180,15 @@ class MotherUI(QtWidgets.QDialog):
 
     def send_spine(self):
         self.parameter['module'] = 'Spine'
-        mCore.rig.create_proxy(self.parameter)
+        mCore.rig_old.create_proxy(self.parameter)
 
     def send_arm(self):
         self.parameter['module'] = 'Arm'
-        mCore.rig.create_proxy(self.parameter)
+        mCore.rig_old.create_proxy(self.parameter)
 
     def send_leg(self):
         self.parameter['module'] = 'Leg'
-        mCore.rig.create_proxy(self.parameter)
+        mCore.rig_old.create_proxy(self.parameter)
 
     def generate_rig(self):
-        mCore.rig.create_rig()
+        mCore.rig_old.create_rig()

@@ -1,4 +1,4 @@
-from . import curve, rig, simple_parent, utility
+from . import curve, simple_parent, utility
 from control import Control
 from .tree import Tree
 

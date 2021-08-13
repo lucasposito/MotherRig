@@ -1,6 +1,6 @@
 import sys
-from . import Tree
-from mParts import Spine, Arm, Leg
+from mCore import Tree
+from . import Spine, Arm, Leg
 
 from PySide2 import QtCore
 from PySide2 import QtWidgets
