@@ -15,7 +15,7 @@ class Spine:
         self.inner_group = None
         self.outer_group = None
 
-        self.connectors = {'start': None, 'end': None, 'left': None, 'right': None}
+        self.connectors = {'root': [], 'end': [], 'left': [], 'right': []}  # 'root':[proxy_pxy, qt_node]
 
         if proxies is None:
             self.set_proxy()
@@ -64,6 +64,10 @@ class Spine:
         cmds.parent([root, end, left, right], proxy)
         self.selected = [root, end, left, right]
         cmds.select(cl=True)
+        self.connectors['root'].append(root)
+        self.connectors['end'].append(end)
+        self.connectors['left'].append(left)
+        self.connectors['right'].append(right)
 
     def reset_proxy(self):
         pass

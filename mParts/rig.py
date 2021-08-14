@@ -1,5 +1,5 @@
 import sys
-from mCore import Tree
+from mCore import Tree, utility
 from . import Spine, Arm, Leg
 
 from PySide2 import QtCore
@@ -22,6 +22,18 @@ def maya_main_window():
 class RigUI(QtWidgets.QDialog):
 
     WINDOW_TITLE = "AutoRig Esposito"
+    ui_instance = None
+
+    @classmethod
+    def show_ui(cls):
+        if not cls.ui_instance:
+            cls.ui_instance = RigUI()
+
+        if cls.ui_instance.isHidden():
+            cls.ui_instance.show()
+        else:
+            cls.ui_instance.raise_()
+            cls.ui_instance.activateWindow()
 
     def __init__(self, parent=maya_main_window()):
         super(RigUI, self).__init__(parent)
@@ -140,10 +152,11 @@ class RigUI(QtWidgets.QDialog):
     def check_selection(self):
         selected = om.MGlobal.getActiveSelectionList()
         if selected.length() != 1:
-            return
+            return True
         obj = cmds.ls(sl=True)[0]
         if obj in self._modules:
-            return self._modules[obj]
+            part = utility.manipulate_name(obj, 'query', position=-2)
+            return self._modules[obj], part
 
     def create_module(self, name, module, option):
         if module == 'Spine':
@@ -164,12 +177,12 @@ class RigUI(QtWidgets.QDialog):
         qt_parent = QtWidgets.QTreeWidgetItem([short_name])
         parent.qt_node = qt_parent
         if selected:
-            selected.qt_node.addChild(qt_parent)
+            selected[0].module.connectors[selected[-1]][-1].addChild(qt_parent)
         else:
             self.tree_widget.addTopLevelItem(qt_parent)
 
         child = self._shapes_tree.create_node('{}_{}'.format(parent.name, module))
-        qt_child = QtWidgets.QTreeWidgetItem([module])
+        qt_child = QtWidgets.QTreeWidgetItem(['{} -> {}'.format(module, self.parameter['type'])])
         child.qt_node = qt_child
         for value in self.parameter.values():
             child.attributes.append(value)
@@ -177,10 +190,11 @@ class RigUI(QtWidgets.QDialog):
 
         mod_object = self.create_module(child.name, self.parameter['module'], 0)
         if mod_object:
+            if selected:
+                cmds.parent('{}_pxy'.format(mod_object.name[0]), selected[0].module.connectors[selected[-1]][0])
             child.module = mod_object
-            for pxy in mod_object.selected:
-                self._modules[pxy] = child
             for plug in mod_object.connectors:
+                self._modules[mod_object.connectors[plug][0]] = child
                 qt_plug = QtWidgets.QTreeWidgetItem([plug])
                 mod_object.connectors[plug].append(qt_plug)
                 qt_child.addChild(qt_plug)
@@ -188,10 +202,10 @@ class RigUI(QtWidgets.QDialog):
     def _insert_child_leaf(self, name, selected=None):
         parent = self._shapes_tree.create_node(name)
         short_name = parent.name.split('_')[-1]
-        qt_parent = QtWidgets.QTreeWidgetItem([short_name])
+        qt_parent = QtWidgets.QTreeWidgetItem(['{} -> {}'.format(short_name, self.parameter['type'])])
         parent.qt_node = qt_parent
         if selected:
-            selected.qt_node.addChild(qt_parent)
+            selected[0].module.connectors[selected[-1]][-1].addChild(qt_parent)
         else:
             self.tree_widget.addTopLevelItem(qt_parent)
         for value in self.parameter.values():
@@ -199,10 +213,11 @@ class RigUI(QtWidgets.QDialog):
 
         mod_object = self.create_module(parent.name, self.parameter['module'], 0)
         if mod_object:
+            if selected:
+                cmds.parent('{}_pxy'.format(mod_object.name[0]), selected[0].module.connectors[selected[-1]][0])
             parent.module = mod_object
-            for pxy in mod_object.selected:
-                self._modules[pxy] = parent
             for plug in mod_object.connectors:
+                self._modules[mod_object.connectors[plug][0]] = parent
                 qt_plug = QtWidgets.QTreeWidgetItem([plug])
                 mod_object.connectors[plug].append(qt_plug)
                 qt_parent.addChild(qt_plug)
@@ -212,6 +227,8 @@ class RigUI(QtWidgets.QDialog):
         if self.parameter['side'] == 'Center':
             module = self.parameter['module']
         selected = self.check_selection()
+        if not selected:
+            return
 
         if len(self._modules) == 0 or not selected:
             if self.parameter['name']:
@@ -220,20 +237,20 @@ class RigUI(QtWidgets.QDialog):
             self._insert_child_leaf(module)
             return
 
-        parent_group = selected.parent
+        parent_group = selected[0].parent
         while parent_group.group_node is False:
             parent_group = parent_group.parent
 
         if self.parameter['name']:
             if parent_group.attributes:
                 if parent_group.attributes[0] == self.parameter['name']:
-                    self._insert_child_leaf('{}_{}'.format(selected.name, module), selected)
+                    self._insert_child_leaf('{}_{}'.format(parent_group.name, module), selected)
                     return
-                self._insert_parent_leaf('{}_{}'.format(selected.name, self.parameter['name']), module, selected)
+                self._insert_parent_leaf('{}_{}'.format(selected[0].name, self.parameter['name']), module, selected)
                 return
-            self._insert_parent_leaf('{}_{}'.format(selected.name, self.parameter['name']), module, selected)
+            self._insert_parent_leaf('{}_{}'.format(selected[0].name, self.parameter['name']), module, selected)
             return
-        self._insert_child_leaf('{}_{}'.format(selected.name, module), selected)
+        self._insert_child_leaf('{}_{}'.format(parent_group.name, module), selected)
         return
 
     def update_name(self, data):
@@ -286,15 +303,3 @@ class RigUI(QtWidgets.QDialog):
             for child in children:
                 child_item = self.create_item(child)
                 item.addChild(child_item)
-
-
-# if __name__ == "__main__":
-#
-#     try:
-#         rig_esposito.close()  # pylint: disable=E0601
-#         rig_esposito.deleteLater()
-#     except:
-#         pass
-#
-#     rig_esposito = RigStructure()
-#     rig_esposito.show()

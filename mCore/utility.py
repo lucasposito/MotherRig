@@ -158,6 +158,9 @@ def manipulate_name(full_name, action=None, name=None, position=None, separator=
             return
         return occurrence
 
+    if action == 'query':
+        return name_list[position]
+
 
 def joint_hierarchy():
     def joint_type(obj):

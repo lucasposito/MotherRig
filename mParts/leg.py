@@ -1,4 +1,5 @@
 import maya.cmds as cmds
+from random import uniform as rd
 
 import mCore
 
@@ -13,16 +14,15 @@ class Leg:
         self.inner_plug = None
         self.outer_plug = None
 
-        self.connectors = {'start': None, 'end': None}
+        self.connectors = {'root': [], 'end': []}  # 'root':[proxy_pxy, qt_node]
 
         if objects is None:
             self.selected = cmds.ls(sl=True, l=True)
         else:
             self.selected = objects
         if len(self.selected) != 3:
-            a = self.set_proxy()
+            self.set_proxy()
         else:
-            self._get_position()
             self._set_main()
 
     def _get_position(self):
@@ -31,12 +31,16 @@ class Leg:
             self.position[name] = cmds.xform(obj, q=True, ws=True, t=True)
 
     def _set_main(self):
+        self._get_position()
         cmds.xform(cmds.spaceLocator(p=self.position['Leg']), cp=True)
         locator = cmds.ls(sl=True, l=True)
         cmds.select(d=True)
-        self.main.append(cmds.joint(n='{}_{}'.format(self.name[0], mCore.universal_suffix[-1]), p=self.position['UpLeg']))
-        self.main.append(cmds.joint(n='{}_{}'.format(self.name[1], mCore.universal_suffix[-1]), p=self.position['Leg']))
-        self.main.append(cmds.joint(n='{}_{}'.format(self.name[2], mCore.universal_suffix[-1]), p=self.position['Foot']))
+        first = cmds.joint(n='{}_{}'.format(self.name[0], mCore.universal_suffix[-1]), p=self.position['UpLeg'])
+        second = cmds.joint(n='{}_{}'.format(self.name[1], mCore.universal_suffix[-1]), p=self.position['Leg'])
+        third = cmds.joint(n='{}_{}'.format(self.name[2], mCore.universal_suffix[-1]), p=self.position['Foot'])
+        self.main.append(first)
+        self.main.append('{}|{}'.format(first, second))
+        self.main.append('{}|{}|{}'.format(first, second, third))
         cmds.joint(self.main[0], e=True, oj="yxz", sao="xup", ch=True, zso=True)
         self._orient(locator)
 
@@ -55,8 +59,24 @@ class Leg:
         cmds.setAttr('{}.preferredAngleX'.format(self.main[1]), 0)
 
     def set_proxy(self):
-        result = [0, 1, 2]
-        return result
+        position = [1, 1, 1]
+        proxy = mCore.curve.pyramid('{}_pxy'.format(self.name[0]))
+        root = mCore.curve.proxy('{}_root_pxy'.format(self.name[0]))
+        mid = mCore.curve.proxy('{}_mid_pxy'.format(self.name[1]))
+        end = mCore.curve.proxy('{}_end_pxy'.format(self.name[2]))
+        cmds.move(rd(position[0] + 5, position[0]), rd(position[1] + 10, position[1] + 5),
+                  rd(position[2], position[2]), proxy)
+        cmds.move(rd(position[0] + 5, position[0]), rd(position[1], position[1]), rd(position[2], position[2]),
+                  root)
+        cmds.move(rd(position[0] + 15, position[0] + 10), rd(position[1], position[1]),
+                  rd(position[2], position[2]), mid)
+        cmds.move(rd(position[0] + 25, position[0] + 20), rd(position[1], position[1]),
+                  rd(position[2], position[2]), end)
+        cmds.parent([root, mid, end], proxy)
+        cmds.select(cl=True)
+        self.selected = [root, mid, end]
+        self.connectors['root'].append(root)
+        self.connectors['end'].append(end)
 
     def reset_proxy(self):
         pass
@@ -64,39 +84,21 @@ class Leg:
     def reset_main(self):
         pass
 
-    # def _pole_vector(self):
-    #     point_a = mCore.utility.create_vector(self.position['UpLeg'])
-    #     point_b = mCore.utility.create_vector(self.position['Leg'])
-    #     point_c = mCore.utility.create_vector(self.position['Foot'])
-    #
-    #     vector_ab = point_b - point_a
-    #     vector_ac = point_c - point_a
-    #     ac_normal = vector_ac.normalize()
-    #
-    #     proj_length = vector_ab * ac_normal
-    #     proj_vector = (ac_normal * proj_length) + point_a
-    #
-    #     vector_pb = point_b - proj_vector
-    #     pb_normal = vector_pb.normalize()
-    #     pole_position = point_b + (pb_normal * 20)
-    #     return pole_position
-
     def _pole_vector(self):
         point_a = mCore.utility.create_vector(self.position['UpLeg'])
         point_b = mCore.utility.create_vector(self.position['Leg'])
         point_c = mCore.utility.create_vector(self.position['Foot'])
 
-        vector_ac = (point_c - point_a)
-        vector_ab = (point_b - point_a)
+        vector_ab = point_b - point_a
+        vector_ac = point_c - point_a
+        ac_normal = vector_ac.normalize()
 
-        scale_value = (vector_ac * vector_ab) / (vector_ac * vector_ac)
-        new_vector = vector_ac * scale_value + point_a
+        proj_length = vector_ab * ac_normal
+        proj_vector = (ac_normal * proj_length) + point_a
 
-        length_ab = (point_b - point_a).length()
-        length_bc = (point_c - point_b).length()
-        total_length = length_ab + length_bc
-
-        pole_position = (point_b - new_vector).normal() * total_length + point_b
+        vector_pb = point_b - proj_vector
+        pb_normal = vector_pb.normalize()
+        pole_position = point_b + (pb_normal * vector_ab.length())
         return pole_position
 
     def set_ik(self):
@@ -148,7 +150,10 @@ class Leg:
         self.outer_plug = outer_group
 
     def set_fk(self):
-        pass
+        ctr = mCore.Control()
+        ctr.zero_out(['null', 'circle'], ['hrc', 'ctr'], self.main)
+        ctr.toggle_control()
+        ctr.constraint()
 
     def set_ik_fk(self):
         pass

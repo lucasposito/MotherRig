@@ -24,12 +24,7 @@ def _select_all_keyed(*args):
 
 
 def _mother_rig(*args):
-    try:
-        m_rig.close()
-    except:
-        pass
-    m_rig = mParts.RigUI()
-    m_rig.show()
+    mParts.RigUI.show_ui()
 
 
 def _zero_out(*args):
