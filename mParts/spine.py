@@ -23,7 +23,7 @@ class Spine:
             self.selected = proxies
             if len(self.selected) != 4:
                 raise ValueError('Please provide four proxies')
-            self._set_main()
+            self.set_main()
 
     def _orient_spine(self):
         pass
@@ -33,7 +33,7 @@ class Spine:
         for name, obj in zip(spine_key, self.selected):
             self.position[name] = cmds.xform(obj, q=True, ws=True, t=True)
 
-    def _set_main(self):
+    def set_main(self):
         self._get_position()
         cmds.select(d=True)
         self.main.append(cmds.joint(n='{}_{}'.format(self.name[0], mCore.universal_suffix[-1]), p=self.position['Hips']))

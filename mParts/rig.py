@@ -48,6 +48,7 @@ class RigUI(QtWidgets.QDialog):
 
         self.parameter = {'name': None, 'order': None, 'side': '', 'type': None, 'module': None}
         self._modules = {}
+        self.rig_modules = []
         self.mods = {'Spine': [Spine], 'Arm': [Arm], 'Leg': [Leg]}
         self._objects_tree = Tree()
         self._shapes_tree = Tree()
@@ -149,6 +150,18 @@ class RigUI(QtWidgets.QDialog):
         self.arm_button.clicked.connect(self.send_arm)
         self.leg_button.clicked.connect(self.send_leg)
 
+    def generate_rig(self):
+        for node in self.rig_modules:
+            node.module.set_main()
+            if node.attributes[0] == 'IK':
+                node.module.set_ik()
+                print('ok')
+                return
+            if node.attributes[0] == 'FK':
+                node.module.set_fk()
+                print('ok')
+                return
+
     def check_selection(self):
         selected = om.MGlobal.getActiveSelectionList()
         if selected.length() != 1:
@@ -190,6 +203,7 @@ class RigUI(QtWidgets.QDialog):
 
         mod_object = self.create_module(child.name, self.parameter['module'], 0)
         if mod_object:
+            self.rig_modules.append(child)
             if selected:
                 cmds.parent('{}_pxy'.format(mod_object.name[0]), selected[0].module.connectors[selected[-1]][0])
             child.module = mod_object
@@ -213,6 +227,7 @@ class RigUI(QtWidgets.QDialog):
 
         mod_object = self.create_module(parent.name, self.parameter['module'], 0)
         if mod_object:
+            self.rig_modules.append(parent)
             if selected:
                 cmds.parent('{}_pxy'.format(mod_object.name[0]), selected[0].module.connectors[selected[-1]][0])
             parent.module = mod_object

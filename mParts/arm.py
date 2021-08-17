@@ -23,14 +23,14 @@ class Arm:
         if len(self.selected) != 3:
             self.set_proxy()
         else:
-            self._set_main()
+            self.set_main()
 
     def _get_position(self):
         arm_key = ['Arm', 'ForeArm', 'Hand']
         for name, obj in zip(arm_key, self.selected):
             self.position[name] = cmds.xform(obj, q=True, ws=True, t=True)
 
-    def _set_main(self):
+    def set_main(self):
         self._get_position()
         cmds.xform(cmds.spaceLocator(p=self.position['ForeArm']), cp=True)
         locator = cmds.ls(sl=True, l=True)
