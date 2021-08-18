@@ -102,6 +102,9 @@ class RigUI(QtWidgets.QDialog):
         self.tree_widget = QtWidgets.QTreeWidget()
         self.tree_widget.setHeaderHidden(True)
 
+        # generate button
+        self.generate_button = QtWidgets.QPushButton('GENERATE')
+
     def create_layout(self):
         name_field = QtWidgets.QFormLayout()
         name_field.addRow('Name:', self.name_field)
@@ -127,6 +130,9 @@ class RigUI(QtWidgets.QDialog):
         tree_layout = QtWidgets.QVBoxLayout()
         tree_layout.addWidget(self.tree_widget)
 
+        generate_layout = QtWidgets.QVBoxLayout()
+        generate_layout.addWidget(self.generate_button)
+
         main_layout = QtWidgets.QVBoxLayout(self)
         main_layout.setContentsMargins(2, 2, 2, 2)
         main_layout.setSpacing(2)
@@ -137,6 +143,7 @@ class RigUI(QtWidgets.QDialog):
         main_layout.addLayout(type_radio)
         main_layout.addLayout(modules_layout)
         main_layout.addWidget(self.tree_widget)
+        main_layout.addLayout(generate_layout)
 
     def create_connections(self):
         self.name_field.textChanged.connect(self.update_name)
@@ -150,17 +157,17 @@ class RigUI(QtWidgets.QDialog):
         self.arm_button.clicked.connect(self.send_arm)
         self.leg_button.clicked.connect(self.send_leg)
 
+        self.generate_button.clicked.connect(self.generate_rig)
+
     def generate_rig(self):
         for node in self.rig_modules:
             node.module.set_main()
             if node.attributes[0] == 'IK':
                 node.module.set_ik()
-                print('ok')
-                return
+                continue
             if node.attributes[0] == 'FK':
                 node.module.set_fk()
-                print('ok')
-                return
+                continue
 
     def check_selection(self):
         selected = om.MGlobal.getActiveSelectionList()
