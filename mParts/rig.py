@@ -48,6 +48,7 @@ class RigUI(QtWidgets.QDialog):
 
         self.parameter = {'name': None, 'order': None, 'side': '', 'type': None, 'module': None}
         self._modules = {}
+        self._qt_items = {}
         self.rig_modules = []
         self.mods = {'Spine': [Spine], 'Arm': [Arm], 'Leg': [Leg]}
         self.qt_tree = QtWidgets.QTreeWidget()
@@ -103,6 +104,7 @@ class RigUI(QtWidgets.QDialog):
 
         # generate button
         self.generate_button = QtWidgets.QPushButton('GENERATE')
+        self.generate_button.setMinimumHeight(40)
 
     def create_layout(self):
         name_field = QtWidgets.QFormLayout()
@@ -161,6 +163,12 @@ class RigUI(QtWidgets.QDialog):
     def generate_rig(self):
         # traverse the tree from root to leaf
         # replace parent_inner and outer with the created controllers
+        number = self.qt_tree.topLevelItemCount()
+        for first in range(number):
+            qt_item = self.qt_tree.topLevelItem(first)
+            self._traverse(qt_item)
+
+
         for node in self.rig_modules:
             node.module.set_main()
             if node.attributes[0] == 'IK':
@@ -170,6 +178,9 @@ class RigUI(QtWidgets.QDialog):
                 node.module.set_fk()
                 continue
         self._shapes_tree.traverse()
+
+    def _traverse(self, node):
+        pass
 
     def check_selection(self):
         selected = om.MGlobal.getActiveSelectionList()
@@ -198,6 +209,7 @@ class RigUI(QtWidgets.QDialog):
         short_name = parent.name.split('_')[-1]
         qt_parent = QtWidgets.QTreeWidgetItem([short_name])
         parent.qt_node = qt_parent
+        self._qt_items[qt_parent] = parent
         if selected:
             selected[0].module.connectors[selected[-1]][-1].addChild(qt_parent)
         else:
@@ -206,6 +218,7 @@ class RigUI(QtWidgets.QDialog):
         child = self._shapes_tree.create_node('{}_{}'.format(parent.name, module))
         qt_child = QtWidgets.QTreeWidgetItem(['{} -> {}'.format(module, self.parameter['type'])])
         child.qt_node = qt_child
+        self._qt_items[qt_child] = child
         for value in self.parameter.values():
             child.attributes.append(value)
         qt_parent.addChild(qt_child)
@@ -228,6 +241,7 @@ class RigUI(QtWidgets.QDialog):
         short_name = parent.name.split('_')[-1]
         qt_parent = QtWidgets.QTreeWidgetItem(['{} -> {}'.format(short_name, self.parameter['type'])])
         parent.qt_node = qt_parent
+        self._qt_items[qt_parent] = parent
         if selected:
             selected[0].module.connectors[selected[-1]][-1].addChild(qt_parent)
         else:
