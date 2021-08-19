@@ -11,8 +11,11 @@ class Arm:
         self.position = {}
         self.name = mCore.utility.limb_name('Arm', name)
 
-        self.inner_plug = None
-        self.outer_plug = None
+        self.self_inner = None
+        self.self_outer = None
+
+        self.parent_inner = None
+        self.parent_outer = None
 
         self.connectors = {'root': [], 'end': []}  # 'root':[proxy_pxy, qt_node]
 
@@ -187,8 +190,8 @@ class Arm:
         outer_group = cmds.group(hrc_pole_group, hrc_hand_group, n='{}_grp'.format(self.name[0]))
         cmds.select(cl=True)
 
-        self.inner_plug = list(filter(None, ik_chain[0].split('|')))[0]
-        self.outer_plug = outer_group
+        self.self_inner = list(filter(None, ik_chain[0].split('|')))[0]
+        self.self_outer = outer_group
 
     def set_fk(self):
         ctr = mCore.Control()

@@ -33,7 +33,7 @@ class IKFK(object):
 
         self.temp_new_mods = []
         self._modules = []
-        self._content = {}
+        self.content = {}
         self._selection = {}
         # _modules = ['John_LeftLeg', 'John_RightLeg', 'John_LeftArm', 'John_RightArm']
         # _content = {'John_LeftLeg':['John_LeftFoot', 'John_LeftLeg', 'John_LeftFoot_IK',
@@ -63,7 +63,7 @@ class IKFK(object):
                     self._modules.append(fk_control)
                     mod_element = [pre_mod + a for a in temp]
                     self.temp_new_mods.append(fk_control)
-                    self._content[fk_control] = mod_element
+                    self.content[fk_control] = mod_element
                     for obj in mod_element:
                         control = '{}_{}'.format(obj, self.suffix)
                         self._selection[control] = fk_control
@@ -91,8 +91,8 @@ class IKFK(object):
             driver = 3
             driven = 0
 
-        utility.quaternion_constrain('{}_{}'.format(self._content[main_object][driver], self.suffix),
-                                     '{}_{}'.format(self._content[main_object][driven], self.suffix))
+        utility.quaternion_constrain('{}_{}'.format(self.content[main_object][driver], self.suffix),
+                                     '{}_{}'.format(self.content[main_object][driven], self.suffix))
 
     def _pole_vector(self, root, mid, end):
         point_a = om.MVector(root[0], root[1], root[2])
@@ -117,13 +117,13 @@ class IKFK(object):
 
         for mod in mods:
             # Query FK position
-            root = cmds.xform('{0}_{1}'.format(self._content[mod][2], self.suffix), q=True, ws=True, piv=True)[0:3]
-            mid = cmds.xform('{0}_{1}'.format(self._content[mod][1], self.suffix), q=True, ws=True, piv=True)[0:3]
-            tip = cmds.xform('{0}_{1}'.format(self._content[mod][0], self.suffix), q=True, ws=True, piv=True)[0:3]
+            root = cmds.xform('{0}_{1}'.format(self.content[mod][2], self.suffix), q=True, ws=True, piv=True)[0:3]
+            mid = cmds.xform('{0}_{1}'.format(self.content[mod][1], self.suffix), q=True, ws=True, piv=True)[0:3]
+            tip = cmds.xform('{0}_{1}'.format(self.content[mod][0], self.suffix), q=True, ws=True, piv=True)[0:3]
 
             pole = self._pole_vector(root, mid, tip)
             # Move IK to FK
-            cmds.move(pole[0], pole[1], pole[2], '{0}_{1}'.format(self._content[mod][4], self.suffix))
+            cmds.move(pole[0], pole[1], pole[2], '{0}_{1}'.format(self.content[mod][4], self.suffix))
             self.match_tip(mod)
 
     def bake_ik_to_fk(self):
@@ -134,9 +134,9 @@ class IKFK(object):
         playback_end = self.end_frame
         timeline = range(int(playback_start), int(playback_end))
         controllers = []
-        for a in self._content:
-            controllers.append('{0}_{1}'.format(self._content[a][3], self.suffix))
-            controllers.append('{0}_{1}'.format(self._content[a][4], self.suffix))
+        for a in self.content:
+            controllers.append('{0}_{1}'.format(self.content[a][3], self.suffix))
+            controllers.append('{0}_{1}'.format(self.content[a][4], self.suffix))
         for frame in timeline:
             cmds.currentTime(frame, edit=True)
 
@@ -150,10 +150,10 @@ class IKFK(object):
             mods = self.check_selection()
 
         for mod in mods:
-            utility.quaternion_constrain('{0}_{1}'.format(self._content[mod][2], self.ik_suffix),
-                                         '{0}_{1}'.format(self._content[mod][2], self.suffix))
-            utility.quaternion_constrain('{0}_{1}'.format(self._content[mod][1], self.ik_suffix),
-                                         '{0}_{1}'.format(self._content[mod][1], self.suffix))
+            utility.quaternion_constrain('{0}_{1}'.format(self.content[mod][2], self.ik_suffix),
+                                         '{0}_{1}'.format(self.content[mod][2], self.suffix))
+            utility.quaternion_constrain('{0}_{1}'.format(self.content[mod][1], self.ik_suffix),
+                                         '{0}_{1}'.format(self.content[mod][1], self.suffix))
             self.match_tip(mod, fk=True)
 
     def bake_fk_to_ik(self):
@@ -164,10 +164,10 @@ class IKFK(object):
         playback_end = self.end_frame
         timeline = range(int(playback_start), int(playback_end))
         controllers = []
-        for a in self._content:
-            controllers.append('{0}_{1}'.format(self._content[a][0], self.suffix))
-            controllers.append('{0}_{1}'.format(self._content[a][1], self.suffix))
-            controllers.append('{0}_{1}'.format(self._content[a][2], self.suffix))
+        for a in self.content:
+            controllers.append('{0}_{1}'.format(self.content[a][0], self.suffix))
+            controllers.append('{0}_{1}'.format(self.content[a][1], self.suffix))
+            controllers.append('{0}_{1}'.format(self.content[a][2], self.suffix))
         for frame in timeline:
             cmds.currentTime(frame, edit=True)
             cmds.cutKey(controllers, time=(frame, frame), option="keys")
@@ -304,6 +304,8 @@ class ikfkUI(QtWidgets.QDialog):
         self.separator_field.returnPressed.connect(self.add_character)
         self.add_char_button.clicked.connect(self.add_character)
 
+        self.table.itemSelectionChanged.connect(self.select_items)
+
         self.clear_button.clicked.connect(self.clear_modules)
 
         self.start_frame_field.textChanged.connect(self.set_start_frame)
@@ -323,11 +325,18 @@ class ikfkUI(QtWidgets.QDialog):
     def clear_modules(self):
         self.ik_fk.temp_new_mods = []
         self.ik_fk._modules = []
-        self.ik_fk._content = {}
+        self.ik_fk.content = {}
         self.ik_fk._selection = {}
         self.table.clear()
         self.table.setRowCount(0)
         self.table.setHorizontalHeaderLabels(['Modules Detected'])
+
+    def select_items(self):
+        items = self.table.selectedItems()
+        names = []
+        for item in items:
+            names.append('{}_{}'.format(self.ik_fk.content[item.text()][0], self.ik_fk.suffix))
+        cmds.select(names, r=True)
 
     def add_character(self):
         name = self.name_field.text()

@@ -50,9 +50,8 @@ class RigUI(QtWidgets.QDialog):
         self._modules = {}
         self.rig_modules = []
         self.mods = {'Spine': [Spine], 'Arm': [Arm], 'Leg': [Leg]}
-        self._objects_tree = Tree()
+        self.qt_tree = QtWidgets.QTreeWidget()
         self._shapes_tree = Tree()
-        self._objects_tree.separator = '|'
 
         self.create_widgets()
         self.create_layout()
@@ -99,8 +98,8 @@ class RigUI(QtWidgets.QDialog):
         self.leg_button = QtWidgets.QPushButton('LEG')
         self.leg_button.setMinimumHeight(40)
 
-        self.tree_widget = QtWidgets.QTreeWidget()
-        self.tree_widget.setHeaderHidden(True)
+        self.qt_tree.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        self.qt_tree.setHeaderHidden(True)
 
         # generate button
         self.generate_button = QtWidgets.QPushButton('GENERATE')
@@ -128,7 +127,7 @@ class RigUI(QtWidgets.QDialog):
         modules_layout.addWidget(self.leg_button)
 
         tree_layout = QtWidgets.QVBoxLayout()
-        tree_layout.addWidget(self.tree_widget)
+        tree_layout.addWidget(self.qt_tree)
 
         generate_layout = QtWidgets.QVBoxLayout()
         generate_layout.addWidget(self.generate_button)
@@ -142,7 +141,7 @@ class RigUI(QtWidgets.QDialog):
         main_layout.addLayout(side_radio)
         main_layout.addLayout(type_radio)
         main_layout.addLayout(modules_layout)
-        main_layout.addWidget(self.tree_widget)
+        main_layout.addWidget(self.qt_tree)
         main_layout.addLayout(generate_layout)
 
     def create_connections(self):
@@ -160,6 +159,8 @@ class RigUI(QtWidgets.QDialog):
         self.generate_button.clicked.connect(self.generate_rig)
 
     def generate_rig(self):
+        # traverse the tree from root to leaf
+        # replace parent_inner and outer with the created controllers
         for node in self.rig_modules:
             node.module.set_main()
             if node.attributes[0] == 'IK':
@@ -168,6 +169,7 @@ class RigUI(QtWidgets.QDialog):
             if node.attributes[0] == 'FK':
                 node.module.set_fk()
                 continue
+        self._shapes_tree.traverse()
 
     def check_selection(self):
         selected = om.MGlobal.getActiveSelectionList()
@@ -199,7 +201,7 @@ class RigUI(QtWidgets.QDialog):
         if selected:
             selected[0].module.connectors[selected[-1]][-1].addChild(qt_parent)
         else:
-            self.tree_widget.addTopLevelItem(qt_parent)
+            self.qt_tree.addTopLevelItem(qt_parent)
 
         child = self._shapes_tree.create_node('{}_{}'.format(parent.name, module))
         qt_child = QtWidgets.QTreeWidgetItem(['{} -> {}'.format(module, self.parameter['type'])])
@@ -213,6 +215,7 @@ class RigUI(QtWidgets.QDialog):
             self.rig_modules.append(child)
             if selected:
                 cmds.parent('{}_pxy'.format(mod_object.name[0]), selected[0].module.connectors[selected[-1]][0])
+                mod_object.parent_inner = selected[-1]
             child.module = mod_object
             for plug in mod_object.connectors:
                 self._modules[mod_object.connectors[plug][0]] = child
@@ -228,7 +231,7 @@ class RigUI(QtWidgets.QDialog):
         if selected:
             selected[0].module.connectors[selected[-1]][-1].addChild(qt_parent)
         else:
-            self.tree_widget.addTopLevelItem(qt_parent)
+            self.qt_tree.addTopLevelItem(qt_parent)
         for value in self.parameter.values():
             parent.attributes.append(value)
 
@@ -237,6 +240,7 @@ class RigUI(QtWidgets.QDialog):
             self.rig_modules.append(parent)
             if selected:
                 cmds.parent('{}_pxy'.format(mod_object.name[0]), selected[0].module.connectors[selected[-1]][0])
+                mod_object.parent_inner = selected[-1]
             parent.module = mod_object
             for plug in mod_object.connectors:
                 self._modules[mod_object.connectors[plug][0]] = parent
@@ -252,7 +256,7 @@ class RigUI(QtWidgets.QDialog):
         if not selected:
             return
 
-        if len(self._modules) == 0 or not selected:
+        if len(self._modules) == 0 or selected is True:
             if self.parameter['name']:
                 self._insert_parent_leaf(self.parameter['name'], module)
                 return
@@ -306,12 +310,12 @@ class RigUI(QtWidgets.QDialog):
         self.add_module()
 
     def refresh_tree_widget(self):
-        self.tree_widget.clear()
+        self.qt_tree.clear()
 
         top_level_object_names = cmds.ls(assemblies=True)
         for name in top_level_object_names:
             item = self.create_item(name)
-            self.tree_widget.addTopLevelItem(item)
+            self.qt_tree.addTopLevelItem(item)
 
     def create_item(self, name):
         item = QtWidgets.QTreeWidgetItem([name])
