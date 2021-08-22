@@ -163,11 +163,10 @@ class RigUI(QtWidgets.QDialog):
     def generate_rig(self):
         # traverse the tree from root to leaf
         # replace parent_inner and outer with the created controllers
-        number = self.qt_tree.topLevelItemCount()
-        for first in range(number):
+        for first in range(self.qt_tree.topLevelItemCount()):
             qt_item = self.qt_tree.topLevelItem(first)
+            print(qt_item.text(0))
             self._traverse(qt_item)
-
 
         for node in self.rig_modules:
             node.module.set_main()
@@ -180,7 +179,15 @@ class RigUI(QtWidgets.QDialog):
         self._shapes_tree.traverse()
 
     def _traverse(self, node):
-        pass
+        nodes = []
+        # do something with the node
+        for child in range(node.childCount()):
+            qt_child = node.child(child)
+            print(qt_child.text(0))
+
+
+        # if len(node)
+
 
     def check_selection(self):
         selected = om.MGlobal.getActiveSelectionList()
@@ -225,6 +232,7 @@ class RigUI(QtWidgets.QDialog):
 
         mod_object = self.create_module(child.name, self.parameter['module'], 0)
         if mod_object:
+            mod_object.parent_outer = parent
             self.rig_modules.append(child)
             if selected:
                 cmds.parent('{}_pxy'.format(mod_object.name[0]), selected[0].module.connectors[selected[-1]][0])
@@ -237,7 +245,13 @@ class RigUI(QtWidgets.QDialog):
                 qt_child.addChild(qt_plug)
 
     def _insert_child_leaf(self, name, selected=None):
-        parent = self._shapes_tree.create_node(name)
+        group = None
+        str_name = name
+        if not isinstance(name, str):
+            group = name[0]
+            str_name = '{}_{}'.format(name[0].name, name[-1])
+
+        parent = self._shapes_tree.create_node(str_name)
         short_name = parent.name.split('_')[-1]
         qt_parent = QtWidgets.QTreeWidgetItem(['{} -> {}'.format(short_name, self.parameter['type'])])
         parent.qt_node = qt_parent
@@ -252,6 +266,7 @@ class RigUI(QtWidgets.QDialog):
         mod_object = self.create_module(parent.name, self.parameter['module'], 0)
         if mod_object:
             self.rig_modules.append(parent)
+            mod_object.parent_outer = group
             if selected:
                 cmds.parent('{}_pxy'.format(mod_object.name[0]), selected[0].module.connectors[selected[-1]][0])
                 mod_object.parent_inner = selected[-1]
@@ -284,13 +299,13 @@ class RigUI(QtWidgets.QDialog):
         if self.parameter['name']:
             if parent_group.attributes:
                 if parent_group.attributes[0] == self.parameter['name']:
-                    self._insert_child_leaf('{}_{}'.format(parent_group.name, module), selected)
+                    self._insert_child_leaf([parent_group, module], selected)
                     return
                 self._insert_parent_leaf('{}_{}'.format(selected[0].name, self.parameter['name']), module, selected)
                 return
             self._insert_parent_leaf('{}_{}'.format(selected[0].name, self.parameter['name']), module, selected)
             return
-        self._insert_child_leaf('{}_{}'.format(parent_group.name, module), selected)
+        self._insert_child_leaf([parent_group, module], selected)
         return
 
     def update_name(self, data):
