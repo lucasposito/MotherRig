@@ -1,6 +1,6 @@
 import sys
 from mCore import Tree, utility
-from . import Spine, Arm, Leg
+from . import Spine, Arm, Leg, Blank
 
 from PySide2 import QtCore
 from PySide2 import QtWidgets
@@ -50,7 +50,7 @@ class RigUI(QtWidgets.QDialog):
         self._modules = {}
         self._qt_items = {}
         self.rig_modules = []
-        self.mods = {'Spine': [Spine], 'Arm': [Arm], 'Leg': [Leg]}
+        self.mods = {'Spine': [Spine], 'Arm': [Arm], 'Leg': [Leg], 'Blank': [Blank]}
         self.qt_tree = QtWidgets.QTreeWidget()
         self._shapes_tree = Tree()
 
@@ -160,34 +160,29 @@ class RigUI(QtWidgets.QDialog):
 
         self.generate_button.clicked.connect(self.generate_rig)
 
-    def generate_rig(self):
-        # traverse the tree from root to leaf
+    def generate_rig(self, element):
         # replace parent_inner and outer with the created controllers
-        for first in range(self.qt_tree.topLevelItemCount()):
-            qt_item = self.qt_tree.topLevelItem(first)
-            print(qt_item.text(0))
-            self._traverse(qt_item)
-
-        for node in self.rig_modules:
+        if element in self._qt_items:
+            node = self._qt_items[element]
             node.module.set_main()
             if node.attributes[0] == 'IK':
                 node.module.set_ik()
-                continue
+                return
             if node.attributes[0] == 'FK':
                 node.module.set_fk()
-                continue
-        self._shapes_tree.traverse()
+                return
 
-    def _traverse(self, node):
-        nodes = []
-        # do something with the node
+    def _traverse(self, node=None):
+        if not node:
+            for first in range(self.qt_tree.topLevelItemCount()):
+                qt_item = self.qt_tree.topLevelItem(first)
+                self.generate_rig(qt_item)
+                self._traverse(qt_item)
+            return
         for child in range(node.childCount()):
             qt_child = node.child(child)
-            print(qt_child.text(0))
-
-
-        # if len(node)
-
+            self.generate_rig(qt_child)
+            self._traverse(qt_child)
 
     def check_selection(self):
         selected = om.MGlobal.getActiveSelectionList()
@@ -214,6 +209,7 @@ class RigUI(QtWidgets.QDialog):
         parent.attributes.append(self.parameter['name'])
         parent.group_node = True
         short_name = parent.name.split('_')[-1]
+
         qt_parent = QtWidgets.QTreeWidgetItem([short_name])
         parent.qt_node = qt_parent
         self._qt_items[qt_parent] = parent
