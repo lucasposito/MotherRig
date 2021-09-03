@@ -158,19 +158,20 @@ class RigUI(QtWidgets.QDialog):
         self.arm_button.clicked.connect(self.send_arm)
         self.leg_button.clicked.connect(self.send_leg)
 
-        self.generate_button.clicked.connect(self.generate_rig)
+        self.generate_button.clicked.connect(self._traverse)
 
     def generate_rig(self, element):
         # replace parent_inner and outer with the created controllers
         if element in self._qt_items:
             node = self._qt_items[element]
-            node.module.set_main()
-            if node.attributes[0] == 'IK':
-                node.module.set_ik()
-                return
-            if node.attributes[0] == 'FK':
-                node.module.set_fk()
-                return
+            if node.module:
+                node.module.set_main()
+                if node.attributes[0] == 'IK':
+                    node.module.set_ik()
+                    return
+                if node.attributes[0] == 'FK':
+                    node.module.set_fk()
+                    return
 
     def _traverse(self, node=None):
         if not node:
