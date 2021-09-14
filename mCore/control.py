@@ -150,7 +150,7 @@ class Control(object):
             each = '|'.join(grp)
             self.group.append(each)
 
-        cmds.select(self.old_object, self.group, r=True)
+        cmds.select(self.group, r=True)
         self._toggle = not self._toggle
 
     def constraint(self, type='parent'):

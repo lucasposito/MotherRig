@@ -17,7 +17,7 @@ class Arm:
         self.parent_inner = None
         self.parent_outer = None
 
-        self.connectors = {'root': [], 'end': []}  # 'root':[proxy_pxy, qt_node]
+        self.connectors = {'root': [], 'end': []}  # 'root':[proxy_pxy, qt_node, control]
 
         if objects is None:
             self.selected = cmds.ls(sl=True, l=True)
@@ -192,12 +192,19 @@ class Arm:
 
         self.self_inner = list(filter(None, ik_chain[0].split('|')))[0]
         self.self_outer = outer_group
+        self.connectors['root'].append(ik_chain[0])
+        self.connectors['end'].append(hand_ctr)
 
     def set_fk(self):
         ctr = mCore.Control()
         ctr.zero_out(['null', 'circle'], ['hrc', 'ctr'], self.main)
         ctr.toggle_control()
         ctr.constraint()
+
+        # self.self_inner = ?
+        # self.self_outer = ?
+        # self.connectors['root'] = ?
+        # self.connectors['end'] = ?
 
     def set_ik_fk(self):
         pass

@@ -102,6 +102,8 @@ class RigUI(QtWidgets.QDialog):
         self.qt_tree.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.qt_tree.setHeaderHidden(True)
 
+        self.check_button = QtWidgets.QPushButton('CHECK')
+
         # generate button
         self.generate_button = QtWidgets.QPushButton('GENERATE')
         self.generate_button.setMinimumHeight(40)
@@ -132,6 +134,7 @@ class RigUI(QtWidgets.QDialog):
         tree_layout.addWidget(self.qt_tree)
 
         generate_layout = QtWidgets.QVBoxLayout()
+        generate_layout.addWidget(self.check_button)
         generate_layout.addWidget(self.generate_button)
 
         main_layout = QtWidgets.QVBoxLayout(self)
@@ -158,10 +161,21 @@ class RigUI(QtWidgets.QDialog):
         self.arm_button.clicked.connect(self.send_arm)
         self.leg_button.clicked.connect(self.send_leg)
 
+        self.check_button.clicked.connect(self._check)
         self.generate_button.clicked.connect(self._traverse)
+
+    def _check(self):
+        selected = self.qt_tree.selectedItems()
+        for each in selected:
+            if each in self._qt_items:
+                if self._qt_items[each].module:
+                    print(self._qt_items[each].module.parent_inner)
+                    print(self._qt_items[each].module.parent_outer.name)
 
     def generate_rig(self, element):
         # replace parent_inner and outer with the created controllers
+        # the module will create the connector's controllers
+        # it'll check the parent and connect selfs to the parent's connectors
         if element in self._qt_items:
             node = self._qt_items[element]
             if node.module:
@@ -211,6 +225,8 @@ class RigUI(QtWidgets.QDialog):
         parent.group_node = True
         short_name = parent.name.split('_')[-1]
 
+        # parent_group = Blank() <-------------------------
+
         qt_parent = QtWidgets.QTreeWidgetItem([short_name])
         parent.qt_node = qt_parent
         self._qt_items[qt_parent] = parent
@@ -240,6 +256,7 @@ class RigUI(QtWidgets.QDialog):
                 qt_plug = QtWidgets.QTreeWidgetItem([plug])
                 mod_object.connectors[plug].append(qt_plug)
                 qt_child.addChild(qt_plug)
+        self.qt_tree.expandAll()
 
     def _insert_child_leaf(self, name, selected=None):
         group = None
@@ -273,6 +290,7 @@ class RigUI(QtWidgets.QDialog):
                 qt_plug = QtWidgets.QTreeWidgetItem([plug])
                 mod_object.connectors[plug].append(qt_plug)
                 qt_parent.addChild(qt_plug)
+        self.qt_tree.expandAll()
 
     def add_module(self):
         module = '{}{}'.format(self.parameter['side'], self.parameter['module'])

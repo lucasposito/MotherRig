@@ -23,6 +23,16 @@ def _select_all_keyed(*args):
     cmds.select(cache, r=True)
 
 
+def _select_non_crv(*args):
+    curves = cmds.listRelatives(cmds.ls(type="nurbsCurve"), parent=True)
+    cache = []
+    for i in cmds.ls():
+        if cmds.keyframe(i, query=True, at=['translate', 'rotate'], vc=True) is not None:
+            cache.append(i)
+    not_shapes = [each for each in cache if each not in curves]
+    cmds.select(not_shapes, r=True)
+
+
 def _mother_rig(*args):
     mParts.RigUI.show_ui()
 
@@ -66,6 +76,7 @@ class MotherShelf(object):
         self.add_button(label='Import', command=_import_fbx)
         self.add_button(label='IkFk', command=_ik_fk_switcher)
         self.add_button(label='SelKey', command=_select_all_keyed)
+        self.add_button(label='notCRV', command=_select_non_crv)
         cmds.separator(style='single', w=10)
 
         self.add_button(label='RIG', command=_mother_rig)
