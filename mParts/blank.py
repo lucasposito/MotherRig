@@ -7,6 +7,7 @@ import mCore
 class Blank:
     def __init__(self, name):
         self.main = []
+        self.name = name
 
         self.self_inner = None
         self.self_outer = None
@@ -23,7 +24,10 @@ class Blank:
         pass
 
     def set_fk(self):
-        pass
+        circle = mCore.curve.circle('{}_ctr'.format(self.name))
+        group = cmds.group(circle, n='{}_hrc'.format(self.name))
+        self.self_inner = group
+        self.connectors['root'].append(circle)
 
     def set_ik_fk(self):
         pass

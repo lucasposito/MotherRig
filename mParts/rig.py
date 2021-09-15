@@ -170,6 +170,9 @@ class RigUI(QtWidgets.QDialog):
             if each in self._qt_items:
                 if self._qt_items[each].module:
                     print(self._qt_items[each].module.parent_inner)
+                    if not self._qt_items[each].module.parent_outer:
+                        print('None')
+                        continue
                     print(self._qt_items[each].module.parent_outer.name)
 
     def generate_rig(self, element):
@@ -225,12 +228,14 @@ class RigUI(QtWidgets.QDialog):
         parent.group_node = True
         short_name = parent.name.split('_')[-1]
 
-        # parent_group = Blank() <-------------------------
-
         qt_parent = QtWidgets.QTreeWidgetItem([short_name])
         parent.qt_node = qt_parent
+
+        parent.module = Blank(parent.name)
         self._qt_items[qt_parent] = parent
+
         if selected:
+            parent.module.parent_inner = selected[0]
             selected[0].module.connectors[selected[-1]][-1].addChild(qt_parent)
         else:
             self.qt_tree.addTopLevelItem(qt_parent)
@@ -252,6 +257,7 @@ class RigUI(QtWidgets.QDialog):
                 mod_object.parent_inner = selected[-1]
             child.module = mod_object
             for plug in mod_object.connectors:
+                # find a way to update the self.parent_inner with the right connector
                 self._modules[mod_object.connectors[plug][0]] = child
                 qt_plug = QtWidgets.QTreeWidgetItem([plug])
                 mod_object.connectors[plug].append(qt_plug)

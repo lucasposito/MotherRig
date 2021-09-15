@@ -12,8 +12,11 @@ class Spine:
 
         self.name = mCore.utility.chain_name('Spine', name)
 
-        self.inner_group = None
-        self.outer_group = None
+        self.self_inner = None
+        self.self_outer = None
+
+        self.parent_inner = None
+        self.parent_outer = None
 
         self.connectors = {'root': [], 'end': [], 'left': [], 'right': []}  # 'root':[proxy_pxy, qt_node]
 
