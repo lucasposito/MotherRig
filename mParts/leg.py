@@ -5,9 +5,10 @@ import mCore
 
 
 class Leg:
-    def __init__(self, objects=None, name=None):
+    def __init__(self, objects=None, name=None, position=None):
         self._toggle = False
         self.main = []
+        self.init_position = position
         self.position = {}
         self.name = mCore.utility.limb_name('Leg', name)
 
@@ -62,19 +63,20 @@ class Leg:
         cmds.setAttr('{}.preferredAngleX'.format(self.main[1]), 0)
 
     def set_proxy(self):
-        position = [1, 1, 1]
+        if not self.init_position:
+            self.init_position = [0, 0, 0]
         proxy = mCore.curve.pyramid('{}_pxy'.format(self.name[0]))
         root = mCore.curve.proxy('{}_root_pxy'.format(self.name[0]))
         mid = mCore.curve.proxy('{}_mid_pxy'.format(self.name[1]))
         end = mCore.curve.proxy('{}_end_pxy'.format(self.name[2]))
-        cmds.move(rd(position[0] + 5, position[0]), rd(position[1] + 10, position[1] + 5),
-                  rd(position[2], position[2]), proxy)
-        cmds.move(rd(position[0] + 5, position[0]), rd(position[1], position[1]), rd(position[2], position[2]),
+        cmds.move(rd(self.init_position[0] + 5, self.init_position[0]), rd(self.init_position[1] + 10, self.init_position[1] + 5),
+                  rd(self.init_position[2], self.init_position[2]), proxy)
+        cmds.move(rd(self.init_position[0] + 5, self.init_position[0]), rd(self.init_position[1], self.init_position[1]), rd(self.init_position[2], self.init_position[2]),
                   root)
-        cmds.move(rd(position[0] + 15, position[0] + 10), rd(position[1], position[1]),
-                  rd(position[2], position[2]), mid)
-        cmds.move(rd(position[0] + 25, position[0] + 20), rd(position[1], position[1]),
-                  rd(position[2], position[2]), end)
+        cmds.move(rd(self.init_position[0] + 15, self.init_position[0] + 10), rd(self.init_position[1], self.init_position[1]),
+                  rd(self.init_position[2], self.init_position[2]), mid)
+        cmds.move(rd(self.init_position[0] + 25, self.init_position[0] + 20), rd(self.init_position[1], self.init_position[1]),
+                  rd(self.init_position[2], self.init_position[2]), end)
         cmds.parent([root, mid, end], proxy)
         cmds.select(cl=True)
         self.selected = [root, mid, end]
@@ -151,6 +153,8 @@ class Leg:
 
         self.self_inner = list(filter(None, ik_chain[0].split('|')))[0]
         self.self_outer = outer_group
+        self.connectors['root'].append(ik_chain[0])
+        self.connectors['end'].append(foot_ctr)
 
     def set_fk(self):
         ctr = mCore.Control()

@@ -173,22 +173,30 @@ class RigUI(QtWidgets.QDialog):
                     if not self._qt_items[each].module.parent_outer:
                         print('None')
                         continue
-                    print(self._qt_items[each].module.parent_outer.name)
+                    print(self._qt_items[each].module.parent_outer)
 
     def generate_rig(self, element):
-        # replace parent_inner and outer with the created controllers
-        # the module will create the connector's controllers
-        # it'll check the parent and connect selfs to the parent's connectors
         if element in self._qt_items:
             node = self._qt_items[element]
-            if node.module:
-                node.module.set_main()
-                if node.attributes[0] == 'IK':
-                    node.module.set_ik()
-                    return
-                if node.attributes[0] == 'FK':
-                    node.module.set_fk()
-                    return
+            node.module.set_main()
+            if node.attributes[0] == 'IK':
+                node.module.set_ik()
+            elif node.attributes[0] == 'FK':
+                if isinstance(node.module, Blank) and node.module.parent_inner:
+                    node.module.init_position = cmds.xform(
+                        node.module.parent_inner[0].module.connectors[node.module.parent_inner[-1]][-1], q=True,
+                        ws=True, t=True)
+                node.module.set_fk()
+            else:
+                return
+
+            if node.module.self_inner and node.module.parent_inner:
+                cmds.parent(node.module.self_inner, node.module.parent_inner[0].module.connectors[node.module.parent_inner[-1]][-1])
+            if node.module.self_outer and node.module.parent_outer:
+                cmds.parent(node.module.self_outer, node.module.parent_outer.module.connectors['root'][-1])
+            # find a better solution to connect the hierarchy joints
+            if len(node.module.main) != 0 and len(node.module.parent_inner[0].module.main) != 0:
+                cmds.parent(node.module.main[0], node.module.parent_inner[0].module.main[0])
 
     def _traverse(self, node=None):
         if not node:
@@ -212,18 +220,23 @@ class RigUI(QtWidgets.QDialog):
             return self._modules[obj], part
 
     def create_module(self, name, module, option):
+        if cmds.ls(sl=True):
+            pos = cmds.xform(cmds.ls(sl=True), q=True, ws=True, t=True)
+        else:
+            pos = [0, 0, 0]
         if module == 'Spine':
-            spine = self.mods['Spine'][option](name=name)
+            spine = self.mods['Spine'][option](name=name, position=pos)
             return spine
         if module == 'Arm':
-            arm = self.mods['Arm'][option](name=name)
+            arm = self.mods['Arm'][option](name=name, position=pos)
             return arm
         if module == 'Leg':
-            leg = self.mods['Leg'][option](name=name)
+            leg = self.mods['Leg'][option](name=name, position=pos)
             return leg
 
     def _insert_parent_leaf(self, name, module, selected=None):
         parent = self._shapes_tree.create_node(name)
+        parent.attributes.append('FK')
         parent.attributes.append(self.parameter['name'])
         parent.group_node = True
         short_name = parent.name.split('_')[-1]
@@ -235,7 +248,7 @@ class RigUI(QtWidgets.QDialog):
         self._qt_items[qt_parent] = parent
 
         if selected:
-            parent.module.parent_inner = selected[0]
+            parent.module.parent_inner = selected
             selected[0].module.connectors[selected[-1]][-1].addChild(qt_parent)
         else:
             self.qt_tree.addTopLevelItem(qt_parent)
@@ -254,10 +267,9 @@ class RigUI(QtWidgets.QDialog):
             self.rig_modules.append(child)
             if selected:
                 cmds.parent('{}_pxy'.format(mod_object.name[0]), selected[0].module.connectors[selected[-1]][0])
-                mod_object.parent_inner = selected[-1]
+            mod_object.parent_inner = (parent, 'root')
             child.module = mod_object
             for plug in mod_object.connectors:
-                # find a way to update the self.parent_inner with the right connector
                 self._modules[mod_object.connectors[plug][0]] = child
                 qt_plug = QtWidgets.QTreeWidgetItem([plug])
                 mod_object.connectors[plug].append(qt_plug)
@@ -289,7 +301,7 @@ class RigUI(QtWidgets.QDialog):
             mod_object.parent_outer = group
             if selected:
                 cmds.parent('{}_pxy'.format(mod_object.name[0]), selected[0].module.connectors[selected[-1]][0])
-                mod_object.parent_inner = selected[-1]
+                mod_object.parent_inner = selected
             parent.module = mod_object
             for plug in mod_object.connectors:
                 self._modules[mod_object.connectors[plug][0]] = parent
@@ -319,7 +331,7 @@ class RigUI(QtWidgets.QDialog):
 
         if self.parameter['name']:
             if parent_group.attributes:
-                if parent_group.attributes[0] == self.parameter['name']:
+                if parent_group.attributes[-1] == self.parameter['name']:
                     self._insert_child_leaf([parent_group, module], selected)
                     return
                 self._insert_parent_leaf('{}_{}'.format(selected[0].name, self.parameter['name']), module, selected)
