@@ -15,10 +15,10 @@ class Spine:
         self.self_inner = None
         self.self_outer = None
 
-        self.parent_inner = None
+        self.parent_inner = None  # (leaf node, connector)
         self.parent_outer = None
 
-        self.connectors = {'root': [], 'end': [], 'left': [], 'right': []}  # 'root':[proxy_pxy, qt_node]
+        self.connectors = {'root': [], 'end': [], 'left': [], 'right': []}  # 'root':[proxy_pxy, qt_node, joint, control]
 
         if proxies is None:
             self.set_proxy()

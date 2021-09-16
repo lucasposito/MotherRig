@@ -18,7 +18,7 @@ class Arm:
         self.parent_inner = None  # (leaf node, connector)
         self.parent_outer = None
 
-        self.connectors = {'root': [], 'end': []}  # 'root':[proxy_pxy, qt_node, control]
+        self.connectors = {'root': [], 'end': []}  # 'root':[proxy_pxy, qt_node, joint, control]
 
         if objects is None:
             self.selected = cmds.ls(sl=True, l=True)
@@ -194,7 +194,11 @@ class Arm:
 
         self.self_inner = list(filter(None, ik_chain[0].split('|')))[0]
         self.self_outer = outer_group
+
+        self.connectors['root'].append(self.main[0])
         self.connectors['root'].append(ik_chain[0])
+
+        self.connectors['end'].append(self.main[-1])
         self.connectors['end'].append(hand_ctr)
 
     def set_fk(self):
@@ -203,10 +207,24 @@ class Arm:
         ctr.toggle_control()
         ctr.constraint()
 
-        # self.self_inner = ?
-        # self.self_outer = ?
-        # self.connectors['root'] = ?
-        # self.connectors['end'] = ?
+        loc = cmds.group(em=True, n='{}_connect_loc'.format(self.name[0]))
+        loc_group = cmds.group(loc, n='{}_connect_hrc'.format(self.name[0]))
+        cmds.xform(loc_group, t=self.position['Arm'])
+
+        parent_group = cmds.listRelatives(ctr.group[-1], p=True)[0]
+        grp = cmds.group(em=True, r=True, p=parent_group, n='{}_cst'.format(self.name[0]))
+        cmds.parent(ctr.group[-1], grp)
+        cmds.pointConstraint(loc, grp)
+
+        self.self_inner = loc_group
+        self.self_outer = parent_group
+
+        self.connectors['root'].append(self.main[0])
+        self.connectors['root'].append(cmds.listRelatives(grp, f=True)[0])
+        end_ctr = '|'.join(filter(None, max([value for value in cmds.listRelatives(ad=True, f=True) if value in cmds.ls(type='transform', l=True)]).split('|')))
+
+        self.connectors['end'].append(self.main[-1])
+        self.connectors['end'].append(end_ctr)
 
     def set_ik_fk(self):
         pass

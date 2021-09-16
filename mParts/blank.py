@@ -16,7 +16,7 @@ class Blank:
         self.parent_inner = None  # (leaf node, connector)
         self.parent_outer = None  # leaf node
 
-        self.connectors = {'root': []}  # 'root':[proxy_pxy, qt_node, control]
+        self.connectors = {'root': []}  # 'root':[proxy_pxy, qt_node, joint, control]
 
     def set_main(self):
         pass
@@ -28,6 +28,7 @@ class Blank:
         circle = mCore.curve.circle('{}_ctr'.format(self.name))
         group = cmds.group(circle, n='{}_hrc'.format(self.name))
         self.self_inner = group
+        self.self_outer = circle
         self.connectors['root'].append(circle)
         if self.init_position:
             cmds.xform(group, t=tuple(self.init_position))

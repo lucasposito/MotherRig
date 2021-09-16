@@ -15,10 +15,10 @@ class Leg:
         self.self_inner = None
         self.self_outer = None
 
-        self.parent_inner = None
+        self.parent_inner = None  # (leaf node, connector)
         self.parent_outer = None
 
-        self.connectors = {'root': [], 'end': []}  # 'root':[proxy_pxy, qt_node]
+        self.connectors = {'root': [], 'end': []}  # 'root':[proxy_pxy, qt_node, joint, control]
 
         if objects is None:
             self.selected = cmds.ls(sl=True, l=True)
@@ -153,7 +153,11 @@ class Leg:
 
         self.self_inner = list(filter(None, ik_chain[0].split('|')))[0]
         self.self_outer = outer_group
+
+        self.connectors['root'].append(self.main[0])
         self.connectors['root'].append(ik_chain[0])
+
+        self.connectors['end'].append(self.main[-1])
         self.connectors['end'].append(foot_ctr)
 
     def set_fk(self):

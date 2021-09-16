@@ -1,5 +1,5 @@
 import sys
-from mCore import Tree, utility
+from mCore import LeafNode, Tree, utility, universal_suffix
 from . import Spine, Arm, Leg, Blank
 
 from PySide2 import QtCore
@@ -54,6 +54,9 @@ class RigUI(QtWidgets.QDialog):
         self.qt_tree = QtWidgets.QTreeWidget()
         self._shapes_tree = Tree()
 
+        self._rig_root = LeafNode()
+        self._rig_root.module = Blank('Rig')
+
         self.create_widgets()
         self.create_layout()
         self.create_connections()
@@ -102,8 +105,6 @@ class RigUI(QtWidgets.QDialog):
         self.qt_tree.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.qt_tree.setHeaderHidden(True)
 
-        self.check_button = QtWidgets.QPushButton('CHECK')
-
         # generate button
         self.generate_button = QtWidgets.QPushButton('GENERATE')
         self.generate_button.setMinimumHeight(40)
@@ -134,7 +135,6 @@ class RigUI(QtWidgets.QDialog):
         tree_layout.addWidget(self.qt_tree)
 
         generate_layout = QtWidgets.QVBoxLayout()
-        generate_layout.addWidget(self.check_button)
         generate_layout.addWidget(self.generate_button)
 
         main_layout = QtWidgets.QVBoxLayout(self)
@@ -161,19 +161,7 @@ class RigUI(QtWidgets.QDialog):
         self.arm_button.clicked.connect(self.send_arm)
         self.leg_button.clicked.connect(self.send_leg)
 
-        self.check_button.clicked.connect(self._check)
         self.generate_button.clicked.connect(self._traverse)
-
-    def _check(self):
-        selected = self.qt_tree.selectedItems()
-        for each in selected:
-            if each in self._qt_items:
-                if self._qt_items[each].module:
-                    print(self._qt_items[each].module.parent_inner)
-                    if not self._qt_items[each].module.parent_outer:
-                        print('None')
-                        continue
-                    print(self._qt_items[each].module.parent_outer)
 
     def generate_rig(self, element):
         if element in self._qt_items:
@@ -193,13 +181,27 @@ class RigUI(QtWidgets.QDialog):
             if node.module.self_inner and node.module.parent_inner:
                 cmds.parent(node.module.self_inner, node.module.parent_inner[0].module.connectors[node.module.parent_inner[-1]][-1])
             if node.module.self_outer and node.module.parent_outer:
-                cmds.parent(node.module.self_outer, node.module.parent_outer.module.connectors['root'][-1])
-            # find a better solution to connect the hierarchy joints
-            if len(node.module.main) != 0 and len(node.module.parent_inner[0].module.main) != 0:
-                cmds.parent(node.module.main[0], node.module.parent_inner[0].module.main[0])
+                if node.module.parent_outer.module:
+                    cmds.parent(node.module.self_outer, node.module.parent_outer.module.connectors['root'][-1])
+
+            if len(node.module.main) != 0:
+                parent = node.module.parent_inner
+                if parent:
+                    if parent[0].group_node:
+                        group_parent = parent[0].module.parent_inner
+                        if group_parent:
+                            cmds.parent(node.module.connectors['root'][-2], group_parent[0].module.connectors[parent[0].module.parent_inner[-1]][-2])
+                        return
+                    if len(parent[0].module.main) != 0:
+                        cmds.parent(node.module.connectors['root'][-2], parent[0].module.connectors[parent[-1]][-2])
 
     def _traverse(self, node=None):
         if not node:
+            cmds.select(d=True)
+            self._rig_root.module.connectors['root'].append(cmds.joint(n='Root_{}'.format(universal_suffix[-1])))
+            self._rig_root.module.set_fk()
+            cmds.parentConstraint(self._rig_root.module.connectors['root'][-1], self._rig_root.module.connectors['root'][-2])
+
             for first in range(self.qt_tree.topLevelItemCount()):
                 qt_item = self.qt_tree.topLevelItem(first)
                 self.generate_rig(qt_item)
@@ -209,6 +211,7 @@ class RigUI(QtWidgets.QDialog):
             qt_child = node.child(child)
             self.generate_rig(qt_child)
             self._traverse(qt_child)
+        cmds.select(d=True)
 
     def check_selection(self):
         selected = om.MGlobal.getActiveSelectionList()
@@ -251,6 +254,8 @@ class RigUI(QtWidgets.QDialog):
             parent.module.parent_inner = selected
             selected[0].module.connectors[selected[-1]][-1].addChild(qt_parent)
         else:
+            parent.module.parent_inner = (self._rig_root, 'root')
+            parent.module.parent_outer = parent.module.self_outer
             self.qt_tree.addTopLevelItem(qt_parent)
 
         child = self._shapes_tree.create_node('{}_{}'.format(parent.name, module))
@@ -292,6 +297,7 @@ class RigUI(QtWidgets.QDialog):
             selected[0].module.connectors[selected[-1]][-1].addChild(qt_parent)
         else:
             self.qt_tree.addTopLevelItem(qt_parent)
+
         for value in self.parameter.values():
             parent.attributes.append(value)
 
@@ -302,6 +308,9 @@ class RigUI(QtWidgets.QDialog):
             if selected:
                 cmds.parent('{}_pxy'.format(mod_object.name[0]), selected[0].module.connectors[selected[-1]][0])
                 mod_object.parent_inner = selected
+            else:
+                mod_object.parent_inner = (self._rig_root, 'root')
+                mod_object.parent_outer = mod_object.self_outer
             parent.module = mod_object
             for plug in mod_object.connectors:
                 self._modules[mod_object.connectors[plug][0]] = parent
