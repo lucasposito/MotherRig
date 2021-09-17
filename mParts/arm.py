@@ -221,10 +221,11 @@ class Arm:
 
         self.connectors['root'].append(self.main[0])
         self.connectors['root'].append(cmds.listRelatives(grp, f=True)[0])
-        end_ctr = '|'.join(filter(None, max([value for value in cmds.listRelatives(ad=True, f=True) if value in cmds.ls(type='transform', l=True)]).split('|')))
+        # end_ctr = ctr.group[0].split('|')[-1]
+        # end_ctr = '|'.join(filter(None, max([value for value in cmds.listRelatives(ad=True, f=True) if value in cmds.ls(type='transform', l=True)]).split('|')))
 
         self.connectors['end'].append(self.main[-1])
-        self.connectors['end'].append(end_ctr)
+        self.connectors['end'].append(ctr.group[0].split('|')[-1])
 
     def set_ik_fk(self):
         pass

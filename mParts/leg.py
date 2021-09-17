@@ -71,11 +71,11 @@ class Leg:
         end = mCore.curve.proxy('{}_end_pxy'.format(self.name[2]))
         cmds.move(rd(self.init_position[0] + 5, self.init_position[0]), rd(self.init_position[1] + 10, self.init_position[1] + 5),
                   rd(self.init_position[2], self.init_position[2]), proxy)
-        cmds.move(rd(self.init_position[0] + 5, self.init_position[0]), rd(self.init_position[1], self.init_position[1]), rd(self.init_position[2], self.init_position[2]),
+        cmds.move(rd(self.init_position[0], self.init_position[0]), rd(self.init_position[1] - 5, self.init_position[1]), rd(self.init_position[2], self.init_position[2]),
                   root)
-        cmds.move(rd(self.init_position[0] + 15, self.init_position[0] + 10), rd(self.init_position[1], self.init_position[1]),
+        cmds.move(rd(self.init_position[0], self.init_position[0]), rd(self.init_position[1] - 15, self.init_position[1] - 10),
                   rd(self.init_position[2], self.init_position[2]), mid)
-        cmds.move(rd(self.init_position[0] + 25, self.init_position[0] + 20), rd(self.init_position[1], self.init_position[1]),
+        cmds.move(rd(self.init_position[0], self.init_position[0]), rd(self.init_position[1] - 25, self.init_position[1] - 20),
                   rd(self.init_position[2], self.init_position[2]), end)
         cmds.parent([root, mid, end], proxy)
         cmds.select(cl=True)
@@ -165,6 +165,24 @@ class Leg:
         ctr.zero_out(['null', 'circle'], ['hrc', 'ctr'], self.main)
         ctr.toggle_control()
         ctr.constraint()
+
+        loc = cmds.group(em=True, n='{}_connect_loc'.format(self.name[0]))
+        loc_group = cmds.group(loc, n='{}_connect_hrc'.format(self.name[0]))
+        cmds.xform(loc_group, t=self.position['UpLeg'])
+
+        parent_group = cmds.listRelatives(ctr.group[-1], p=True)[0]
+        grp = cmds.group(em=True, r=True, p=parent_group, n='{}_cst'.format(self.name[0]))
+        cmds.parent(ctr.group[-1], grp)
+        cmds.pointConstraint(loc, grp)
+
+        self.self_inner = loc_group
+        self.self_outer = parent_group
+
+        self.connectors['root'].append(self.main[0])
+        self.connectors['root'].append(cmds.listRelatives(grp, f=True)[0])
+
+        self.connectors['end'].append(self.main[-1])
+        self.connectors['end'].append(ctr.group[0].split('|')[-1])
 
     def set_ik_fk(self):
         pass
