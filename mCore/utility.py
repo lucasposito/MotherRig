@@ -69,7 +69,7 @@ def chain_name(element, name=None):
 
     if element == 'Spine':
         name_len = 5
-        chain = ['Hips', 'Spine', 'LeftShoulder', 'RightShoulder']
+        chain = ['Hips', 'Neck', 'LeftShoulder', 'RightShoulder']
     else:
         return
 
@@ -339,8 +339,11 @@ def create_vector(pos):
     return vector
 
 
-def distance_between():
-    selection = cmds.ls(sl=True)
+def distance_between(obj=None):
+    if not obj:
+        selection = cmds.ls(sl=True)
+    else:
+        selection = obj
     if len(selection) != 2:
         return
     obj1_pos = object_position(selection[0])
