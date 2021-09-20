@@ -172,7 +172,7 @@ class RigUI(QtWidgets.QDialog):
             elif node.attributes[0] == 'FK':
                 if isinstance(node.module, Blank) and node.module.parent_inner:
                     node.module.init_position = cmds.xform(
-                        node.module.parent_inner[0].module.connectors[node.module.parent_inner[-1]][-1], q=True,
+                        node.module.init_position.module.connectors['root'][0], q=True,
                         ws=True, t=True)
                 node.module.set_fk()
             else:
@@ -197,7 +197,7 @@ class RigUI(QtWidgets.QDialog):
 
     def _traverse(self, node=None):
         if not node:
-            cmds.select(d=True)
+            cmds.select(cl=True)
             self._rig_root.module.connectors['root'].append(cmds.joint(n='Root_{}'.format(universal_suffix[-1])))
             self._rig_root.module.set_fk()
             cmds.parentConstraint(self._rig_root.module.connectors['root'][-1], self._rig_root.module.connectors['root'][-2])
@@ -211,7 +211,7 @@ class RigUI(QtWidgets.QDialog):
             qt_child = node.child(child)
             self.generate_rig(qt_child)
             self._traverse(qt_child)
-        cmds.select(d=True)
+        cmds.select(cl=True)
 
     def check_selection(self):
         selected = om.MGlobal.getActiveSelectionList()
@@ -260,6 +260,7 @@ class RigUI(QtWidgets.QDialog):
 
         child = self._shapes_tree.create_node('{}_{}'.format(parent.name, module))
         qt_child = QtWidgets.QTreeWidgetItem(['{} -> {}'.format(module, self.parameter['type'])])
+        parent.module.init_position = child
         child.qt_node = qt_child
         self._qt_items[qt_child] = child
         for value in self.parameter.values():
