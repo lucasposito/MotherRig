@@ -69,7 +69,7 @@ def chain_name(element, name=None):
 
     if element == 'Spine':
         name_len = 5
-        chain = ['Hips', 'Neck', 'LeftShoulder', 'RightShoulder']
+        chain = ['Hips', 'Spine', 'Neck', 'LeftShoulder', 'RightShoulder']
     else:
         return
 
@@ -90,10 +90,11 @@ def chain_name(element, name=None):
         if extra_clean == final_name[-5:]:
             final_name = final_name[:-5]
         root = '{}{}{}'.format(final_name, chain[0], number)
-        end = '{}{}{}'.format(final_name, chain[1], number)
-        left = '{}{}{}'.format(final_name, chain[2], number)
+        mid = '{}{}{}'.format(final_name, chain[1], number)
+        end = '{}{}{}'.format(final_name, chain[2], number)
+        left = '{}{}{}'.format(final_name, chain[3], number)
         right = '{}{}{}'.format(final_name, chain[-1], number)
-        return [root, end, left, right]
+        return [root, mid, end, left, right]
 
     if final_name[-name_len:] == element:
         final_name = final_name[:-name_len]
@@ -101,10 +102,11 @@ def chain_name(element, name=None):
         final_name = final_name[:-5]
 
     root = '{}{}'.format(final_name, chain[0])
-    end = '{}{}'.format(final_name, chain[1])
-    left = '{}{}'.format(final_name, chain[2])
+    mid = '{}{}'.format(final_name, chain[1])
+    end = '{}{}'.format(final_name, chain[2])
+    left = '{}{}'.format(final_name, chain[3])
     right = '{}{}'.format(final_name, chain[-1])
-    return [root, end, left, right]
+    return [root, mid, end, left, right]
 
 
 def manipulate_name(full_name, action=None, name=None, position=None, separator='_'):
