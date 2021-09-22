@@ -143,7 +143,7 @@ class Spine:
         pass
 
     def set_ik(self):
-        pass
+        self.set_fk()
 
     def set_fk(self):
         cmds.select(self.main[:-2])
@@ -204,7 +204,7 @@ class Spine:
         self.connectors['right'].append(right_ctr)
 
     def set_ik_fk(self):
-        pass
+        self.set_fk()
 
     def _remove_controls(self):
         pass

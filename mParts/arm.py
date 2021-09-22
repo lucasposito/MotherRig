@@ -148,7 +148,7 @@ class Arm:
         pole_position = point_b + (pb_normal * vector_ab.length())
         return pole_position
 
-    def set_ik(self):
+    def _ik(self):
         arm_copy = cmds.listRelatives(cmds.duplicate(self.main[0])[0], ad=True, f=True)
         arm_copy.append(list(filter(None, arm_copy[0].split('|')))[0])
         self.name.sort(reverse=True)
@@ -191,17 +191,9 @@ class Arm:
         hrc_hand_group = list(filter(None, hand_ctr.split('|')))[0]
         outer_group = cmds.group(hrc_pole_group, hrc_hand_group, n='{}_grp'.format(self.name[0]))
         cmds.select(cl=True)
+        return list(filter(None, ik_chain[0].split('|')))[0], outer_group, ik_chain[0], hand_ctr
 
-        self.self_inner = list(filter(None, ik_chain[0].split('|')))[0]
-        self.self_outer = outer_group
-
-        self.connectors['root'].append(self.main[0])
-        self.connectors['root'].append(ik_chain[0])
-
-        self.connectors['end'].append(self.main[-1])
-        self.connectors['end'].append(hand_ctr)
-
-    def set_fk(self):
+    def _fk(self):
         ctr = mCore.Control()
         ctr.zero_out(['null', 'circle'], ['hrc', 'ctr'], self.main)
         ctr.toggle_control()
@@ -215,18 +207,56 @@ class Arm:
         grp = cmds.group(em=True, r=True, p=parent_group, n='{}_cst'.format(self.name[0]))
         cmds.parent(ctr.group[-1], grp)
         cmds.pointConstraint(loc, grp)
+        return loc_group, parent_group, cmds.listRelatives(grp, f=True)[0], ctr.group[0].split('|')[-1]
 
-        self.self_inner = loc_group
-        self.self_outer = parent_group
+    def set_ik(self):
+        ik_elements = self._ik()
+
+        self.self_inner = ik_elements[0]
+        self.self_outer = ik_elements[1]
 
         self.connectors['root'].append(self.main[0])
-        self.connectors['root'].append(cmds.listRelatives(grp, f=True)[0])
+        self.connectors['root'].append(ik_elements[2])
 
         self.connectors['end'].append(self.main[-1])
-        self.connectors['end'].append(ctr.group[0].split('|')[-1])
+        self.connectors['end'].append(ik_elements[-1])
+
+    def set_fk(self):
+        fk_elements = self._fk()
+
+        self.self_inner = fk_elements[0]
+        self.self_outer = fk_elements[1]
+
+        self.connectors['root'].append(self.main[0])
+        self.connectors['root'].append(fk_elements[2])
+
+        self.connectors['end'].append(self.main[-1])
+        self.connectors['end'].append(fk_elements[-1])
 
     def set_ik_fk(self):
-        pass
+        ik_elements = self._ik()
+        fk_elements = self._fk()
+
+        # root locator, end locator both constraint to ik and fk, it'll go to outer group
+        arm_loc = cmds.group(em=True, n='{}_IkFk_loc'.format(self.name[0]))
+        cmds.parentConstraint(ik_elements[-1], arm_loc, w=1)
+        cmds.parentConstraint(fk_elements[-1], arm_loc, w=1)
+
+        hand_loc = cmds.group(em=True, n='{}_IkFk_loc'.format(self.name[-1]))
+        cmds.parentConstraint(ik_elements[2], hand_loc, w=1)
+        cmds.parentConstraint(fk_elements[2], hand_loc, w=1)
+
+        cmds.parent(fk_elements[1], arm_loc, hand_loc, ik_elements[1])
+        cmds.parent(fk_elements[0], ik_elements[0])
+
+        self.self_inner = ik_elements[0]
+        self.self_outer = ik_elements[1]
+
+        self.connectors['root'].append(self.main[0])
+        self.connectors['root'].append(arm_loc)
+
+        self.connectors['end'].append(self.main[-1])
+        self.connectors['end'].append(hand_loc)
 
     def _remove_controls(self):
         pass
