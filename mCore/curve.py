@@ -133,6 +133,30 @@ def circle(name='circle_ctr'):
     return curve_object[0]
 
 
+def line_between(obj1, obj2, name=None):
+    if not name or not isinstance(name, str):
+        name = obj1
+    pos1 = cmds.xform(obj1, q=True, ws=True, t=True)
+    pos2 = cmds.xform(obj2, q=True, ws=True, t=True)
+    vertex_position = [tuple(pos1), tuple(pos2)]
+    vertex_number = [0, 1]
+    curve_object = cmds.curve(n='{}_IK_crv'.format(name), d=1, p=vertex_position, k=vertex_number)
+
+    root_cluster = cmds.cluster(cmds.ls('{}.cv[0]'.format(curve_object), fl=True), n='{}_IK_root'.format(name))
+    end_cluster = cmds.cluster(cmds.ls('{}.cv[1]'.format(curve_object), fl=True), n='{}_IK_end'.format(name))
+    cmds.setAttr('{}Shape.visibility'.format(root_cluster[-1]), 0)
+    cmds.setAttr('{}Shape.visibility'.format(end_cluster[-1]), 0)
+    cmds.setAttr('{}.inheritsTransform'.format(curve_object), 0)
+
+    cmds.parentConstraint(obj1, root_cluster)
+    cmds.parentConstraint(obj2, end_cluster)
+    cmds.select(curve_object, r=True)
+    cmds.TemplateObject()
+
+    group = cmds.group(root_cluster, end_cluster, curve_object, n='{}_cluster_grp'.format(name))
+    return group
+
+
 def replace(shape):
     selected = cmds.ls(sl=True)
 

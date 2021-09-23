@@ -178,6 +178,8 @@ class Arm:
         pole_position = self._pole_vector()
         cmds.move(pole_position.x, pole_position.y, pole_position.z, '|'.join(srt_group), ws=True)
 
+        cluster = mCore.curve.line_between(self.main[1], pole_ctr, self.name[1])
+
         for copy, main in zip(ik_chain[:-1], self.main[:-1]):
             cmds.parentConstraint(copy, main)
         cmds.parentConstraint(hand_ctr, self.main[-1])
@@ -189,7 +191,7 @@ class Arm:
 
         hrc_pole_group = list(filter(None, pole_ctr.split('|')))[0]
         hrc_hand_group = list(filter(None, hand_ctr.split('|')))[0]
-        outer_group = cmds.group(hrc_pole_group, hrc_hand_group, n='{}_grp'.format(self.name[0]))
+        outer_group = cmds.group(hrc_pole_group, hrc_hand_group, cluster, n='{}_grp'.format(self.name[0]))
         cmds.select(cl=True)
         return list(filter(None, ik_chain[0].split('|')))[0], outer_group, ik_chain[0], hand_ctr
 

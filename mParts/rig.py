@@ -175,6 +175,8 @@ class RigUI(QtWidgets.QDialog):
                         node.module.init_position.module.connectors['root'][0], q=True,
                         ws=True, t=True)
                 node.module.set_fk()
+            elif node.attributes[0] == 'IKFK':
+                node.module.set_ik_fk()
             else:
                 return
 
