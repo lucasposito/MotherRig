@@ -240,11 +240,11 @@ class Arm:
         fk_elements = self._fk()
 
         # root locator, end locator both constraint to ik and fk, it'll go to outer group
-        arm_loc = cmds.group(em=True, n='{}_IkFk_loc'.format(self.name[0]))
+        arm_loc = cmds.group(em=True, n='{}_IkFk_loc'.format(self.name[-1]))
         cmds.parentConstraint(ik_elements[-1], arm_loc, w=1)
         cmds.parentConstraint(fk_elements[-1], arm_loc, w=1)
 
-        hand_loc = cmds.group(em=True, n='{}_IkFk_loc'.format(self.name[-1]))
+        hand_loc = cmds.group(em=True, n='{}_IkFk_loc'.format(self.name[0]))
         cmds.parentConstraint(ik_elements[2], hand_loc, w=1)
         cmds.parentConstraint(fk_elements[2], hand_loc, w=1)
 
