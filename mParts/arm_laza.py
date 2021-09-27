@@ -3,8 +3,6 @@ from maya import cmds
 import pymel.core as pm
 
 
-
-
 class Arm(object):
     def __init__(self, objects=None, name=None, position=None):
         self.init_position = position
@@ -73,12 +71,10 @@ class Arm(object):
             joint_temp = cmds.joint(n=self.name[i])
             self.temp_chain.append(joint_temp)
 
-        cmds.select(self.temp_chain)
+        self.main = utility.orient_limbo(self.temp_chain, self.name)
 
-        utility.OrientLimb(self.temp_chain)
-
-        self.main = cmds.ls(sl=True)
         print(self.main)
+        cmds.select(self.temp_chain, r=True)
         cmds.delete(self.temp_chain)
         cmds.select(cl=True)
 

@@ -19,6 +19,39 @@ def clean_namespaces():
     print('All namespaces deleted')
 
 
+def orient_limbo(objects, name):
+    if len(objects) != 3:
+        return
+    main_limb = []
+    position = {}
+    limb_key = ['Root', 'Mid', 'End']
+    index = 0
+    for each in objects:
+        position[limb_key[index]] = cmds.xform(each, q=True, ws=True, t=True)
+        index += 1
+
+    cmds.xform(cmds.spaceLocator(p=position['Mid']), cp=True)
+    locator = cmds.ls(sl=True, l=True)
+    cmds.select(d=True)
+    main_limb.append(cmds.joint(name='{}_jnt'.format(name[0]), p=position['Root']))
+    main_limb.append(cmds.joint(name='{}_jnt'.format(name[1]), p=position['Mid']))
+    main_limb.append(cmds.joint(name='{}_jnt'.format(name[2]), p=position['End']))
+    cmds.joint(main_limb[0], e=True, oj="yxz", sao="xup", ch=True, zso=True)
+
+    for a in main_limb:
+        cmds.setAttr(a + '.jointOrient', 0, 0, 0)
+    cmds.setAttr('{}.preferredAngleX'.format(main_limb[1]), 90)
+    ik_handle = cmds.ikHandle(sj=main_limb[0], ee=main_limb[-1])
+    cmds.move(position['End'][0], position['End'][1], position['End'][-1], a=True)
+    cmds.poleVectorConstraint(locator, ik_handle[0])
+    cmds.delete(locator)
+    for b in main_limb:
+        cmds.makeIdentity(b, a=True, t=1, r=1, s=1, n=0)
+    cmds.delete()
+    cmds.setAttr('{}.preferredAngleX'.format(main_limb[1]), 0)
+    return main_limb
+
+
 def limb_name(limb, name=None):
     final_name = name
     selected = cmds.ls(sl=True, l=True)
