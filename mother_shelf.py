@@ -1,4 +1,5 @@
 import maya.cmds as cmds
+import fnmatch
 import mCore
 import mParts
 
@@ -21,6 +22,26 @@ def _select_all_keyed(*args):
         if cmds.keyframe(i, query=True, at=['translate', 'rotate'], vc=True) is not None:
             cache.append(i)
     cmds.select(cache, r=True)
+
+
+def _select_all_controls(*args):
+    main_namespace = None
+    if cmds.ls(sl=True):
+        try:
+            main_reference = cmds.referenceQuery(cmds.ls(sl=True), referenceNode=True)
+            main_file = cmds.referenceQuery(main_reference, filename=True)
+            main_namespace = cmds.referenceQuery(main_file, ns=True)
+        except RuntimeError:
+            pass
+
+    if main_namespace:
+        shapes = [value for value in cmds.ls(type="nurbsCurve") if value in cmds.namespaceInfo(main_namespace, ls=True)]
+    else:
+        shapes = cmds.ls(type="nurbsCurve")
+    curves = fnmatch.filter(cmds.listRelatives(shapes, parent=True), '*_ctr')
+    curves.extend(fnmatch.filter(cmds.listRelatives(shapes, parent=True), '*IKFK'))
+    curves.extend(fnmatch.filter(cmds.listRelatives(shapes, parent=True), '*_IK'))
+    cmds.select(curves, r=True)
 
 
 def _select_non_crv(*args):
@@ -76,6 +97,7 @@ class MotherShelf(object):
         self.add_button(label='Import', command=_import_fbx)
         self.add_button(label='IkFk', command=_ik_fk_switcher)
         self.add_button(label='SelKey', command=_select_all_keyed)
+        self.add_button(label='SelCtrl', command=_select_all_controls)
         self.add_button(label='notCRV', command=_select_non_crv)
         cmds.separator(style='single', w=10)
 

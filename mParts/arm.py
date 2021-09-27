@@ -240,25 +240,28 @@ class Arm:
         fk_elements = self._fk()
 
         # root locator, end locator both constraint to ik and fk, it'll go to outer group
-        arm_loc = cmds.group(em=True, n='{}_IkFk_loc'.format(self.name[-1]))
-        cmds.parentConstraint(ik_elements[-1], arm_loc, w=1)
-        cmds.parentConstraint(fk_elements[-1], arm_loc, w=1)
+        hand_loc = cmds.group(em=True, n='{}_IkFk_loc'.format(self.name[-1]))
+        cmds.parentConstraint(ik_elements[-1], hand_loc, w=1)
+        cmds.parentConstraint(fk_elements[-1], hand_loc, w=1)
 
-        hand_loc = cmds.group(em=True, n='{}_IkFk_loc'.format(self.name[0]))
-        cmds.parentConstraint(ik_elements[2], hand_loc, w=1)
-        cmds.parentConstraint(fk_elements[2], hand_loc, w=1)
+        arm_loc = cmds.group(em=True, n='{}_IkFk_loc'.format(self.name[0]))
+        switcher = mCore.curve.knot(name='{}_SwitchIKFK'.format(self.name[0]))
 
-        cmds.parent(fk_elements[1], arm_loc, hand_loc, ik_elements[1])
+        cmds.parentConstraint(ik_elements[2], arm_loc, w=1)
+        cmds.parentConstraint(fk_elements[2], arm_loc, w=1)
+        cmds.parentConstraint(hand_loc, switcher, w=1)
+
+        cmds.parent(fk_elements[1], hand_loc, arm_loc, ik_elements[1])
         cmds.parent(fk_elements[0], ik_elements[0])
 
         self.self_inner = ik_elements[0]
         self.self_outer = ik_elements[1]
 
         self.connectors['root'].append(self.main[0])
-        self.connectors['root'].append(arm_loc)
+        self.connectors['root'].append(hand_loc)
 
         self.connectors['end'].append(self.main[-1])
-        self.connectors['end'].append(hand_loc)
+        self.connectors['end'].append(arm_loc)
 
     def _remove_controls(self):
         pass

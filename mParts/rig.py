@@ -1,7 +1,7 @@
 import sys
 from mCore import LeafNode, Tree, utility, universal_suffix
 from . import Spine, Arm, Leg, Blank
-
+# modules = map(__import__, mother_modules)
 from PySide2 import QtCore
 from PySide2 import QtWidgets
 from shiboken2 import wrapInstance
@@ -105,6 +105,9 @@ class RigUI(QtWidgets.QDialog):
         self.qt_tree.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.qt_tree.setHeaderHidden(True)
 
+        # delete button
+        self.delete_button = QtWidgets.QPushButton('DELETE')
+
         # generate button
         self.generate_button = QtWidgets.QPushButton('GENERATE')
         self.generate_button.setMinimumHeight(40)
@@ -134,8 +137,9 @@ class RigUI(QtWidgets.QDialog):
         tree_layout = QtWidgets.QVBoxLayout()
         tree_layout.addWidget(self.qt_tree)
 
-        generate_layout = QtWidgets.QVBoxLayout()
-        generate_layout.addWidget(self.generate_button)
+        buttons_layout = QtWidgets.QVBoxLayout()
+        buttons_layout.addWidget(self.delete_button)
+        buttons_layout.addWidget(self.generate_button)
 
         main_layout = QtWidgets.QVBoxLayout(self)
         main_layout.setContentsMargins(2, 2, 2, 2)
@@ -147,7 +151,7 @@ class RigUI(QtWidgets.QDialog):
         main_layout.addLayout(type_radio)
         main_layout.addLayout(modules_layout)
         main_layout.addWidget(self.qt_tree)
-        main_layout.addLayout(generate_layout)
+        main_layout.addLayout(buttons_layout)
 
     def create_connections(self):
         self.name_field.textChanged.connect(self.update_name)
@@ -161,7 +165,12 @@ class RigUI(QtWidgets.QDialog):
         self.arm_button.clicked.connect(self.send_arm)
         self.leg_button.clicked.connect(self.send_leg)
 
+        self.delete_button.clicked.connect(self.delete)
         self.generate_button.clicked.connect(self._traverse)
+
+    def delete(self):
+        a = self.check_selection()
+        print(a[0])
 
     def generate_rig(self, element):
         if element in self._qt_items:
