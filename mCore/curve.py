@@ -1,6 +1,5 @@
 import maya.cmds as cmds
 
-
 color_value = {'grey': 3, 'blue': 6, 'red': 13, 'yellow': 17, 'lightBlue': 18, 'rose': 20, 'green': 28}
 
 
@@ -132,7 +131,8 @@ def circle(name='circle_ctr'):
     curve_object = cmds.circle(n=name, r=1, nr=(0, 1, 0), ch=False)
     return curve_object[0]
 
-def create_cone(name='cone_ctr'):
+
+def cone(name='cone_ctr'):
     vertex_position = ([(-0.5, -1, 0.866025), (0, 1, 0), (0.5, -1, 0.866025), (-0.5, -1, 0.866025),
                         (-1, -1, -1.5885e-07), (0, 1, 0), (-1, -1, -1.5885e-07), (-0.5, -1, -0.866026),
                         (0, 1, 0), (0.5, -1, -0.866025), (-0.5, -1, -0.866026), (0.5, -1, -0.866025),
@@ -143,7 +143,8 @@ def create_cone(name='cone_ctr'):
     cmds.rename(shape, '{}Shape'.format(curve_object))
     return curve_object
 
-def create_single_arrow(name="arrow"):
+
+def single_arrow(name="arrow_ctr"):
     vertex_position = [(0, 1.003235, 0), (0.668823, 0, 0), (0.334412, 0, 0), (0.334412, -0.167206, 0),
                        (0.334412, -0.501617, 0), (0.334412, -1.003235, 0), (-0.334412, -1.003235, 0),
                        (-0.334412, -0.501617, 0), (-0.334412, -0.167206, 0), (-0.334412, 0, 0),

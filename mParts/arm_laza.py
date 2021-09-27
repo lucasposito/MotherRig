@@ -139,7 +139,7 @@ class ArmModule:
         cmds.parent(self.name[2] + "_IK_hdl", self.name[2] + "_IK_ctr")
 
         # Create pole vector
-        cone = curve.create_cone(self.name[1] + "_IK_ctr")
+        cone = curve.cone(self.name[1] + "_IK_ctr")
         cone = cmds.ls(sl=True)
 
         # Create groups pole vector
@@ -228,7 +228,7 @@ class ArmModule:
         _fk_return = self._fk()
         _ik_return = self._ik()
 
-        curve.create_single_arrow(name=self.name[0] + "_SwitchIKFK")
+        curve.single_arrow(name=self.name[0] + "_SwitchIKFK")
         switch = cmds.ls(sl=True)
         offset_switch = cmds.group(name=self.name[0] + "_SwitchIKFK_OFFSET")
         cmds.xform(self.name[0] + "_SwitchIKFK", translation=(-2, 0, 0), rotation=(180, 0, 90))
