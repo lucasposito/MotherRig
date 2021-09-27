@@ -1,12 +1,12 @@
 from mCore import utility, curve
 from maya import cmds
-import time
 import pymel.core as pm
+
+
 
 
 class Arm(object):
     def __init__(self, objects=None, name=None, position=None):
-        start_time = time.time()
         self.init_position = position
         self.main = []
         self.temp_chain = []
@@ -32,7 +32,6 @@ class Arm(object):
             self.set_proxy()
         else:
             self.set_main()
-        print("--- %s seconds ---" % (time.time() - start_time))
 
     def set_proxy(self):
         # list [] to put root, mid, end proxies
@@ -214,7 +213,7 @@ class Arm(object):
         _fk_return = self._fk()
 
         self.self_inner = _fk_return[0]
-        self.self_outer = _fk_return[1]
+        self.self_outer = _fk_return[-1]
 
         self.connectors['root'].append(self.main[0])
         self.connectors['root'].append(_fk_return[1])
@@ -277,14 +276,27 @@ class Arm(object):
                                  (get_constraint + "." + get_weights[1]), f=True)
                 cmds.connectAttr((self.name[0] + "_reverse.output.outputX"),
                                  (get_constraint + "." + get_weights[0]), f=True)
+
         cmds.select(cl=True)
         hand_loc = cmds.group(em=True, n='{}_IkFk_loc'.format(self.name[-1]))
         cmds.parentConstraint(_ik_return[2], hand_loc, w=1)
         cmds.parentConstraint(_fk_return[2], hand_loc, w=1)
+        get_constraint = cmds.listConnections('{}_IkFk_loc'.format(self.name[-1]), type="parentConstraint")[0]
+        get_weights = cmds.parentConstraint(get_constraint, q=True, wal=True)
+        cmds.connectAttr((self.name[0] + "_SwitchIKFK.IKFK"),
+                         (get_constraint + "." + get_weights[0]), f=True)
+        cmds.connectAttr((self.name[0] + "_reverse.output.outputX"),
+                         (get_constraint + "." + get_weights[1]), f=True)
 
         arm_loc = cmds.group(em=True, n='{}_IkFk_loc'.format(self.name[0]))
         cmds.parentConstraint(_ik_return[0], arm_loc, w=1)
         cmds.parentConstraint(_fk_return[1], arm_loc, w=1)
+        get_constraint = cmds.listConnections('{}_IkFk_loc'.format(self.name[0]), type="parentConstraint")[0]
+        get_weights = cmds.parentConstraint(get_constraint, q=True, wal=True)
+        cmds.connectAttr((self.name[0] + "_SwitchIKFK.IKFK"),
+                         (get_constraint + "." + get_weights[0]), f=True)
+        cmds.connectAttr((self.name[0] + "_reverse.output.outputX"),
+                         (get_constraint + "." + get_weights[1]), f=True)
 
         cmds.parent(_fk_return[-1], hand_loc, arm_loc, offset_switch, _ik_return[1])
         cmds.parent(_fk_return[0], _ik_return[-1])
