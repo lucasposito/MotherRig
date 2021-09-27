@@ -132,6 +132,29 @@ def circle(name='circle_ctr'):
     curve_object = cmds.circle(n=name, r=1, nr=(0, 1, 0), ch=False)
     return curve_object[0]
 
+def create_cone(name='cone_ctr'):
+    vertex_position = ([(-0.5, -1, 0.866025), (0, 1, 0), (0.5, -1, 0.866025), (-0.5, -1, 0.866025),
+                        (-1, -1, -1.5885e-07), (0, 1, 0), (-1, -1, -1.5885e-07), (-0.5, -1, -0.866026),
+                        (0, 1, 0), (0.5, -1, -0.866025), (-0.5, -1, -0.866026), (0.5, -1, -0.866025),
+                        (0, 1, 0), (1, -1, 0), (0.5, -1, -0.866025), (1, -1, 0), (0.5, -1, 0.866025)])
+    vertex_number = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    curve_object = cmds.curve(n=name, d=1, p=vertex_position, k=vertex_number)
+    shape = cmds.listRelatives(curve_object, s=True, f=True)
+    cmds.rename(shape, '{}Shape'.format(curve_object))
+    return curve_object
+
+def create_single_arrow(name="arrow"):
+    vertex_position = [(0, 1.003235, 0), (0.668823, 0, 0), (0.334412, 0, 0), (0.334412, -0.167206, 0),
+                       (0.334412, -0.501617, 0), (0.334412, -1.003235, 0), (-0.334412, -1.003235, 0),
+                       (-0.334412, -0.501617, 0), (-0.334412, -0.167206, 0), (-0.334412, 0, 0),
+                       (-0.668823, 0, 0), (0, 1.003235, 0)]
+
+    vertex_number = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    curve_object = cmds.curve(n=name, d=1, p=vertex_position, k=vertex_number)
+    shape = cmds.listRelatives(curve_object, s=True, f=True)
+    cmds.rename(shape, '{}Shape'.format(curve_object))
+    return curve_object
+
 
 def line_between(obj1, obj2, name=None):
     if not name or not isinstance(name, str):
