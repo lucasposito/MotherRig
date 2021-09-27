@@ -1,16 +1,14 @@
-import utility
-import curve
+from mCore import utility, curve
 from maya import cmds
 import time
-import Copy_orient_limb as col
 import pymel.core as pm
 
 
-class ArmModule:
+class Arm(object):
     def __init__(self, objects=None, name=None, position=None):
         start_time = time.time()
         self.init_position = position
-        self.main_chain = []
+        self.main = []
         self.temp_chain = []
 
         self.next_position = [0, 0, 0]
@@ -78,10 +76,10 @@ class ArmModule:
 
         cmds.select(self.temp_chain)
 
-        col.Arm(self.temp_chain)
+        utility.OrientLimb(self.temp_chain)
 
-        self.main_chain = cmds.ls(sl=True)
-        print(self.main_chain)
+        self.main = cmds.ls(sl=True)
+        print(self.main)
         cmds.delete(self.temp_chain)
         cmds.select(cl=True)
 
@@ -113,19 +111,19 @@ class ArmModule:
         new_joint_chain = "_IK_jnt"
 
         ik_chain_grp = cmds.group(n=self.name[0] + "_IK_hrc", em=True)
-        cmds.matchTransform(ik_chain_grp, self.main_chain[0])
+        cmds.matchTransform(ik_chain_grp, self.main[0])
         cmds.select(ik_chain_grp)
         for i in range(3):
             new_joint_name = self.name[i] + new_joint_chain
             ik_joint = cmds.joint(n=new_joint_name, radius=1)
-            cmds.matchTransform(new_joint_name, self.main_chain[i])
+            cmds.matchTransform(new_joint_name, self.main[i])
             cmds.makeIdentity(new_joint_name, a=1, t=0, r=1, s=0)
             ik_chain.append(ik_joint)
             cmds.select(ik_joint)
 
         # Parent the new Ik joints with the Fk one
         for i in range(2):
-            cmds.parentConstraint((self.name[i] + "_IK_jnt"), self.main_chain[i], w=True, mo=False)
+            cmds.parentConstraint((self.name[i] + "_IK_jnt"), self.main[i], w=True, mo=False)
         cmds.ikHandle(n=self.name[2] + "_IK_hdl", sol="ikRPsolver", sj=(self.name[0] + "_IK_jnt"),
                       ee=(self.name[2]) + "_IK_jnt")
         # Creating ik Icon
@@ -134,8 +132,8 @@ class ArmModule:
 
         # Parent ik control with foot/hand
         zero = cmds.group(name=self.name[2] + "_IK_hrc")
-        cmds.matchTransform(zero, self.main_chain[2], pos=True, rot=True)
-        cmds.parentConstraint(cube, self.main_chain[2], mo=True)
+        cmds.matchTransform(zero, self.main[2], pos=True, rot=True)
+        cmds.parentConstraint(cube, self.main[2], mo=True)
         cmds.parent(self.name[2] + "_IK_hdl", self.name[2] + "_IK_ctr")
 
         # Create pole vector
@@ -148,8 +146,8 @@ class ArmModule:
 
         offset_pole = cmds.group(name=self.name[1] + "_IK_hrc")
 
-        cmds.matchTransform(offset_pole, self.main_chain[1], pos=True, rot=True)
-        cmds.select(self.main_chain[0], self.main_chain[1], self.main_chain[2])
+        cmds.matchTransform(offset_pole, self.main[1], pos=True, rot=True)
+        cmds.select(self.main[0], self.main[1], self.main[2])
 
         joint_1, joint_2, joint_3 = pm.selected()
 
@@ -182,10 +180,10 @@ class ArmModule:
         self.self_inner = _ik_return[0]
         self.self_outer = _ik_return[1]
 
-        self.connectors['root'].append(self.main_chain[0])
+        self.connectors['root'].append(self.main[0])
         self.connectors['root'].append(_ik_return[0])
 
-        self.connectors['end'].append(self.main_chain[-1])
+        self.connectors['end'].append(self.main[-1])
         self.connectors['end'].append(_ik_return[2])
 
     def _fk(self, radius=1):
@@ -196,8 +194,8 @@ class ArmModule:
             if i == 0:
                 _cst = cmds.group(n='{}_cst'.format(self.name[0]))
             hrc = cmds.group(name=self.name[i] + "_hrc")
-            cmds.matchTransform(hrc, self.main_chain[i], scale=False)
-            cmds.parentConstraint(ctr, self.main_chain[i])
+            cmds.matchTransform(hrc, self.main[i], scale=False)
+            cmds.parentConstraint(ctr, self.main[i])
             if i == 0:
                 ctr_to_connect = ctr
             else:
@@ -206,7 +204,7 @@ class ArmModule:
         hrc_arm = cmds.ls("{}_hrc".format(self.name[0]))
         connect_loc = cmds.group(em=True, n='{}_connect_loc'.format(self.name[0]))
         connect_hrc = cmds.group(n='{}_connect_hrc'.format(self.name[0]))
-        cmds.matchTransform(connect_hrc, self.main_chain[0])
+        cmds.matchTransform(connect_hrc, self.main[0])
         cmds.pointConstraint(connect_loc, _cst)
         hrc_fk = cmds.ls('{}_ctr'.format(self.name[0]))[0]
         hand_ctr = cmds.ls('{}_ctr'.format(self.name[2]))[0]
@@ -218,10 +216,10 @@ class ArmModule:
         self.self_inner = _fk_return[0]
         self.self_outer = _fk_return[1]
 
-        self.connectors['root'].append(self.main_chain[0])
+        self.connectors['root'].append(self.main[0])
         self.connectors['root'].append(_fk_return[1])
 
-        self.connectors['end'].append(self.main_chain[-1])
+        self.connectors['end'].append(self.main[-1])
         self.connectors['end'].append(_fk_return[2])
 
     def set_ik_fk(self):
@@ -232,8 +230,8 @@ class ArmModule:
         switch = cmds.ls(sl=True)
         offset_switch = cmds.group(name=self.name[0] + "_SwitchIKFK_OFFSET")
         cmds.xform(self.name[0] + "_SwitchIKFK", translation=(-2, 0, 0), rotation=(180, 0, 90))
-        cmds.matchTransform(offset_switch, self.main_chain[2])
-        cmds.parentConstraint(self.main_chain[2], offset_switch, mo=False)
+        cmds.matchTransform(offset_switch, self.main[2])
+        cmds.parentConstraint(self.main[2], offset_switch, mo=False)
         cmds.select(switch)
         add_attribute = cmds.ls(sl=True)
         for i in add_attribute:
@@ -271,7 +269,7 @@ class ArmModule:
                 cmds.connectAttr((self.name[0] + "_reverse.output.outputX"),
                                  (get_constraint + "." + get_weights[0]), f=True)
             else:
-                get_constraint = cmds.listConnections(self.main_chain[i], type="parentConstraint")[0]
+                get_constraint = cmds.listConnections(self.main[i], type="parentConstraint")[0]
 
                 get_weights = cmds.parentConstraint(get_constraint, q=True, wal=True)
 
@@ -280,24 +278,24 @@ class ArmModule:
                 cmds.connectAttr((self.name[0] + "_reverse.output.outputX"),
                                  (get_constraint + "." + get_weights[0]), f=True)
         cmds.select(cl=True)
-        arm_loc = cmds.group(em=True, n='{}_IkFk_loc'.format(self.name[-1]))
-        cmds.parentConstraint(_ik_return[2], arm_loc, w=1)
-        cmds.parentConstraint(_fk_return[2], arm_loc, w=1)
+        hand_loc = cmds.group(em=True, n='{}_IkFk_loc'.format(self.name[-1]))
+        cmds.parentConstraint(_ik_return[2], hand_loc, w=1)
+        cmds.parentConstraint(_fk_return[2], hand_loc, w=1)
 
-        hand_loc = cmds.group(em=True, n='{}_IkFk_loc'.format(self.name[0]))
-        cmds.parentConstraint(_ik_return[0], hand_loc, w=1)
-        cmds.parentConstraint(_fk_return[1], hand_loc, w=1)
+        arm_loc = cmds.group(em=True, n='{}_IkFk_loc'.format(self.name[0]))
+        cmds.parentConstraint(_ik_return[0], arm_loc, w=1)
+        cmds.parentConstraint(_fk_return[1], arm_loc, w=1)
 
-        cmds.parent(_fk_return[-1], arm_loc, hand_loc, offset_switch, _ik_return[1])
+        cmds.parent(_fk_return[-1], hand_loc, arm_loc, offset_switch, _ik_return[1])
         cmds.parent(_fk_return[0], _ik_return[-1])
 
-        self.self_inner = _ik_return[0]
+        self.self_inner = _ik_return[-1]
         self.self_outer = _ik_return[1]
 
-        self.connectors['root'].append(self.main_chain[0])
-        self.connectors['root'].append(_fk_return[1])
+        self.connectors['root'].append(self.main[0])
+        self.connectors['root'].append(arm_loc)
 
-        self.connectors['end'].append(self.main_chain[-1])
-        self.connectors['end'].append(_fk_return[2])
+        self.connectors['end'].append(self.main[-1])
+        self.connectors['end'].append(hand_loc)
 
         print(self.connectors)
