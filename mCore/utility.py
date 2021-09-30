@@ -33,9 +33,14 @@ def orient_limbo(objects, name):
     cmds.xform(cmds.spaceLocator(p=position['Mid']), cp=True)
     locator = cmds.ls(sl=True, l=True)
     cmds.select(d=True)
-    main_limb.append(cmds.joint(name='{}_jnt'.format(name[0]), p=position['Root']))
-    main_limb.append(cmds.joint(name='{}_jnt'.format(name[1]), p=position['Mid']))
-    main_limb.append(cmds.joint(name='{}_jnt'.format(name[2]), p=position['End']))
+
+    first = cmds.joint(n='{}_{}'.format(name[0], mCore.universal_suffix[-1]), p=position['Root'])
+    second = cmds.joint(n='{}_{}'.format(name[1], mCore.universal_suffix[-1]), p=position['Mid'])
+    third = cmds.joint(n='{}_{}'.format(name[2], mCore.universal_suffix[-1]), p=position['End'])
+    main_limb.append(first)
+    main_limb.append('{}|{}'.format(first, second))
+    main_limb.append('{}|{}|{}'.format(first, second, third))
+
     cmds.joint(main_limb[0], e=True, oj="yxz", sao="xup", ch=True, zso=True)
 
     for a in main_limb:

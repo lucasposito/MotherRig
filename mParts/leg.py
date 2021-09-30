@@ -11,6 +11,7 @@ class Leg:
         self.init_position = position
         self.position = {}
         self.name = mCore.utility.limb_name('Leg', name)
+        self.side = None
 
         self.self_inner = None
         self.self_outer = None

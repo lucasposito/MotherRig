@@ -9,6 +9,7 @@ class Blank:
         self.main = []
         self.name = name
         self.init_position = None
+        self.side = None
 
         self.self_inner = None  # leaf node
         self.self_outer = None  # leaf node

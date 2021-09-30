@@ -15,6 +15,7 @@ class Spine:
 
         self.spine_size = 2
         self.name = mCore.utility.chain_name('Spine', name)
+        self.side = None
 
         self.self_inner = None
         self.self_outer = None

@@ -34,6 +34,11 @@ def curve_size(value=1.1):
             cmds.scale(value, value, value, '{}.cv[*]'.format(crv), r=True, p=curve_pivot)
 
 
+def lock_hide_attr(obj, attr_array, lock, hide):
+    for a in attr_array:
+        cmds.setAttr(obj + '.' + a, k=hide, l=lock)
+
+
 def normalize_size(factor=0.8):
     objects = [a for a in cmds.ls(sl=True) if cmds.listRelatives(a, s=True, f=True, type='nurbsCurve')]
     for child in cmds.listRelatives(cmds.ls(sl=True), ad=True, f=True, type='nurbsCurve'):

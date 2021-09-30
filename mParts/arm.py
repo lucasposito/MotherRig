@@ -11,6 +11,9 @@ class Arm:
         self.init_position = position
         self.position = {}
         self.name = mCore.utility.limb_name('Arm', name)
+        self.side = None
+
+        self.color = {'Left': 6, 'Right': 13, 'Center': 17}
 
         self.self_inner = None
         self.self_outer = None
@@ -36,35 +39,16 @@ class Arm:
 
     def set_main(self):
         self._get_position()
-        cmds.xform(cmds.spaceLocator(p=self.position['ForeArm']), cp=True)
-        locator = cmds.ls(sl=True, l=True)
-        cmds.select(d=True)
-        first = cmds.joint(n='{}_{}'.format(self.name[0], mCore.universal_suffix[-1]), p=self.position['Arm'])
-        second = cmds.joint(n='{}_{}'.format(self.name[1], mCore.universal_suffix[-1]), p=self.position['ForeArm'])
-        third = cmds.joint(n='{}_{}'.format(self.name[2], mCore.universal_suffix[-1]), p=self.position['Hand'])
-        self.main.append(first)
-        self.main.append('{}|{}'.format(first, second))
-        self.main.append('{}|{}|{}'.format(first, second, third))
-        cmds.joint(self.main[0], e=True, oj="yxz", sao="xup", ch=True, zso=True)
-        self._orient(locator)
-
-    def _orient(self, locator):
-        wrist = self.position['Hand']
-        for a in self.main:
-            cmds.setAttr(a + '.jointOrient', 0, 0, 0)
-        cmds.setAttr('{}.preferredAngleX'.format(self.main[1]), 90)
-        ik_handle = cmds.ikHandle(sj=self.main[0], ee=self.main[-1])
-        cmds.move(wrist[0], wrist[1], wrist[-1], a=True)
-        cmds.poleVectorConstraint(locator, ik_handle[0])
-        cmds.delete(locator)
-        for b in self.main:
-            cmds.makeIdentity(b, a=True, t=1, r=1, s=1, n=0)
-        cmds.delete()
-        cmds.setAttr('{}.preferredAngleX'.format(self.main[1]), 0)
+        self.main = mCore.utility.orient_limbo(self.selected, self.name)
+        # if self.side == 'Right':
+        #     self.toggle_orient()
 
     def set_proxy(self):
+        multiplier = 1
         if not self.init_position:
             self.init_position = [0, 0, 0]
+        if self.side == 'Right':
+            multiplier = -1
         proxy = mCore.curve.pyramid('{}_pxy'.format(self.name[0]))
         root = mCore.curve.proxy('{}_root_pxy'.format(self.name[0]))
         mid = mCore.curve.proxy('{}_mid_pxy'.format(self.name[1]))
@@ -112,14 +96,17 @@ class Arm:
         cmds.parent(self.main[1], self.main[0])
 
         cmds.joint(self.main[0], e=True, oj="yxz", sao="xup", ch=True, zso=True)
-        self._orient(locator)
+        # self._orient(locator)
         if self._toggle:
             self.toggle_orient()
             self._toggle = True
 
     def toggle_orient(self):
         self._toggle = not self._toggle
-        cmds.parent(self.main[1], self.main[-1], w=True)
+        temp = []
+        for each in self.main:
+            temp.append(each.split('|')[-1])
+        cmds.parent(temp[1], temp[-1], w=True)
         for a in self.main:
             cmds.setAttr('{}.rotateX'.format(a), 180)
         cmds.parent(self.main[-1], self.main[1])
@@ -162,10 +149,12 @@ class Arm:
         ctr = mCore.Control()
         ctr.zero_out(['null', 'cube'], ['hrc', 'ctr'], [ik_chain[-1]])
         ctr.toggle_control()
+        mCore.curve.curve_color(self.color[self.side])
         hand_ctr = list(ctr.group)[0]
 
         ctr.zero_out(['null', 'null', 'diamond'], ['hrc', 'srt', 'ctr'], [ik_chain[1]])
         ctr.toggle_control()
+        mCore.curve.curve_color(self.color[self.side])
         pole_ctr = list(ctr.group)[0]
 
         ctr.zero_out(['null'], ['hrc'], [ik_chain[0]])
@@ -199,6 +188,7 @@ class Arm:
         ctr = mCore.Control()
         ctr.zero_out(['null', 'circle'], ['hrc', 'ctr'], self.main)
         ctr.toggle_control()
+        mCore.curve.curve_color(self.color[self.side])
         ctr.constraint()
 
         loc = cmds.group(em=True, n='{}_connect_loc'.format(self.name[0]))
@@ -246,22 +236,44 @@ class Arm:
 
         arm_loc = cmds.group(em=True, n='{}_IkFk_loc'.format(self.name[0]))
         switcher = mCore.curve.knot(name='{}_SwitchIKFK'.format(self.name[0]))
+        mCore.curve.curve_color(17)
+
+        cmds.move(0, 10, 0, '{}.cv[*]'.format(cmds.listRelatives(switcher, s=True, f=True)[0]), r=True, os=True, wd=True)
+        cmds.addAttr(switcher, ln='IkFk', at='float', dv=0, min=0, max=1, k=True)
 
         cmds.parentConstraint(ik_elements[2], arm_loc, w=1)
         cmds.parentConstraint(fk_elements[2], arm_loc, w=1)
         cmds.parentConstraint(hand_loc, switcher, w=1)
 
-        cmds.parent(fk_elements[1], hand_loc, arm_loc, ik_elements[1])
+        constraints = cmds.listRelatives(self.main, arm_loc, hand_loc, f=True, type='parentConstraint')
+        remap = cmds.createNode('remapValue', n='{}_remapValue'.format(switcher))
+        cmds.setAttr('{}.outputMin'.format(remap), 1)
+        cmds.setAttr('{}.outputMax'.format(remap), 0)
+        cmds.connectAttr('{}.IkFk'.format(switcher), '{}.inputValue'.format(remap))
+
+        for each in constraints:
+            cmds.connectAttr('{}.IkFk'.format(switcher), '{}.{}'.format(each, cmds.listAttr(each, ud=True)[0]))
+            cmds.connectAttr('{}.outValue'.format(remap), '{}.{}'.format(each, cmds.listAttr(each, ud=True)[1]))
+
+        cmds.parent(fk_elements[1], hand_loc, arm_loc, switcher, ik_elements[1])
         cmds.parent(fk_elements[0], ik_elements[0])
+        mCore.curve.lock_hide_attr(switcher, ['tx', 'ty', 'tz', 'rx', 'ry', 'rz', 'sx', 'sy', 'sz', 'visibility'], 0, 0)
+
+        # visibility = [line, pole vector, ik jnt, hand ctr, fk ctr]
+        # cmds.connectAttr('{}.IkFk'.format(switcher), '{}.visibility'.format(ik_elements[0]))
+        # cmds.connectAttr('{}.IkFk'.format(switcher), '{}.visibility'.format(ik_elements[-1]))
+        #
+        # cmds.connectAttr('{}.outValue'.format(remap), '{}.visibility'.format(fk_elements[0]))
+        # cmds.connectAttr('{}.outValue'.format(remap), '{}.visibility'.format(fk_elements[-1]))
 
         self.self_inner = ik_elements[0]
         self.self_outer = ik_elements[1]
 
         self.connectors['root'].append(self.main[0])
-        self.connectors['root'].append(hand_loc)
+        self.connectors['root'].append(arm_loc)
 
         self.connectors['end'].append(self.main[-1])
-        self.connectors['end'].append(arm_loc)
+        self.connectors['end'].append(hand_loc)
 
     def _remove_controls(self):
         pass

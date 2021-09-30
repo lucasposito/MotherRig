@@ -279,6 +279,7 @@ class RigUI(QtWidgets.QDialog):
         qt_parent.addChild(qt_child)
 
         mod_object = self.create_module(child.name, self.parameter['module'], 0)
+        mod_object.side = self.parameter['side']
         if mod_object:
             mod_object.parent_outer = parent
             self.rig_modules.append(child)
@@ -314,6 +315,7 @@ class RigUI(QtWidgets.QDialog):
             parent.attributes.append(value)
 
         mod_object = self.create_module(parent.name, self.parameter['module'], 0)
+        mod_object.side = self.parameter['side']
         if mod_object:
             self.rig_modules.append(parent)
             mod_object.parent_outer = group
