@@ -8,6 +8,7 @@ class Arm(object):
         self.init_position = position
         self.main = []
         self.temp_chain = []
+        self.side = None
 
         self.next_position = [0, 0, 0]
         self.name = utility.limb_name('Arm', name)
@@ -166,13 +167,19 @@ class Arm(object):
 
         outer_group = cmds.group(offset_pole, zero, n='{}_grp'.format(self.name[0]))
         cmds.select(cl=True)
+        if self.side == "Left":
+            cmds.select(cube_list, cone)
+            curve.curve_color(6)
+        if self.side == "Right":
+            cmds.select(cube_list, cone)
+            curve.curve_color(13)
 
         return ik_chain[0], outer_group, cube, ik_chain_grp
 
     def set_ik(self):
         _ik_return = self._ik()
 
-        self.self_inner = _ik_return[0]
+        self.self_inner = _ik_return[-1]
         self.self_outer = _ik_return[1]
 
         self.connectors['root'].append(self.main[0])
@@ -196,6 +203,14 @@ class Arm(object):
             else:
                 cmds.parent(hrc, ctr_to_connect)
                 ctr_to_connect = ctr
+
+            if self.side == "Left":
+                cmds.select(ctr)
+                curve.curve_color(6)
+            if self.side == "Right":
+                cmds.select(ctr)
+                curve.curve_color(13)
+
         hrc_arm = cmds.ls("{}_hrc".format(self.name[0]))
         connect_loc = cmds.group(em=True, n='{}_connect_loc'.format(self.name[0]))
         connect_hrc = cmds.group(n='{}_connect_hrc'.format(self.name[0]))
@@ -228,7 +243,16 @@ class Arm(object):
         cmds.matchTransform(offset_switch, self.main[2])
         cmds.parentConstraint(self.main[2], offset_switch, mo=False)
         cmds.select(switch)
+        curve.lock_hide_attr(switch[0], ['tx', 'ty', 'tz', 'rx', 'ry', 'rz', 'sx', 'sy', 'sz'], False, False)
         add_attribute = cmds.ls(sl=True)
+
+        if self.side == "Left":
+            cmds.select(switch)
+            curve.curve_color(6)
+        if self.side == "Right":
+            cmds.select(switch)
+            curve.curve_color(13)
+
         for i in add_attribute:
             cmds.addAttr(i, ln="IKFK", at="float", min=0, max=1, dv=0)
             cmds.setAttr(i + ".IKFK", e=True, k=True)
