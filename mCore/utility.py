@@ -99,6 +99,50 @@ def limb_name(limb, name=None):
     return [root, mid, end]
 
 
+def quadruped_limb_name(limb, name=None):
+    final_name = name
+    selected = cmds.ls(sl=True, l=True)
+
+    if limb == 'Arm':
+        chain = ['Arm', 'ForeArm', 'Wrist', 'Hand']
+    elif limb == 'Leg':
+        chain = ['UpLeg', 'Leg', 'Heel', 'Foot']
+    else:
+        return
+
+    index = 0
+    if not final_name:
+        if selected:
+            final_name = selected[0].split('|')[-1]
+        else:
+            final_name = limb
+
+    for each in reversed(final_name):
+        if not each.isdigit():
+            break
+        index += 1
+
+    if index != 0:
+        number = final_name[-index:]
+        final_name = final_name[:-index]
+        if final_name[-4:] == limb:
+            final_name = final_name[:-4]
+        root = '{}{}{}'.format(final_name, chain[0], number)
+        mid_first = '{}{}{}'.format(final_name, chain[1], number)
+        mid = '{}{}{}'.format(final_name, chain[2], number)
+        end = '{}{}{}'.format(final_name, chain[3], number)
+        return [root, mid_first, mid, end]
+
+    if final_name[-4:] == limb:
+        final_name = final_name[:-4]
+
+    root = '{}{}'.format(final_name, chain[0])
+    mid_first = '{}{}'.format(final_name, chain[1])
+    mid = '{}{}'.format(final_name, chain[2])
+    end = '{}{}'.format(final_name, chain[3])
+    return [root, mid_first, mid, end]
+
+
 def chain_name(element, name=None):
     final_name = name
     selected = cmds.ls(sl=True, l=True)
@@ -439,4 +483,3 @@ def quaternion_constrain(driver, driven):
         result_matrix = result_matrix * parent_matrix.inverse()
 
     cmds.xform(driven, m=result_matrix)
-
