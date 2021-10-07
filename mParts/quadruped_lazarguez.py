@@ -4,11 +4,11 @@ import pymel.core as pm
 
 
 class QuadArm(object):
-    def __init__(self, objects=None, name=None, position=None, side=None):
+    def __init__(self, objects=None, name=None, position=None):
         self.init_position = position
         self.main = []
         self.temp_chain = []
-        self.side = side
+        self.side = None
 
         self.next_position = [0, 0, 0]
         self.name = utility.quadruped_limb_name('Arm', name)
