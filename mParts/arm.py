@@ -182,6 +182,7 @@ class Arm:
         hrc_hand_group = list(filter(None, hand_ctr.split('|')))[0]
         outer_group = cmds.group(hrc_pole_group, hrc_hand_group, cluster, n='{}_grp'.format(self.name[0]))
         cmds.select(cl=True)
+        cmds.setAttr('{}.visibility'.format(ik_chain[1]), 0)
         return list(filter(None, ik_chain[0].split('|')))[0], outer_group, ik_chain[0], hand_ctr
 
     def _fk(self):
@@ -199,7 +200,11 @@ class Arm:
         grp = cmds.group(em=True, r=True, p=parent_group, n='{}_cst'.format(self.name[0]))
         cmds.parent(ctr.group[-1], grp)
         cmds.pointConstraint(loc, grp)
-        return loc_group, parent_group, cmds.listRelatives(grp, f=True)[0], ctr.group[0].split('|')[-1]
+
+        final_ctr = cmds.listRelatives(grp, f=True)[0]
+        if final_ctr[0] == '|':
+            final_ctr = final_ctr[1:]
+        return loc_group, parent_group, final_ctr, ctr.group[0].split('|')[-1]
 
     def set_ik(self):
         ik_elements = self._ik()

@@ -19,8 +19,6 @@ class Tree(object):
         self.head.group_node = True
         self._separator = '_'
         self._cache = []
-        # self.mParts = ['Spine', 'Arm', 'Leg']
-        # self.side = ['Left', 'Right']
 
     @property
     def separator(self):
@@ -98,8 +96,10 @@ class Tree(object):
             parent = self._disconnect_parent(node)
             return parent
 
-        elif len(node.child_group) == 1:
-            print('node \'{}\' removed'.format(name))
+        # not working for some reason
+        self.get_descendants(name)
+        # for each in self._cache:
+        #     self._disconnect_parent(each)
 
     def _find_child(self, name, node):
         for elem in node.child_group:

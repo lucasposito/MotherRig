@@ -169,8 +169,28 @@ class RigUI(QtWidgets.QDialog):
         self.generate_button.clicked.connect(self._traverse)
 
     def delete(self):
-        a = self.check_selection()
-        print(a[0])
+        # if node is the last one in the group hierarchy, then delete the group node
+        # check the children, select them and delete them
+        items = self.qt_tree.selectedItems()
+        for each in items:
+            if each in self._qt_items:
+                if self._qt_items[each].group_node:
+                    return
+
+                cmds.select('{}_pxy'.format(self._qt_items[each].module.name[0]), r=True)
+                cmds.delete()
+                del self._qt_items[each].module
+
+                parent = self._qt_items[each].parent
+                if len(parent.child_group) == 1:
+                    if parent.child_group[0][-1] == 1:
+                        self._shapes_tree.delete_node(parent.name)
+                        parent.qt_node.parent().takeChildren()
+                        continue
+                self._shapes_tree.delete_node(self._qt_items[each].name)
+                self._qt_items[each].module = None
+                each.parent().takeChildren()
+                # it has to delete all the children from shape tree
 
     def generate_rig(self, element):
         if element in self._qt_items:
@@ -198,13 +218,16 @@ class RigUI(QtWidgets.QDialog):
             if len(node.module.main) != 0:
                 parent = node.module.parent_inner
                 if parent:
+                    if len(parent[0].module.main) != 0:
+                        cmds.parent(node.module.connectors['root'][-2], parent[0].module.connectors[parent[-1]][-2])
+                        return
                     if parent[0].group_node:
                         group_parent = parent[0].module.parent_inner
                         if group_parent:
                             cmds.parent(node.module.connectors['root'][-2], group_parent[0].module.connectors[parent[0].module.parent_inner[-1]][-2])
                         return
-                    if len(parent[0].module.main) != 0:
-                        cmds.parent(node.module.connectors['root'][-2], parent[0].module.connectors[parent[-1]][-2])
+                    if node.group_node:
+                        cmds.parent(node.module.connectors['root'][-2], node.module.parent_outer.module.connectors['root'][-2])
 
     def _traverse(self, node=None):
         if not node:
@@ -294,7 +317,7 @@ class RigUI(QtWidgets.QDialog):
                 qt_child.addChild(qt_plug)
         self.qt_tree.expandAll()
 
-    def _insert_child_leaf(self, name, selected=None):
+    def _insert_child_leaf(self, name, selected=None, nameless=False):
         group = None
         str_name = name
         if not isinstance(name, str):
@@ -324,8 +347,10 @@ class RigUI(QtWidgets.QDialog):
                 mod_object.parent_inner = selected
             else:
                 mod_object.parent_inner = (self._rig_root, 'root')
-                mod_object.parent_outer = mod_object.self_outer
             parent.module = mod_object
+            if nameless:
+                parent.module.parent_outer = self._rig_root
+                parent.group_node = True
             for plug in mod_object.connectors:
                 self._modules[mod_object.connectors[plug][0]] = parent
                 qt_plug = QtWidgets.QTreeWidgetItem([plug])
@@ -345,10 +370,12 @@ class RigUI(QtWidgets.QDialog):
             if self.parameter['name']:
                 self._insert_parent_leaf(self.parameter['name'], module)
                 return
-            self._insert_child_leaf(module)
+            self._insert_child_leaf(module, nameless=True)
             return
 
-        parent_group = selected[0].parent
+        parent_group = selected[0]
+        if parent_group.parent.name != 'Root':
+            parent_group = selected[0].parent
         while parent_group.group_node is False:
             parent_group = parent_group.parent
 
