@@ -3,7 +3,7 @@ import maya.cmds as cmds
 color_value = {'grey': 3, 'blue': 6, 'red': 13, 'yellow': 17, 'lightBlue': 18, 'rose': 20, 'green': 28}
 
 
-def curve_color(value):
+def color(value):
     object_list = cmds.listRelatives(cmds.ls(sl=True, l=True), s=True, f=True)
     if not object_list:
         return
@@ -13,7 +13,7 @@ def curve_color(value):
     cmds.select(cl=True)
 
 
-def curve_rgb_color(r=0, g=0, b=1):
+def rgb_color(r=0, g=0, b=1):
     value = (r, g, b)
     rgb = ('R', 'G', 'B')
     object_list = cmds.listRelatives(cmds.ls(sl=True, l=True), s=True, f=True)
@@ -24,7 +24,7 @@ def curve_rgb_color(r=0, g=0, b=1):
     cmds.select(cl=True)
 
 
-def curve_size(value=1.1):
+def size(value=1.1):
     selected = cmds.ls(sl=True)
     for each in selected:
         shapes = cmds.listRelatives(each, s=True, f=True)

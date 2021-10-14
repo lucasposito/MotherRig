@@ -149,12 +149,12 @@ class Arm:
         ctr = mCore.Control()
         ctr.zero_out(['null', 'cube'], ['hrc', 'ctr'], [ik_chain[-1]])
         ctr.toggle_control()
-        mCore.curve.curve_color(self.color[self.side])
+        mCore.curve.color(self.color[self.side])
         hand_ctr = list(ctr.group)[0]
 
         ctr.zero_out(['null', 'null', 'diamond'], ['hrc', 'srt', 'ctr'], [ik_chain[1]])
         ctr.toggle_control()
-        mCore.curve.curve_color(self.color[self.side])
+        mCore.curve.color(self.color[self.side])
         pole_ctr = list(ctr.group)[0]
 
         ctr.zero_out(['null'], ['hrc'], [ik_chain[0]])
@@ -189,7 +189,7 @@ class Arm:
         ctr = mCore.Control()
         ctr.zero_out(['null', 'circle'], ['hrc', 'ctr'], self.main)
         ctr.toggle_control()
-        mCore.curve.curve_color(self.color[self.side])
+        mCore.curve.color(self.color[self.side])
         ctr.constraint()
 
         loc = cmds.group(em=True, n='{}_connect_loc'.format(self.name[0]))
@@ -241,7 +241,7 @@ class Arm:
 
         arm_loc = cmds.group(em=True, n='{}_IkFk_loc'.format(self.name[0]))
         switcher = mCore.curve.knot(name='{}_SwitchIKFK'.format(self.name[0]))
-        mCore.curve.curve_color(17)
+        mCore.curve.color(17)
 
         cmds.move(0, 10, 0, '{}.cv[*]'.format(cmds.listRelatives(switcher, s=True, f=True)[0]), r=True, os=True, wd=True)
         cmds.addAttr(switcher, ln='IkFk', at='float', dv=0, min=0, max=1, k=True)

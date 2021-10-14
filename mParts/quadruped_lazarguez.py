@@ -137,7 +137,7 @@ class QuadArm(object):
         cmds.ikHandle(n=self.name[2] + "_IK_hdl", sol="ikRPsolver", sj=(self.name[0] + "_IK_jnt"),
                       ee=(self.name[2]) + "_IK_jnt")
         ankle_ctr = curve.diamond(name=self.name[2] + '_IK_hdl_ctr')
-        curve.curve_size(0.5)
+        curve.size(0.5)
         cmds.group(n=self.name[2] + '_IK_hdl_hrc')
         ik_hdl_cst = cmds.group(n=self.name[2] + '_IK_hdl_cst')
 
@@ -207,10 +207,10 @@ class QuadArm(object):
 
         if self.side == "Left":
             cmds.select(cube_list, cone, ankle_ctr)
-            curve.curve_color(6)
+            curve.color(6)
         if self.side == "Right":
             cmds.select(cube_list, cone, ankle_ctr)
-            curve.curve_color(13)
+            curve.color(13)
 
         return ik_chain[0], outer_group, cube, ik_chain_grp, ankle_ctr
 
@@ -232,10 +232,10 @@ class QuadArm(object):
 
             if self.side == "Left":
                 cmds.select(ctr)
-                curve.curve_color(6)
+                curve.color(6)
             if self.side == "Right":
                 cmds.select(ctr)
-                curve.curve_color(13)
+                curve.color(13)
 
         hrc_arm = cmds.ls("{}_hrc".format(self.name[0]))
         connect_loc = cmds.group(em=True, n='{}_connect_loc'.format(self.name[0]))
@@ -286,10 +286,10 @@ class QuadArm(object):
 
         if self.side == "Left":
             cmds.select(switch)
-            curve.curve_color(6)
+            curve.color(6)
         if self.side == "Right":
             cmds.select(switch)
-            curve.curve_color(13)
+            curve.color(13)
 
         for i in add_attribute:
             cmds.addAttr(i, ln="IKFK", at="float", min=0, max=1, dv=0)

@@ -169,10 +169,10 @@ class Arm(object):
         cmds.select(cl=True)
         if self.side == "Left":
             cmds.select(cube_list, cone)
-            curve.curve_color(6)
+            curve.color(6)
         if self.side == "Right":
             cmds.select(cube_list, cone)
-            curve.curve_color(13)
+            curve.color(13)
 
         return ik_chain[0], outer_group, cube, ik_chain_grp
 
@@ -206,10 +206,10 @@ class Arm(object):
 
             if self.side == "Left":
                 cmds.select(ctr)
-                curve.curve_color(6)
+                curve.color(6)
             if self.side == "Right":
                 cmds.select(ctr)
-                curve.curve_color(13)
+                curve.color(13)
 
         hrc_arm = cmds.ls("{}_hrc".format(self.name[0]))
         connect_loc = cmds.group(em=True, n='{}_connect_loc'.format(self.name[0]))
@@ -248,10 +248,10 @@ class Arm(object):
 
         if self.side == "Left":
             cmds.select(switch)
-            curve.curve_color(6)
+            curve.color(6)
         if self.side == "Right":
             cmds.select(switch)
-            curve.curve_color(13)
+            curve.color(13)
 
         for i in add_attribute:
             cmds.addAttr(i, ln="IKFK", at="float", min=0, max=1, dv=0)

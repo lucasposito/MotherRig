@@ -151,8 +151,8 @@ class Spine:
         ctr = mCore.Control()
         ctr.zero_out(['null', 'circle'], ['hrc', 'ctr'], cmds.ls(sl=True, l=True))
         ctr.toggle_control()
-        mCore.curve.curve_size(2)
-        mCore.curve.curve_color(17)
+        mCore.curve.size(2)
+        mCore.curve.color(17)
 
         cmds.parentConstraint(ctr.group[0], self.main[1])
         neck = ctr.group[0]
@@ -161,7 +161,7 @@ class Spine:
         index = 0
         for each in ctr.group:
             curve = mCore.curve.circle(name='{}IK_ctr'.format(each.split('|')[-1][:-3]))
-            mCore.curve.curve_color(18)
+            mCore.curve.color(18)
             cmds.parent(curve, each)
             cmds.setAttr('{}.translate'.format(curve), 0, 0, 0)
             cmds.setAttr('{}.rotate'.format(curve), 0, 0, 0)
@@ -172,7 +172,7 @@ class Spine:
 
         left_rotation = cmds.xform(self.main[-2], q=True, ws=True, ro=True)
         left_ctr = mCore.curve.cube('{}_ctr'.format(self.name[-2]))
-        mCore.curve.curve_color(6)
+        mCore.curve.color(6)
         left_hrc = cmds.group(left_ctr, r=True, n='{}_hrc'.format(self.name[-2]))
         cmds.xform(left_hrc, t=self.position['LeftShoulder'])
         cmds.xform(left_hrc, ro=tuple(left_rotation))
@@ -180,7 +180,7 @@ class Spine:
 
         right_rotation = cmds.xform(self.main[-1], q=True, ws=True, ro=True)
         right_ctr = mCore.curve.cube('{}_ctr'.format(self.name[-1]))
-        mCore.curve.curve_color(13)
+        mCore.curve.color(13)
         right_hrc = cmds.group(right_ctr, r=True, n='{}_hrc'.format(self.name[-1]))
         cmds.xform(right_hrc, t=self.position['RightShoulder'])
         cmds.xform(right_hrc, ro=tuple(right_rotation))

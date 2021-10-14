@@ -20,7 +20,6 @@ def maya_main_window():
 
 
 class RigUI(QtWidgets.QDialog):
-
     WINDOW_TITLE = "AutoRig Esposito"
     ui_instance = None
 
@@ -65,8 +64,8 @@ class RigUI(QtWidgets.QDialog):
         self.name_field = QtWidgets.QLineEdit()
 
         # order field
-        self.order_field = QtWidgets.QLineEdit('xyz')
-        self.order_field.setMaximumWidth(30)
+        # self.order_field = QtWidgets.QLineEdit('xyz')
+        # self.order_field.setMaximumWidth(30)
 
         # side radio
         self.side_R_radio = QtWidgets.QRadioButton('RIGHT')
@@ -116,8 +115,8 @@ class RigUI(QtWidgets.QDialog):
         name_field = QtWidgets.QFormLayout()
         name_field.addRow('Name:', self.name_field)
 
-        order_field = QtWidgets.QFormLayout()
-        order_field.addRow('Rotation Order:', self.order_field)
+        # order_field = QtWidgets.QFormLayout()
+        # order_field.addRow('Rotation Order:', self.order_field)
 
         side_radio = QtWidgets.QHBoxLayout()
         side_radio.addWidget(self.side_R_radio)
@@ -146,7 +145,7 @@ class RigUI(QtWidgets.QDialog):
         main_layout.setSpacing(2)
 
         main_layout.addLayout(name_field)
-        main_layout.addLayout(order_field)
+        # main_layout.addLayout(order_field)
         main_layout.addLayout(side_radio)
         main_layout.addLayout(type_radio)
         main_layout.addLayout(modules_layout)
@@ -155,11 +154,13 @@ class RigUI(QtWidgets.QDialog):
 
     def create_connections(self):
         self.name_field.textChanged.connect(self.update_name)
-        self.order_field.textChanged.connect(self.update_order)
-        self.parameter['order'] = self.order_field.text()
+        # self.order_field.textChanged.connect(self.update_order)
+        # self.parameter['order'] = self.order_field.text()
 
         self.side_group.buttonClicked.connect(self.side_radio)
         self.type_group.buttonClicked.connect(self.type_radio)
+
+        self.qt_tree.itemSelectionChanged.connect(self.select_items)
 
         self.spine_button.clicked.connect(self.send_spine)
         self.arm_button.clicked.connect(self.send_arm)
@@ -167,6 +168,14 @@ class RigUI(QtWidgets.QDialog):
 
         self.delete_button.clicked.connect(self.delete)
         self.generate_button.clicked.connect(self._traverse)
+
+    def select_items(self):
+        items = self.qt_tree.selectedItems()
+        for item in items:
+            if item not in self._qt_items:
+                if item.parent() in self._qt_items:
+                    cmds.select(self._qt_items[item.parent()].module.connectors[item.text(0)][0], r=True)
+                    return
 
     def delete(self):
         # if node is the last one in the group hierarchy, then delete the group node
@@ -177,20 +186,28 @@ class RigUI(QtWidgets.QDialog):
                 if self._qt_items[each].group_node:
                     return
 
+                start_node = each
+                # check parent
+                if each.parent() in self._qt_items:
+                    if self._qt_items[each.parent()] and each.parent().childCount() == 1:
+                        start_node = each.parent()
+
+                cache = []
+
+                def recursive(node):
+                    for a in range(node.childCount()):
+                        cache.append(node.child(a))
+                        recursive(node.child(a))
+
+                for b in range(start_node.childCount()):
+                    recursive(start_node.child(b))
+
+                if start_node in self._qt_items:
+                    self._shapes_tree.delete_node(self._qt_items[start_node].name)
+                start_node.parent().takeChildren()
+
                 cmds.select('{}_pxy'.format(self._qt_items[each].module.name[0]), r=True)
                 cmds.delete()
-                del self._qt_items[each].module
-
-                parent = self._qt_items[each].parent
-                if len(parent.child_group) == 1:
-                    if parent.child_group[0][-1] == 1:
-                        self._shapes_tree.delete_node(parent.name)
-                        parent.qt_node.parent().takeChildren()
-                        continue
-                self._shapes_tree.delete_node(self._qt_items[each].name)
-                self._qt_items[each].module = None
-                each.parent().takeChildren()
-                # it has to delete all the children from shape tree
 
     def generate_rig(self, element):
         if element in self._qt_items:
@@ -210,7 +227,8 @@ class RigUI(QtWidgets.QDialog):
                 return
 
             if node.module.self_inner and node.module.parent_inner:
-                cmds.parent(node.module.self_inner, node.module.parent_inner[0].module.connectors[node.module.parent_inner[-1]][-1])
+                cmds.parent(node.module.self_inner,
+                            node.module.parent_inner[0].module.connectors[node.module.parent_inner[-1]][-1])
             if node.module.self_outer and node.module.parent_outer:
                 if node.module.parent_outer.module:
                     cmds.parent(node.module.self_outer, node.module.parent_outer.module.connectors['root'][-1])
@@ -224,17 +242,20 @@ class RigUI(QtWidgets.QDialog):
                     if parent[0].group_node:
                         group_parent = parent[0].module.parent_inner
                         if group_parent:
-                            cmds.parent(node.module.connectors['root'][-2], group_parent[0].module.connectors[parent[0].module.parent_inner[-1]][-2])
+                            cmds.parent(node.module.connectors['root'][-2],
+                                        group_parent[0].module.connectors[parent[0].module.parent_inner[-1]][-2])
                         return
                     if node.group_node:
-                        cmds.parent(node.module.connectors['root'][-2], node.module.parent_outer.module.connectors['root'][-2])
+                        cmds.parent(node.module.connectors['root'][-2],
+                                    node.module.parent_outer.module.connectors['root'][-2])
 
     def _traverse(self, node=None):
         if not node:
             cmds.select(cl=True)
             self._rig_root.module.connectors['root'].append(cmds.joint(n='Root_{}'.format(universal_suffix[-1])))
             self._rig_root.module.set_fk()
-            cmds.parentConstraint(self._rig_root.module.connectors['root'][-1], self._rig_root.module.connectors['root'][-2])
+            cmds.parentConstraint(self._rig_root.module.connectors['root'][-1],
+                                  self._rig_root.module.connectors['root'][-2])
 
             for first in range(self.qt_tree.topLevelItemCount()):
                 qt_item = self.qt_tree.topLevelItem(first)
@@ -396,8 +417,8 @@ class RigUI(QtWidgets.QDialog):
         if data == '':
             self.parameter['name'] = None
 
-    def update_order(self, data):
-        self.parameter['order'] = data
+    # def update_order(self, data):
+    #     self.parameter['order'] = data
 
     def side_radio(self, option):
         temp = ['Right', 'Center', 'Left']

@@ -255,10 +255,10 @@ class ControlUI(QtWidgets.QDialog):
             mCore.curve.cube()
 
     def _curve_color(self, index):
-        mCore.curve.curve_color(index)
+        mCore.curve.color(index)
 
     def _curve_size(self, index):
-        mCore.curve.curve_size(index)
+        mCore.curve.size(index)
 
     def _toggle(self):
         self.control.toggle_control()

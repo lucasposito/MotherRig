@@ -96,10 +96,26 @@ class Tree(object):
             parent = self._disconnect_parent(node)
             return parent
 
-        # not working for some reason
-        self.get_descendants(name)
-        # for each in self._cache:
-        #     self._disconnect_parent(each)
+        cache = []
+
+        def recursive(obj):
+            for a in obj.child_group:
+                cache.append(a[0])
+                recursive(a[0])
+            if node.right is not None:
+                cache.append(node.right)
+                recursive(node.right)
+
+        for children in node.child_group:
+            cache.append(children[0])
+            recursive(children[0])
+        if node.right is not None:
+            cache.append(node.right)
+            recursive(node.right)
+
+        for b in cache:
+            del b
+        self._disconnect_parent(node)
 
     def _find_child(self, name, node):
         for elem in node.child_group:
