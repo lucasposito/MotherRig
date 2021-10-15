@@ -178,36 +178,37 @@ class RigUI(QtWidgets.QDialog):
                     return
 
     def delete(self):
-        # if node is the last one in the group hierarchy, then delete the group node
-        # check the children, select them and delete them
-        items = self.qt_tree.selectedItems()
-        for each in items:
-            if each in self._qt_items:
-                if self._qt_items[each].group_node:
-                    return
+        item = self.qt_tree.selectedItems()[0]
 
-                start_node = each
-                # check parent
-                if each.parent() in self._qt_items:
-                    if self._qt_items[each.parent()] and each.parent().childCount() == 1:
-                        start_node = each.parent()
+        if item in self._qt_items:
+            if isinstance(self._qt_items[item].module, Blank):
+                return
 
-                cache = []
+            start_node = item
+            if item.parent() in self._qt_items:
+                if self._qt_items[item.parent()] and item.parent().childCount() == 1:
+                    start_node = item.parent()
 
-                def recursive(node):
-                    for a in range(node.childCount()):
-                        cache.append(node.child(a))
-                        recursive(node.child(a))
+            cache = []
 
-                for b in range(start_node.childCount()):
-                    recursive(start_node.child(b))
+            def recursive(node):
+                for a in range(node.childCount()):
+                    cache.append(node.child(a))
+                    recursive(node.child(a))
 
-                if start_node in self._qt_items:
-                    self._shapes_tree.delete_node(self._qt_items[start_node].name)
+            for b in range(start_node.childCount()):
+                recursive(start_node.child(b))
+
+            if start_node in self._qt_items:
+                self._shapes_tree.delete_node(self._qt_items[start_node].name)
+
+            if not start_node.parent():
+                self.qt_tree.takeTopLevelItem(self.qt_tree.indexOfTopLevelItem(start_node))
+            else:
                 start_node.parent().takeChildren()
 
-                cmds.select('{}_pxy'.format(self._qt_items[each].module.name[0]), r=True)
-                cmds.delete()
+            cmds.select('{}_pxy'.format(self._qt_items[item].module.name[0]), r=True)
+            cmds.delete()
 
     def generate_rig(self, element):
         if element in self._qt_items:
