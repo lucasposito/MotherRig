@@ -475,9 +475,9 @@ class RigUI(QtWidgets.QDialog):
 
     def minus_hand(self):
         selected = self.check_selection()
-        if not isinstance(selected[0], Hand):
+        if not isinstance(selected[0].module, Hand):
             return
-        selected[0].module.set_proxy(0)
+        selected[0].module.set_proxy(False)
 
     def send_hand(self):
         self.parameter['module'] = 'Hand'
@@ -485,9 +485,9 @@ class RigUI(QtWidgets.QDialog):
 
     def plus_hand(self):
         selected = self.check_selection()
-        if not isinstance(selected[0], Hand):
+        if not isinstance(selected[0].module, Hand):
             return
-        selected[0].module.set_proxy(1)
+        selected[0].module.set_proxy()
 
     def send_quad_arm(self):
         self.parameter['module'] = 'QuadArm'
