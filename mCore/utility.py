@@ -99,6 +99,62 @@ def limb_name(limb, name=None):
     return [root, mid, end]
 
 
+def hand_name(limb, name=None, fingers=None):
+    final_name = name + '_'
+    selected = cmds.ls(sl=True, l=True)
+    num_fingers = fingers
+
+    hand_list = ['Thumb', 'Index', 'Pinky', 'Middle', 'Ring', 'Extra']
+    foot_list = ['BigToe', 'SecondToe', 'PinkyToe', 'MiddleToe', 'RingToe', 'ExtraToe']
+
+    if limb == 'Hand':
+        if num_fingers > 5:
+            chain = ['{}1_num{}'.format(hand_list[5], num_fingers - 4),
+                     '{}2_num{}'.format(hand_list[5], num_fingers - 4),
+                     '{}3_num{}'.format(hand_list[5], num_fingers - 4)]
+        else:
+            chain = [hand_list[num_fingers] + '1', hand_list[num_fingers] + '2', hand_list[num_fingers] + '3']
+    elif limb == 'Foot':
+        if num_fingers > 5:
+            chain = ['{}1_num{}'.format(foot_list[5], num_fingers - 4),
+                     '{}2_num{}'.format(foot_list[5], num_fingers - 4),
+                     '{}3_num{}'.format(foot_list[5], num_fingers - 4)]
+        else:
+            chain = [foot_list[num_fingers] + '1', foot_list[num_fingers] + '2', foot_list[num_fingers] + '3']
+    else:
+        return
+
+    index = 0
+    if not final_name:
+        if selected:
+            final_name = selected[0].split('|')[-1]
+        else:
+            final_name = limb
+
+    for each in reversed(final_name):
+        if not each.isdigit():
+            break
+        index += 1
+
+    if index != 0:
+        number = final_name[-index:]
+        final_name = final_name[:-index]
+        if final_name[-3:] == limb:
+            final_name = final_name[:-3]
+        root = '{}{}{}'.format(final_name, chain[0], number)
+        mid = '{}{}{}'.format(final_name, chain[1], number)
+        end = '{}{}{}'.format(final_name, chain[2], number)
+        return [root, mid, end]
+
+    if final_name[-3:] == limb:
+        final_name = final_name[:-3]
+
+    root = '{}{}'.format(final_name, chain[0])
+    mid = '{}{}'.format(final_name, chain[1])
+    end = '{}{}'.format(final_name, chain[2])
+    return [root, mid, end]
+
+
 def quadruped_limb_name(limb, name=None):
     final_name = name
     selected = cmds.ls(sl=True, l=True)
