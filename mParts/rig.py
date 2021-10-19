@@ -47,6 +47,8 @@ class RigUI(QtWidgets.QDialog):
 
         self.parameter = {'name': None, 'order': None, 'side': '', 'type': None, 'module': None}
         self._modules = {}
+        self._proxies = []
+        self._toggle = False
         self._qt_items = {}
         self.rig_modules = []
         self.mods = {'Spine': [Spine], 'Arm': [Arm], 'Leg': [Leg], 'Blank': [Blank], 'Hand': [Hand], 'QuadArm': [QuadArm]}
@@ -89,13 +91,13 @@ class RigUI(QtWidgets.QDialog):
         self.type_group.addButton(self.type_ikfk_radio, 2)
         self.parameter['type'] = 'FK'
 
-        # spine button
-        self.spine_button = QtWidgets.QPushButton('SPINE')
-        self.spine_button.setMinimumHeight(40)
-
         # arm button
         self.arm_button = QtWidgets.QPushButton('ARM')
         self.arm_button.setMinimumHeight(40)
+
+        # spine button
+        self.spine_button = QtWidgets.QPushButton('SPINE')
+        self.spine_button.setMinimumHeight(40)
 
         # leg button
         self.leg_button = QtWidgets.QPushButton('LEG')
@@ -103,15 +105,20 @@ class RigUI(QtWidgets.QDialog):
 
         self.hand_minus_button = QtWidgets.QPushButton('-')
         self.hand_minus_button.setMinimumHeight(40)
+        self.hand_minus_button.setMaximumWidth(20)
 
         self.hand_button = QtWidgets.QPushButton('HAND')
         self.hand_button.setMinimumHeight(40)
 
         self.hand_plus_button = QtWidgets.QPushButton('+')
         self.hand_plus_button.setMinimumHeight(40)
+        self.hand_plus_button.setMaximumWidth(20)
 
         self.quad_arm_button = QtWidgets.QPushButton('QUAD ARM')
         self.quad_arm_button.setMinimumHeight(40)
+
+        self.single_button = QtWidgets.QPushButton('SINGLE')
+        self.single_button.setMinimumHeight(40)
 
         self.qt_tree.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.qt_tree.setHeaderHidden(True)
@@ -141,8 +148,8 @@ class RigUI(QtWidgets.QDialog):
         type_radio.addWidget(self.type_ikfk_radio)
 
         modules_layout = QtWidgets.QHBoxLayout()
-        modules_layout.addWidget(self.spine_button)
         modules_layout.addWidget(self.arm_button)
+        modules_layout.addWidget(self.spine_button)
         modules_layout.addWidget(self.leg_button)
 
         modules02_layout = QtWidgets.QHBoxLayout()
@@ -150,6 +157,7 @@ class RigUI(QtWidgets.QDialog):
         modules02_layout.addWidget(self.hand_button)
         modules02_layout.addWidget(self.hand_plus_button)
         modules02_layout.addWidget(self.quad_arm_button)
+        modules02_layout.addWidget(self.single_button)
 
         tree_layout = QtWidgets.QVBoxLayout()
         tree_layout.addWidget(self.qt_tree)
@@ -202,6 +210,8 @@ class RigUI(QtWidgets.QDialog):
                     return
 
     def delete(self):
+        if self._toggle:
+            return
         item = self.qt_tree.selectedItems()[0]
 
         if item in self._qt_items:
@@ -276,6 +286,11 @@ class RigUI(QtWidgets.QDialog):
 
     def _traverse(self, node=None):
         if not node:
+            for pxy in self._proxies:
+                cmds.setAttr('{}.visibility'.format(pxy), 0)
+            if self._toggle:
+                return
+            self._toggle = not self._toggle
             cmds.select(cl=True)
             self._rig_root.module.connectors['root'].append(cmds.joint(n='Root_{}'.format(universal_suffix[-1])))
             self._rig_root.module.set_fk()
@@ -340,6 +355,7 @@ class RigUI(QtWidgets.QDialog):
             parent.module.parent_inner = selected
             selected[0].module.connectors[selected[-1]][-1].addChild(qt_parent)
         else:
+
             parent.module.parent_inner = (self._rig_root, 'root')
             parent.module.parent_outer = parent.module.self_outer
             self.qt_tree.addTopLevelItem(qt_parent)
@@ -360,6 +376,8 @@ class RigUI(QtWidgets.QDialog):
             self.rig_modules.append(child)
             if selected:
                 cmds.parent('{}_pxy'.format(mod_object.name[0]), selected[0].module.connectors[selected[-1]][0])
+            else:
+                self._proxies.append('{}_pxy'.format(mod_object.name[0]))
             mod_object.parent_inner = (parent, 'root')
             child.module = mod_object
             for plug in mod_object.connectors:
@@ -398,6 +416,7 @@ class RigUI(QtWidgets.QDialog):
                 cmds.parent('{}_pxy'.format(mod_object.name[0]), selected[0].module.connectors[selected[-1]][0])
                 mod_object.parent_inner = selected
             else:
+                self._proxies.append('{}_pxy'.format(mod_object.name[0]))
                 mod_object.parent_inner = (self._rig_root, 'root')
             parent.module = mod_object
             if nameless:
@@ -411,6 +430,8 @@ class RigUI(QtWidgets.QDialog):
         self.qt_tree.expandAll()
 
     def add_module(self):
+        if self._toggle:
+            return
         module = '{}{}'.format(self.parameter['side'], self.parameter['module'])
         if self.parameter['side'] == 'Center':
             module = self.parameter['module']
@@ -474,6 +495,8 @@ class RigUI(QtWidgets.QDialog):
         self.add_module()
 
     def minus_hand(self):
+        if self._toggle:
+            return
         selected = self.check_selection()
         if not isinstance(selected[0].module, Hand):
             return
@@ -484,6 +507,8 @@ class RigUI(QtWidgets.QDialog):
         self.add_module()
 
     def plus_hand(self):
+        if self._toggle:
+            return
         selected = self.check_selection()
         if not isinstance(selected[0].module, Hand):
             return
