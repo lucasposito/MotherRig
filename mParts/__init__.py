@@ -2,6 +2,8 @@ from .control_ui import ControlUI
 from .arm import Arm
 from .leg import Leg
 from .spine import Spine
+from .hand_lazarguez import Hand
+from .quadruped_lazarguez import QuadArm
 from .blank import Blank
 from .ik_fk_switcher import ikfkUI
 from .ik_fk_switcher import IKFK

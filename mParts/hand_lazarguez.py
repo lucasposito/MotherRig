@@ -3,7 +3,7 @@ from maya import cmds
 
 
 # class Hand(object):
-class Arm(object):
+class Hand(object):
     def __init__(self, objects=None, name=None, position=None, side=None):
         self.init_position = position
         self.main = []
