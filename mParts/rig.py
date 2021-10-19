@@ -185,7 +185,9 @@ class RigUI(QtWidgets.QDialog):
         self.arm_button.clicked.connect(self.send_arm)
         self.leg_button.clicked.connect(self.send_leg)
 
+        self.hand_minus_button.clicked.connect(self.minus_hand)
         self.hand_button.clicked.connect(self.send_hand)
+        self.hand_plus_button.clicked.connect(self.plus_hand)
         self.quad_arm_button.clicked.connect(self.send_quad_arm)
 
         self.delete_button.clicked.connect(self.delete)
@@ -471,9 +473,21 @@ class RigUI(QtWidgets.QDialog):
         self.parameter['module'] = 'Leg'
         self.add_module()
 
+    def minus_hand(self):
+        selected = self.check_selection()
+        if not isinstance(selected[0], Hand):
+            return
+        selected[0].module.set_proxy(0)
+
     def send_hand(self):
         self.parameter['module'] = 'Hand'
         self.add_module()
+
+    def plus_hand(self):
+        selected = self.check_selection()
+        if not isinstance(selected[0], Hand):
+            return
+        selected[0].module.set_proxy(1)
 
     def send_quad_arm(self):
         self.parameter['module'] = 'QuadArm'
