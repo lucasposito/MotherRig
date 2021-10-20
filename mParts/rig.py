@@ -210,6 +210,7 @@ class RigUI(QtWidgets.QDialog):
                     return
 
     def delete(self):
+        # update proxy list
         if self._toggle:
             return
         item = self.qt_tree.selectedItems()[0]
@@ -241,8 +242,11 @@ class RigUI(QtWidgets.QDialog):
             else:
                 start_node.parent().takeChildren()
 
-            cmds.select('{}_pxy'.format(self._qt_items[item].module.name[0]), r=True)
+            proxy = '{}_pxy'.format(self._qt_items[item].module.name[0])
+            cmds.select(proxy, r=True)
             cmds.delete()
+            if proxy in self._proxies:
+                self._proxies.remove(proxy)
 
     def generate_rig(self, element):
         if element in self._qt_items:
