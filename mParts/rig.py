@@ -210,7 +210,6 @@ class RigUI(QtWidgets.QDialog):
                     return
 
     def delete(self):
-        # update proxy list
         if self._toggle:
             return
         item = self.qt_tree.selectedItems()[0]
