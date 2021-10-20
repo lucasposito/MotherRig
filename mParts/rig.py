@@ -329,10 +329,10 @@ class RigUI(QtWidgets.QDialog):
             spine = self.mods['Spine'][option](name=name, position=pos)
             return spine
         if module == 'Arm':
-            arm = self.mods['Arm'][option](name=name, position=pos)
+            arm = self.mods['Arm'][option](name=name, position=pos, side=self.parameter['side'])
             return arm
         if module == 'Leg':
-            leg = self.mods['Leg'][option](name=name, position=pos)
+            leg = self.mods['Leg'][option](name=name, position=pos, side=self.parameter['side'])
             return leg
         if module == 'Hand':
             hand = self.mods['Hand'][option](name=name, position=pos)

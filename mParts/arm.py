@@ -5,13 +5,13 @@ import mCore
 
 
 class Arm:
-    def __init__(self, objects=None, name=None, position=None):
+    def __init__(self, objects=None, name=None, position=None, side=None):
         self._toggle = False
         self.main = []
         self.init_position = position
         self.position = {}
         self.name = mCore.utility.limb_name('Arm', name)
-        self.side = None
+        self.side = side
 
         self.color = {'Left': 6, 'Right': 13, 'Center': 17}
 
@@ -40,26 +40,26 @@ class Arm:
     def set_main(self):
         self._get_position()
         self.main = mCore.utility.orient_limbo(self.selected, self.name)
-        # if self.side == 'Right':
-        #     self.toggle_orient()
+        if self.side == 'Right':
+            self.toggle_orient()
 
     def set_proxy(self):
         multiplier = 1
         if not self.init_position:
             self.init_position = [0, 0, 0]
         if self.side == 'Right':
-            multiplier = -1
+            multiplier *= -1
         proxy = mCore.curve.pyramid('{}_pxy'.format(self.name[0]))
         root = mCore.curve.proxy('{}_root_pxy'.format(self.name[0]))
         mid = mCore.curve.proxy('{}_mid_pxy'.format(self.name[1]))
         end = mCore.curve.proxy('{}_end_pxy'.format(self.name[2]))
-        cmds.move(rd(self.init_position[0] + 5, self.init_position[0]), rd(self.init_position[1] + 10, self.init_position[1] + 5),
+        cmds.move(rd(self.init_position[0] + (5 * multiplier), self.init_position[0]), rd(self.init_position[1] + 10, self.init_position[1] + 5),
                   rd(self.init_position[2], self.init_position[2]), proxy)
-        cmds.move(rd(self.init_position[0] + 5, self.init_position[0]), rd(self.init_position[1], self.init_position[1]), rd(self.init_position[2], self.init_position[2]),
+        cmds.move(rd(self.init_position[0] + (5 * multiplier), self.init_position[0]), rd(self.init_position[1], self.init_position[1]), rd(self.init_position[2], self.init_position[2]),
                   root)
-        cmds.move(rd(self.init_position[0] + 15, self.init_position[0] + 10), rd(self.init_position[1], self.init_position[1]),
+        cmds.move(rd(self.init_position[0] + (15 * multiplier), self.init_position[0] + (10 * multiplier)), rd(self.init_position[1], self.init_position[1]),
                   rd(self.init_position[2], self.init_position[2]), mid)
-        cmds.move(rd(self.init_position[0] + 25, self.init_position[0] + 20), rd(self.init_position[1], self.init_position[1]),
+        cmds.move(rd(self.init_position[0] + (25 * multiplier), self.init_position[0] + (20 * multiplier)), rd(self.init_position[1], self.init_position[1]),
                   rd(self.init_position[2], self.init_position[2]), end)
         cmds.parent([root, mid, end], proxy)
         cmds.select(cl=True)
@@ -107,10 +107,10 @@ class Arm:
         for each in self.main:
             temp.append(each.split('|')[-1])
         cmds.parent(temp[1], temp[-1], w=True)
-        for a in self.main:
+        for a in temp:
             cmds.setAttr('{}.rotateX'.format(a), 180)
-        cmds.parent(self.main[-1], self.main[1])
-        cmds.parent(self.main[1], self.main[0])
+        cmds.parent(temp[-1], temp[1])
+        cmds.parent(temp[1], temp[0])
         for b in self.main:
             cmds.makeIdentity(b, a=True, t=1, r=1, s=1, n=0)
         cmds.select(cl=True)
@@ -243,7 +243,10 @@ class Arm:
         switcher = mCore.curve.knot(name='{}_SwitchIKFK'.format(self.name[0]))
         mCore.curve.color(17)
 
-        cmds.move(0, 10, 0, '{}.cv[*]'.format(cmds.listRelatives(switcher, s=True, f=True)[0]), r=True, os=True, wd=True)
+        direction = 10
+        if self.side == 'Right':
+            direction *= -1
+        cmds.move(0, direction, 0, '{}.cv[*]'.format(cmds.listRelatives(switcher, s=True, f=True)[0]), r=True, os=True, wd=True)
         cmds.addAttr(switcher, ln='IkFk', at='float', dv=0, min=0, max=1, k=True)
 
         cmds.parentConstraint(ik_elements[2], arm_loc, w=1)
