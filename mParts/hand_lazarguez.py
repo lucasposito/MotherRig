@@ -14,6 +14,7 @@ class Hand(object):
         self.tool_name = name
         self.fingers_name = []
         self.hand_proxy = None
+        self.main_fingers = []
 
         self.name = [name]
         self.name_temp = utility.hand_name('Hand', self.tool_name, self.fingers)
@@ -40,10 +41,13 @@ class Hand(object):
             # SHOW AND UNLOCK ATTRIBUTES
 
     def set_proxy(self, add=True):
+        if not add and self.fingers > 0:
+            self.fingers = self.fingers - 1
         self.name_temp = utility.hand_name('Hand', self.tool_name, self.fingers)
 
         self.connectors[self.name_temp[-1].split('_')[-1]] = []
         self.connections = []
+
 
         self.fingers_name.append(self.name_temp)
         length_fingers = len(self.main_proxy_list)
@@ -55,7 +59,7 @@ class Hand(object):
         pos = ['root', 'mid', 'end']
 
         # Main proxy(Control the other proxies)
-        if self.fingers == 0:
+        if self.fingers == 0 and not self.hand_proxy:
             self.hand_proxy = curve.knot(self.tool_name + '_pxy')
             cmds.move(self.init_position[0], self.init_position[1], self.init_position[2], self.hand_proxy)
             self.connectors['root'].append(self.hand_proxy)
@@ -74,6 +78,7 @@ class Hand(object):
                 proxy_name = '{}_pxy'.format(self.name_temp[limb])
                 knot = curve.knot(proxy_name)
                 self.connections.append(knot)
+                self.main_fingers.append(knot)
                 print(self.connections)
                 if limb == 0:
                     pass
@@ -92,9 +97,11 @@ class Hand(object):
                 print(self.next_position)
                 cmds.parent(self.connections[limb], proxy)
 
-        else:
-            if self.fingers < 3:
-                main_proxy_name = '{}aux_pxy'.format(self.name_temp[0])
+        elif add:
+            if self.fingers == 0:
+                self.fingers = 1
+            elif self.fingers < 3:
+                main_proxy_name = '{}_aux_pxy'.format(self.name_temp[0])
                 self.main_proxy_list.append(main_proxy_name)
                 proxy = curve.pyramid(main_proxy_name)
                 length_fingers = len(self.main_proxy_list)
@@ -107,6 +114,7 @@ class Hand(object):
                     proxy_name = '{}_pxy'.format(self.name_temp[limb])
                     knot = curve.knot(proxy_name)
                     self.connections.append(knot)
+                    self.main_fingers.append(knot)
                     if limb == 0:
                         pass
                         # self.connectors[self.name_temp[0].split('_')[-1]].append(knot)
@@ -142,6 +150,7 @@ class Hand(object):
                     proxy_name = '{}_pxy'.format(self.name_temp[limb])
                     knot = curve.knot(proxy_name)
                     self.connections.append(knot)
+                    self.main_fingers.append(knot)
                     if limb == 0:
                         pass
                         # self.connectors[self.name_temp[0].split('_')[-1]].append(knot)
@@ -186,6 +195,7 @@ class Hand(object):
                     proxy_name = '{}_pxy'.format(self.name_temp[limb])
                     knot = curve.knot(proxy_name)
                     self.connections.append(knot)
+                    self.main_fingers.append(knot)
                     if limb == 0:
                         pass
                         # self.connectors[self.name_temp[0].split('_')[-1]].append(knot)
@@ -215,13 +225,26 @@ class Hand(object):
                     cmds.move(self.init_position[0] + 2, self.init_position[1] + 2, 4 - (length_fingers * 2),
                               self.main_proxy_list[self.fingers - 2])
                 self.fingers = self.fingers + 1
+        elif add == False and self.fingers > 0:
+            self.name_temp = utility.hand_name('Hand', self.tool_name, self.fingers)
+
+            # cmds.xform(self.connectors, q=1, ws=1, rp=1)
+            self.connectors.pop(self.name_temp[-1].split('_')[-1])
+
+            cmds.delete('{}_aux_pxy'.format(self.name_temp[0]))
+            self.main_proxy_list.pop()
+            print(self.main_proxy_list)
+
+
 
     def set_main(self):
 
         for j in range(self.fingers):
             for i in range(3):
+                print(self.connections)
                 connections_sum = j * 3 + i
-                cmds.select(self.connections[connections_sum])
+                cmds.select(self.main_fingers[connections_sum])
+
                 joint_temp = cmds.joint(n=(self.fingers_name[j])[i])
                 self.temp_chain.append(joint_temp)
 
@@ -241,7 +264,6 @@ class Hand(object):
         for j in range(self.fingers):
             for i in range(3):
                 ctr = cmds.circle(n=self.fingers_name[j][i] + "_ctr", nr=(0, 1, 0), ch=False, r=radius)
-
                 hrc = cmds.group(name=self.fingers_name[j][i] + "_hrc")
                 cmds.matchTransform(hrc, self.main[j][i], scale=False)
                 cmds.parentConstraint(ctr, self.main[j][i])

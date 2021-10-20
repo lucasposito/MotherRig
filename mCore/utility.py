@@ -181,16 +181,16 @@ def quadruped_limb_name(limb, name=None):
     if index != 0:
         number = final_name[-index:]
         final_name = final_name[:-index]
-        if final_name[-4:] == limb:
-            final_name = final_name[:-4]
+        if final_name[-3:] == limb:
+            final_name = final_name[:-3]
         root = '{}{}{}'.format(final_name, chain[0], number)
         mid_first = '{}{}{}'.format(final_name, chain[1], number)
         mid = '{}{}{}'.format(final_name, chain[2], number)
         end = '{}{}{}'.format(final_name, chain[3], number)
         return [root, mid_first, mid, end]
 
-    if final_name[-4:] == limb:
-        final_name = final_name[:-4]
+    if final_name[-3:] == limb:
+        final_name = final_name[:-3]
 
     root = '{}{}'.format(final_name, chain[0])
     mid_first = '{}{}'.format(final_name, chain[1])
