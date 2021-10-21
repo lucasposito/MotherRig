@@ -48,8 +48,8 @@ class Hand(object):
         self.connectors[self.name_temp[-1].split('_')[-1]] = []
         self.connections = []
 
-
-        self.fingers_name.append(self.name_temp)
+        if add:
+            self.fingers_name.append(self.name_temp)
         length_fingers = len(self.main_proxy_list)
         # main_proxy_name = None
         if not self.init_position:
@@ -96,6 +96,7 @@ class Hand(object):
                 self.next_position[0] = self.next_position[0] + 5
                 print(self.next_position)
                 cmds.parent(self.connections[limb], proxy)
+            cmds.select(self.hand_proxy)
 
         elif add:
             if self.fingers == 0:
@@ -132,7 +133,7 @@ class Hand(object):
                     self.next_position[0] = self.next_position[0] + 5
 
                     cmds.parent(proxy_name, proxy)
-
+                cmds.select(self.hand_proxy)
                 self.fingers = self.fingers + 1
 
             elif self.fingers < 5:
@@ -179,6 +180,7 @@ class Hand(object):
                               proxy)
                     cmds.move(self.init_position[0] + 2, self.init_position[1] + 2, 4 - (length_fingers * 2),
                               self.main_proxy_list[self.fingers - 2])
+                cmds.select(self.hand_proxy)
                 self.fingers = self.fingers + 1
 
             else:
@@ -224,18 +226,20 @@ class Hand(object):
                               proxy)
                     cmds.move(self.init_position[0] + 2, self.init_position[1] + 2, 4 - (length_fingers * 2),
                               self.main_proxy_list[self.fingers - 2])
+                cmds.select(self.hand_proxy)
                 self.fingers = self.fingers + 1
         elif add == False and self.fingers > 0:
             self.name_temp = utility.hand_name('Hand', self.tool_name, self.fingers)
 
-            # cmds.xform(self.connectors, q=1, ws=1, rp=1)
             self.connectors.pop(self.name_temp[-1].split('_')[-1])
 
             cmds.delete('{}_aux_pxy'.format(self.name_temp[0]))
+            self.fingers_name.pop()
+            for i in range(3):
+                self.main_fingers.pop()
             self.main_proxy_list.pop()
-            print(self.main_proxy_list)
-
-
+        elif add == False and self.fingers == 0:
+            self.fingers = 1
 
     def set_main(self):
 
