@@ -2,7 +2,6 @@ from mCore import utility, curve
 from maya import cmds
 
 
-# class Hand(object):
 class Hand(object):
     def __init__(self, objects=None, name=None, position=None, side=None):
         self.init_position = position
@@ -43,14 +42,15 @@ class Hand(object):
     def set_proxy(self, add=True):
         if not add and self.fingers > 0:
             self.fingers = self.fingers - 1
-        self.name_temp = utility.hand_name('Hand', self.tool_name, self.fingers)
 
+        self.name_temp = utility.hand_name('Hand', self.tool_name, self.fingers)
         self.connectors[self.name_temp[-1].split('_')[-1]] = []
         self.connections = []
 
         if add:
             self.fingers_name.append(self.name_temp)
         length_fingers = len(self.main_proxy_list)
+
         # main_proxy_name = None
         if not self.init_position:
             self.init_position = [0, 0, 0]
@@ -79,7 +79,6 @@ class Hand(object):
                 knot = curve.knot(proxy_name)
                 self.connections.append(knot)
                 self.main_fingers.append(knot)
-                print(self.connections)
                 if limb == 0:
                     pass
                     # self.connectors[self.name_temp[0].split('_')[-1]].append(knot)
@@ -94,7 +93,6 @@ class Hand(object):
                     self.next_position[0] = self.next_position[0] + 2
                 cmds.move(self.next_position[0], self.next_position[1], self.next_position[2] + 2, knot)
                 self.next_position[0] = self.next_position[0] + 5
-                print(self.next_position)
                 cmds.parent(self.connections[limb], proxy)
             cmds.select(self.hand_proxy)
 
@@ -174,7 +172,6 @@ class Hand(object):
                               proxy)
                     cmds.move(self.init_position[0] + 2, self.init_position[1] + 2, 4 - (length_fingers * 2),
                               self.main_proxy_list[self.fingers - 1])
-                    print(self.main_proxy_list)
                 if self.fingers == 4:
                     cmds.move(self.init_position[0] + 2, self.init_position[1] + 2, 6 - (length_fingers * 2),
                               proxy)
@@ -220,7 +217,6 @@ class Hand(object):
                               proxy)
                     cmds.move(self.init_position[0] + 2, self.init_position[1] + 2, 4 - (length_fingers * 2),
                               self.main_proxy_list[self.fingers - 1])
-                    print(self.main_proxy_list)
                 if self.fingers == 4:
                     cmds.move(self.init_position[0] + 2, self.init_position[1] + 2, 6 - (length_fingers * 2),
                               proxy)
@@ -245,7 +241,6 @@ class Hand(object):
 
         for j in range(self.fingers):
             for i in range(3):
-                print(self.connections)
                 connections_sum = j * 3 + i
                 cmds.select(self.main_fingers[connections_sum])
 
@@ -254,7 +249,6 @@ class Hand(object):
 
             self.main_temp = utility.orient_limbo(self.temp_chain, self.fingers_name[j])
             self.main.append(self.main_temp)
-            print(self.main)
             self.temp_chain = []
             cmds.select(cl=True)
 
@@ -291,7 +285,6 @@ class Hand(object):
             hrc_fk_list.append(hrc_fk)
             finger_end_ctr = cmds.ls('{}_ctr'.format(self.fingers_name[j][2]))[0]
             finger_end_ctr_list.append(finger_end_ctr)
-            print(self.tool_name)
             cmds.parent(hrc_arm_list[j][0], inner_grp)
 
         return inner_grp, hrc_fk_list, finger_end_ctr_list, hrc_arm_list
@@ -305,7 +298,6 @@ class Hand(object):
         self.connectors['root'].append(self.main[0][0])
         self.connectors['root'].append(_fk_return[1][0])
 
-        # esta sin acabar!!!!
         for i in range(self.fingers):
             self.name_temp = utility.hand_name('Hand', self.tool_name, i)
 

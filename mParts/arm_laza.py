@@ -4,11 +4,11 @@ import pymel.core as pm
 
 
 class Arm(object):
-    def __init__(self, objects=None, name=None, position=None):
+    def __init__(self, objects=None, name=None, position=None, side=None):
         self.init_position = position
         self.main = []
         self.temp_chain = []
-        self.side = None
+        self.side = side
 
         self.next_position = [0, 0, 0]
         self.name = utility.limb_name('Arm', name)
@@ -154,7 +154,7 @@ class Arm(object):
 
         pm.matchTransform(offset_pole, locator, pos=True)
 
-        # This code below makes a cycle so i will wait to fix it
+        # This code below makes a cycle so i will wait to fix it(is fixed)
         cmds.aimConstraint(self.name[1] + "_IK_jnt", offset_pole, aim=(0, 1, 0), mo=False)
         cmds.aimConstraint(self.name[1] + "_IK_jnt", offset_pole, rm=True)
         cmds.parentConstraint(self.name[1] + "_IK_jnt", zero_pole, st=["x", "y", "z"], sr=["x", "z"])
