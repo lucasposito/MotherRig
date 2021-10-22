@@ -10,7 +10,7 @@ import maya.OpenMayaUI as omui
 
 def maya_window():
     main_window = omui.MQtUtil.mainWindow()
-    return wrapInstance(long(main_window), QtWidgets.QWidget)
+    return wrapInstance(int(main_window), QtWidgets.QWidget)
 
 
 class ImportAnimation(QtWidgets.QDialog):

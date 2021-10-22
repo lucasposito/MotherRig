@@ -13,7 +13,7 @@ Author: Lucas Esposito
 
 def maya_main_window():
     main_window_ptr = omui.MQtUtil.mainWindow()
-    return wrapInstance(long(main_window_ptr), QtWidgets.QWidget)
+    return wrapInstance(int(main_window_ptr), QtWidgets.QWidget)
 
 
 class IKFK(object):

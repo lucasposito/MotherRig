@@ -1,16 +1,14 @@
 import maya.OpenMayaUI as omui
 import mCore
 import re
-import mIcon
 from PySide2 import QtWidgets
 from PySide2 import QtCore
-from PySide2 import QtGui
 from shiboken2 import wrapInstance
 
 
 def maya_main_window():
     main_window_ptr = omui.MQtUtil.mainWindow()
-    return wrapInstance(long(main_window_ptr), QtWidgets.QWidget)
+    return wrapInstance(int(main_window_ptr), QtWidgets.QWidget)
 
 
 class ControlUI(QtWidgets.QDialog):

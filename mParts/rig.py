@@ -1,6 +1,6 @@
 import sys
 from mCore import LeafNode, Tree, utility, universal_suffix
-from . import Spine, Arm, Leg, Blank, Hand, QuadArm
+from . import Spine, Arm, Leg, Blank, Hand, Foot, QuadArm, QuadLeg
 # modules = map(__import__, mother_modules)
 from PySide2 import QtCore
 from PySide2 import QtWidgets
@@ -16,7 +16,7 @@ def maya_main_window():
     if sys.version_info.major >= 3:
         return wrapInstance(int(main_window_ptr), QtWidgets.QWidget)
     else:
-        return wrapInstance(long(main_window_ptr), QtWidgets.QWidget)
+        return wrapInstance(int(main_window_ptr), QtWidgets.QWidget)
 
 
 class RigUI(QtWidgets.QDialog):
@@ -51,7 +51,8 @@ class RigUI(QtWidgets.QDialog):
         self._toggle = False
         self._qt_items = {}
         self.rig_modules = []
-        self.mods = {'Spine': [Spine], 'Arm': [Arm], 'Leg': [Leg], 'Blank': [Blank], 'Hand': [Hand], 'QuadArm': [QuadArm]}
+        self.mods = {'Spine': [Spine], 'Arm': [Arm], 'Leg': [Leg], 'Blank': [Blank], 'Hand': [Hand], 'Foot': [Foot],
+                     'QuadArm': [QuadArm], 'QuadLeg': [QuadLeg]}
         self.qt_tree = QtWidgets.QTreeWidget()
         self._shapes_tree = Tree()
 
@@ -114,11 +115,25 @@ class RigUI(QtWidgets.QDialog):
         self.hand_plus_button.setMinimumHeight(40)
         self.hand_plus_button.setMaximumWidth(20)
 
+        self.foot_minus_button = QtWidgets.QPushButton('-')
+        self.foot_minus_button.setMinimumHeight(40)
+        self.foot_minus_button.setMaximumWidth(20)
+
+        self.foot_button = QtWidgets.QPushButton('FOOT')
+        self.foot_button.setMinimumHeight(40)
+
+        self.foot_plus_button = QtWidgets.QPushButton('+')
+        self.foot_plus_button.setMinimumHeight(40)
+        self.foot_plus_button.setMaximumWidth(20)
+
         self.quad_arm_button = QtWidgets.QPushButton('QUAD ARM')
         self.quad_arm_button.setMinimumHeight(40)
 
         self.single_button = QtWidgets.QPushButton('SINGLE')
         self.single_button.setMinimumHeight(40)
+
+        self.quad_leg_button = QtWidgets.QPushButton('QUAD LEG')
+        self.quad_leg_button.setMinimumHeight(40)
 
         self.qt_tree.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.qt_tree.setHeaderHidden(True)
@@ -156,8 +171,14 @@ class RigUI(QtWidgets.QDialog):
         modules02_layout.addWidget(self.hand_minus_button)
         modules02_layout.addWidget(self.hand_button)
         modules02_layout.addWidget(self.hand_plus_button)
-        modules02_layout.addWidget(self.quad_arm_button)
         modules02_layout.addWidget(self.single_button)
+        modules02_layout.addWidget(self.foot_minus_button)
+        modules02_layout.addWidget(self.foot_button)
+        modules02_layout.addWidget(self.foot_plus_button)
+
+        modules03_layout = QtWidgets.QHBoxLayout()
+        modules03_layout.addWidget(self.quad_arm_button)
+        modules03_layout.addWidget(self.quad_leg_button)
 
         tree_layout = QtWidgets.QVBoxLayout()
         tree_layout.addWidget(self.qt_tree)
@@ -176,6 +197,7 @@ class RigUI(QtWidgets.QDialog):
         main_layout.addLayout(type_radio)
         main_layout.addLayout(modules_layout)
         main_layout.addLayout(modules02_layout)
+        main_layout.addLayout(modules03_layout)
         main_layout.addWidget(self.qt_tree)
         main_layout.addLayout(buttons_layout)
 
@@ -196,7 +218,13 @@ class RigUI(QtWidgets.QDialog):
         self.hand_minus_button.clicked.connect(self.minus_hand)
         self.hand_button.clicked.connect(self.send_hand)
         self.hand_plus_button.clicked.connect(self.plus_hand)
+
+        self.foot_minus_button.clicked.connect(self.minus_foot)
+        self.foot_button.clicked.connect(self.send_foot)
+        self.foot_plus_button.clicked.connect(self.plus_foot)
+
         self.quad_arm_button.clicked.connect(self.send_quad_arm)
+        self.quad_leg_button.clicked.connect(self.send_quad_leg)
 
         self.delete_button.clicked.connect(self.delete)
         self.generate_button.clicked.connect(self._traverse)
@@ -250,6 +278,7 @@ class RigUI(QtWidgets.QDialog):
     def generate_rig(self, element):
         if element in self._qt_items:
             node = self._qt_items[element]
+            # detect if arm or leg have
             node.module.set_main()
             if node.attributes[0] == 'IK':
                 node.module.set_ik()
@@ -337,9 +366,15 @@ class RigUI(QtWidgets.QDialog):
         if module == 'Hand':
             hand = self.mods['Hand'][option](name=name, position=pos)
             return hand
+        if module == 'Foot':
+            foot = self.mods['Foot'][option](name=name, position=pos)
+            return foot
         if module == 'QuadArm':
             quad_arm = self.mods['QuadArm'][option](name=name, position=pos)
             return quad_arm
+        if module == 'QuadLeg':
+            quad_leg = self.mods['QuadLeg'][option](name=name, position=pos)
+            return quad_leg
 
     def _insert_parent_leaf(self, name, module, selected=None):
         parent = self._shapes_tree.create_node(name)
@@ -517,8 +552,32 @@ class RigUI(QtWidgets.QDialog):
             return
         selected[0].module.set_proxy()
 
+    def minus_foot(self):
+        if self._toggle:
+            return
+        selected = self.check_selection()
+        if not isinstance(selected[0].module, Foot):
+            return
+        selected[0].module.set_proxy(False)
+
+    def send_foot(self):
+        self.parameter['module'] = 'Foot'
+        self.add_module()
+
+    def plus_foot(self):
+        if self._toggle:
+            return
+        selected = self.check_selection()
+        if not isinstance(selected[0].module, Foot):
+            return
+        selected[0].module.set_proxy()
+
     def send_quad_arm(self):
         self.parameter['module'] = 'QuadArm'
+        self.add_module()
+
+    def send_quad_leg(self):
+        self.parameter['module'] = 'QuadLeg'
         self.add_module()
 
     def refresh_tree_widget(self):

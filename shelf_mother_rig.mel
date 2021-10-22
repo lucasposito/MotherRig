@@ -1,0 +1,427 @@
+global proc shelf_mother_rig () {
+    global string $gBuffStr;
+    global string $gBuffStr0;
+    global string $gBuffStr1;
+
+
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "IK/FK Switcher" 
+        -enableBackground 1
+        -backgroundColor 0.205997 0.205997 0.205997 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "IKFKSw" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "IKFKS" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0.206 0.206 0.206 0.8 
+        -image "GW_IKFK.png" 
+        -image1 "GW_IKFK.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "import mParts\nimport mCore\nmCore.ikfkUI.show_ui()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Select All Controllers Used in the Scene" 
+        -enableBackground 1
+        -backgroundColor 0.205997 0.205997 0.205997 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "SelCtr" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "SELCT" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0.206 0.206 0.206 0.8 
+        -image "GW_SelCT.png" 
+        -image1 "GW_SelCT.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "import mParts\nimport mCore" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Select All Joints Used in the Scene" 
+        -enableBackground 1
+        -backgroundColor 0.205997 0.205997 0.205997 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "SelJnt" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "SELJT" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0.206 0.206 0.206 0.8 
+        -image "GW_SelND.png" 
+        -image1 "GW_SelND.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "cmds.select(core.utility.joint_hierarchy(), r=True)" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Autorig For Cards Tool" 
+        -enableBackground 1
+        -backgroundColor 0.205997 0.205997 0.205997 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "ARig" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "ARIG" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0.206 0.206 0.206 0.8 
+        -image "GW_AutoRig.png" 
+        -image1 "GW_AutoRig.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "import capsule\nimport core\ncapsule.RigUI.show_ui()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Control Generator Tool" 
+        -enableBackground 1
+        -backgroundColor 0.205997 0.205997 0.205997 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "CtrGen" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "CTGEN" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0.206 0.206 0.206 0.8 
+        -image "GW_CtrMk.png" 
+        -image1 "GW_CtrMk.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "import capsule\ncapsule.ControlUI.show_ui()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Rig Toolkit - good for importing and exporting skin weights" 
+        -enableBackground 1
+        -backgroundColor 0.205997 0.205997 0.205997 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "MGear" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "RIGTK" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0.206 0.206 0.206 0.8 
+        -image "GW_RigTK.png" 
+        -image1 "GW_RigTK.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "print(\"User defined macro\");" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "|" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "Sep_Anim" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "GW_BRD_ANIM.png" 
+        -image1 "GW_BRD_ANIM.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "print(\"User defined macro\");" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Animation Take Switcher" 
+        -enableBackground 1
+        -backgroundColor 0.205997 0.205997 0.205997 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "AnimTS" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "ATS" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0.206 0.206 0.206 0.8 
+        -image "GW_AnTkSw.png" 
+        -image1 "GW_AnTkSw.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "import capsule\nimport core\ncapsule.anim_ui()" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Animation Pose Library" 
+        -enableBackground 1
+        -backgroundColor 0.205997 0.205997 0.205997 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "PLib" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "PLIB" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0.206 0.206 0.206 0.8 
+        -image "GW_PLib.png" 
+        -image1 "GW_PLib.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "print(\"User defined macro\");" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Select All Keyframed Objects" 
+        -enableBackground 1
+        -backgroundColor 0.205997 0.205997 0.205997 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "SelKey" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "SELKF" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0.206 0.206 0.206 0.8 
+        -image "GW_SelKF.png" 
+        -image1 "GW_SelKF.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "<function _select_all_keyed at 0x000001978A8CDCF8>" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Select Keyed Elements Excluding Controllers" 
+        -enableBackground 1
+        -backgroundColor 0.205997 0.205997 0.205997 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "SelKNC" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "SELNC" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0.206 0.206 0.206 0.8 
+        -image "GW_SelKNC.png" 
+        -image1 "GW_SelKNC.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "<function _select_non_crv at 0x000001978A8CDDD8>" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Open maya viewport tools" 
+        -enableBackground 1
+        -backgroundColor 0.205997 0.205997 0.205997 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "View tools" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "VTLS" 
+        -overlayLabelColor 1 1 1 
+        -overlayLabelBackColor 0.206 0.206 0.206 0.8 
+        -image "GW_VTLS.png" 
+        -image1 "GW_VTLS.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "import studiolibrary as studlib\nimport os\nlibrary_path = os.path.join(os.getenv(\"WORKSPACE\"), \"Utilities\\StudioLibrary\\\\\")\nif os.path.exists(library_path):\n    studlib.main(path=library_path)\nelse:\n    cmds.confirmDialog( title='Path does not exists',message='Please switch to Gwent Stream', button=['OK'], defaultButton='OK', cancelButton='OK', dismissString='OK' )\n" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+
+} 

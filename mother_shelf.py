@@ -1,5 +1,4 @@
 import maya.cmds as cmds
-import fnmatch
 import mCore
 import mParts
 
@@ -25,23 +24,7 @@ def _select_all_keyed(*args):
 
 
 def _select_all_controls(*args):
-    main_namespace = None
-    if cmds.ls(sl=True):
-        try:
-            main_reference = cmds.referenceQuery(cmds.ls(sl=True), referenceNode=True)
-            main_file = cmds.referenceQuery(main_reference, filename=True)
-            main_namespace = cmds.referenceQuery(main_file, ns=True)
-        except RuntimeError:
-            pass
-
-    if main_namespace:
-        shapes = [value for value in cmds.ls(type="nurbsCurve") if value in cmds.namespaceInfo(main_namespace, ls=True)]
-    else:
-        shapes = cmds.ls(type="nurbsCurve")
-    curves = fnmatch.filter(cmds.listRelatives(shapes, parent=True), '*_ctr')
-    curves.extend(fnmatch.filter(cmds.listRelatives(shapes, parent=True), '*IKFK'))
-    curves.extend(fnmatch.filter(cmds.listRelatives(shapes, parent=True), '*_IK'))
-    cmds.select(curves, r=True)
+    mCore.utility.select_all_controls()
 
 
 def _select_non_crv(*args):

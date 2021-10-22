@@ -1,5 +1,8 @@
+import maya.OpenMaya as old_om
 import maya.api.OpenMaya as om
 import maya.cmds as cmds
+import math
+import fnmatch
 
 import mCore
 
@@ -17,6 +20,26 @@ def clean_namespaces():
     for d in diff:
         cmds.namespace(removeNamespace=d + ":", mergeNamespaceWithRoot=True)
     print('All namespaces deleted')
+
+
+def select_all_controls():
+    main_namespace = None
+    if cmds.ls(sl=True):
+        try:
+            main_reference = cmds.referenceQuery(cmds.ls(sl=True), referenceNode=True)
+            main_file = cmds.referenceQuery(main_reference, filename=True)
+            main_namespace = cmds.referenceQuery(main_file, ns=True)
+        except RuntimeError:
+            pass
+
+    if main_namespace:
+        shapes = [value for value in cmds.ls(type="nurbsCurve") if value in cmds.namespaceInfo(main_namespace, ls=True)]
+    else:
+        shapes = cmds.ls(type="nurbsCurve")
+    curves = fnmatch.filter(cmds.listRelatives(shapes, parent=True), '*_ctr')
+    curves.extend(fnmatch.filter(cmds.listRelatives(shapes, parent=True), '*IKFK'))
+    curves.extend(fnmatch.filter(cmds.listRelatives(shapes, parent=True), '*_IK'))
+    cmds.select(curves, r=True)
 
 
 def orient_limbo(objects, name):
@@ -383,80 +406,6 @@ def negative_twist(twist_target, twist_rolls, reverse=False, axis='y'):
         index += 1
 
 
-def pose_reader(order):
-    a = cmds.ls(sl=True, l=True)
-    b = cmds.listRelatives(p=True, f=True)
-    cmds.select(cl=True)
-    rotation_order = ['xyz', 'xzy', 'yxz', 'yzx', 'zxy', 'zyx']
-    main_axis = order[0].capitalize()
-    sec_axis = order[-1].capitalize()
-
-    if order not in rotation_order:
-        raise ValueError('Please insert a valued axis order')
-    elif len(a) is not 1:
-        raise ValueError('Please select only one object')
-
-    pre_suffix = a[0].split('|')[-1].split('_')
-    if pre_suffix[-1] in mCore.universal_suffix:
-        pre_suffix.pop(-1)
-    pre_name = '_'.join(pre_suffix)
-
-    position = cmds.xform(a, q=True, ws=True, piv=True)[0:3]
-    rotation = cmds.xform(a, q=True, ws=True, ro=True)
-    nodes = ['pose_main', 'pose_target', 'pose_up', 'twist_main',
-             'twist_target', 'twist_up']
-    suffix = ['hrc', 'loc', 'cst']
-
-    # main
-    main = cmds.group(n='{0}_{1}_{2}'.format(pre_name, nodes[0], suffix[1]), em=True)
-    cmds.xform(r=True, t=position, ro=rotation)
-    cmds.parent(main, a)
-    main_parent = cmds.group(n='{0}_{1}_{2}'.format(pre_name, nodes[0], suffix[0]))
-    cmds.setAttr('{0}.translate{1}'.format(main_parent, main_axis), -1)
-
-    # target
-    target = cmds.group(n='{0}_{1}_{2}'.format(pre_name, nodes[1], suffix[1]), em=True)
-    cmds.xform(r=True, t=position, ro=rotation)
-    cmds.parent(target, a)
-    target_parent = cmds.group(n='{0}_{1}_{2}'.format(pre_name, nodes[1], suffix[0]))
-    cmds.setAttr('{0}.translate{1}'.format(target_parent, main_axis), 1)
-
-    # up
-    up = cmds.group(n='{0}_{1}_{2}'.format(pre_name, nodes[2], suffix[1]), em=True)
-    cmds.xform(r=True, t=position, ro=rotation)
-    cmds.parent(up, a)
-    up_parent = cmds.group(n='{0}_{1}_{2}'.format(pre_name, nodes[2], suffix[0]))
-    cmds.setAttr('{0}.translate{1}'.format(up_parent, main_axis), -1)
-    cmds.setAttr('{0}.translate{1}'.format(up_parent, sec_axis), -0.5)
-
-    # twist_main
-    twist_main = cmds.group(n='{0}_{1}_{2}'.format(pre_name, nodes[3], suffix[1]), em=True)
-    cmds.xform(r=True, t=position, ro=rotation)
-    cmds.parent(twist_main, a)
-    cmds.group(n='{0}_{1}_{2}'.format(pre_name, nodes[3], suffix[0]))
-    twist_main_parent = cmds.group(n='{0}_{1}_{2}'.format(pre_name, nodes[3], suffix[-1]))
-    twist_parent = cmds.group(n='{0}_twist_{1}'.format(pre_name, suffix[0]))
-
-    # twist_target
-    twist_target = cmds.group(n='{0}_{1}_{2}'.format(pre_name, nodes[4], suffix[1]), em=True)
-    cmds.xform(r=True, t=position, ro=rotation)
-    cmds.parent(twist_target, a)
-    twist_target_parent = cmds.group(n='{0}_{1}_{2}'.format(pre_name, nodes[4], suffix[0]))
-    cmds.setAttr('{0}.translate{1}'.format(twist_target_parent, sec_axis), -1)
-
-    # twist_up
-    twist_up = cmds.group(n='{0}_{1}_{2}'.format(pre_name, nodes[5], suffix[1]), em=True)
-    cmds.xform(r=True, t=position, ro=rotation)
-    cmds.parent(twist_up, twist_main_parent)
-    twist_up_parent = cmds.group(n='{0}_{1}_{2}'.format(pre_name, nodes[5], suffix[0]))
-    cmds.setAttr('{0}.translate{1}'.format(twist_up_parent, main_axis), -0.5)
-
-    if b is None:
-        cmds.parent(main_parent, up_parent, twist_parent, w=True)
-    else:
-        cmds.parent(main_parent, up_parent, twist_parent, b)
-
-
 def object_size(obj):
     shape = cmds.listRelatives(obj, s=True, f=True)
     min_size = cmds.getAttr('%s.boundingBoxMin' % shape[0])[0]
@@ -539,3 +488,47 @@ def quaternion_constrain(driver, driven):
         result_matrix = result_matrix * parent_matrix.inverse()
 
     cmds.xform(driven, m=result_matrix)
+
+
+def cardinal_orient(obj, south, north, left, right):
+    def old_api_vector(pos):
+        vector = old_om.MVector(pos[0], pos[1], pos[2])
+        return vector
+
+    obj_dag = old_om.MDagPath()
+    sel_list = old_om.MSelectionList()
+    sel_list.add(obj)
+    sel_list.getDagPath(0, obj_dag)
+
+    transform_fn = old_om.MFnTransform(obj_dag)
+
+    vertical_axis = old_om.MVector().yAxis
+    horizontal_axis = old_om.MVector().xAxis
+
+    vertical_vector = (old_api_vector(north) - old_api_vector(south)).normal()
+    horizontal_vector = (old_api_vector(left) - old_api_vector(
+        right)).normal()
+
+    obj_u = vertical_vector.normal()
+
+    obj_v = horizontal_vector
+    obj_w = (obj_u ^ obj_v).normal()
+
+    obj_v = obj_w ^ obj_u
+
+    quaternion_u = old_om.MQuaternion(vertical_axis, obj_u)
+    quaternion = quaternion_u
+
+    sec_axis_rotated = horizontal_axis.rotateBy(quaternion)
+
+    angle = math.acos(sec_axis_rotated * obj_v)
+    quaternion_v = old_om.MQuaternion(angle, obj_u)
+
+    if not obj_v.isEquivalent(sec_axis_rotated.rotateBy(quaternion_v), 1.0e-5):
+        angle = (2 * math.pi) - angle
+        quaternion_v = old_om.MQuaternion(angle, obj_u)
+
+    quaternion *= quaternion_v
+
+    transform_fn.setObject(obj_dag)
+    transform_fn.setRotation(quaternion)

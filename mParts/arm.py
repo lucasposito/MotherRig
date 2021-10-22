@@ -5,10 +5,11 @@ import mCore
 
 
 class Arm:
-    def __init__(self, objects=None, name=None, position=None, side=None):
+    def __init__(self, objects=None, name=None, position=None, orient=None, side=None):
         self._toggle = False
         self.main = []
         self.init_position = position
+        self.init_orient = orient
         self.position = {}
         self.name = mCore.utility.limb_name('Arm', name)
         self.side = side

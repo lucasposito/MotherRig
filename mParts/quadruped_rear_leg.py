@@ -3,7 +3,7 @@ from maya import cmds
 import pymel.core as pm
 
 
-class QuadFoot(object):
+class QuadLeg(object):
     def __init__(self, objects=None, name=None, position=None,  side=None):
         self.init_position = position
         self.main = []
