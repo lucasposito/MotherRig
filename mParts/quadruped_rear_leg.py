@@ -3,7 +3,7 @@ from maya import cmds
 import pymel.core as pm
 
 
-class QuadArm(object):
+class QuadFoot(object):
     def __init__(self, objects=None, name=None, position=None,  side=None):
         self.init_position = position
         self.main = []
@@ -11,7 +11,7 @@ class QuadArm(object):
         self.side = side
 
         self.next_position = [0, 0, 0]
-        self.name = utility.quadruped_limb_name('Arm', name)
+        self.name = utility.quadruped_limb_name('Leg', name)
 
         # self.connections = [root, mid, end] proxies
 
@@ -59,7 +59,7 @@ class QuadArm(object):
 
             self.next_position = self.init_position
             cmds.move(self.next_position[0], self.next_position[1], self.next_position[2], knot)
-            self.next_position[0] = self.next_position[0] + 5
+            self.next_position[1] = self.next_position[1] - 5
             cmds.parent(self.connections[limb], proxy)
 
     def set_main(self):
