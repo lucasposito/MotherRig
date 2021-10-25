@@ -1,5 +1,5 @@
-from mCore import utility, curve
 from maya import cmds
+import mCore
 
 
 class Foot(object):
@@ -16,7 +16,7 @@ class Foot(object):
         self.main_fingers = []
 
         self.name = [name]
-        self.name_temp = utility.hand_name('Foot', self.tool_name, self.fingers)
+        self.name_temp = mCore.utility.hand_name('Foot', self.tool_name, self.fingers)
 
         self.self_inner = None
         self.self_outer = None
@@ -38,7 +38,7 @@ class Foot(object):
         if not add and self.fingers > 0:
             self.fingers = self.fingers - 1
 
-        self.name_temp = utility.hand_name('Foot', self.tool_name, self.fingers)
+        self.name_temp = mCore.utility.hand_name('Foot', self.tool_name, self.fingers)
         self.connectors[self.name_temp[-1].split('_')[-1]] = []
         self.connections = []
 
@@ -55,13 +55,13 @@ class Foot(object):
 
         # Main proxy(Control the other proxies)
         if self.fingers == 0 and not self.hand_proxy:
-            self.hand_proxy = curve.knot(self.tool_name + '_pxy')
+            self.hand_proxy = mCore.curve.knot(self.tool_name + '_pxy')
             cmds.move(self.init_position[0], self.init_position[1], self.init_position[2], self.hand_proxy)
             self.connectors['root'].append(self.hand_proxy)
         if not self.main_proxy_list:
             main_proxy_name = '{}_aux_pxy'.format(self.name_temp[0])
             self.main_proxy_list.append(main_proxy_name)
-            proxy = curve.pyramid(main_proxy_name)
+            proxy = mCore.curve.pyramid(main_proxy_name)
             cmds.move(self.init_position[0] + 2, self.init_position[1] + 2, self.init_position[2] + 2, proxy)
             self.fingers = self.fingers + 1
             self.next_position = list(self.init_position)
@@ -71,7 +71,7 @@ class Foot(object):
             for limb in range(3):
 
                 proxy_name = '{}_pxy'.format(self.name_temp[limb])
-                knot = curve.knot(proxy_name)
+                knot = mCore.curve.knot(proxy_name)
                 self.connections.append(knot)
                 self.main_fingers.append(knot)
                 if limb == 0:
@@ -97,7 +97,7 @@ class Foot(object):
             elif self.fingers < 3:
                 main_proxy_name = '{}_aux_pxy'.format(self.name_temp[0])
                 self.main_proxy_list.append(main_proxy_name)
-                proxy = curve.pyramid(main_proxy_name)
+                proxy = mCore.curve.pyramid(main_proxy_name)
                 length_fingers = len(self.main_proxy_list)
                 cmds.move(self.init_position[0] + 2, self.init_position[1] + 2, 4 - (length_fingers * 2), proxy)
                 self.next_position = list(self.init_position)
@@ -106,7 +106,7 @@ class Foot(object):
                 # Create proxies with the name convention and in the correct position
                 for limb in range(3):
                     proxy_name = '{}_pxy'.format(self.name_temp[limb])
-                    knot = curve.knot(proxy_name)
+                    knot = mCore.curve.knot(proxy_name)
                     self.connections.append(knot)
                     self.main_fingers.append(knot)
                     if limb == 0:
@@ -133,7 +133,7 @@ class Foot(object):
                 main_proxy_name = '{}_aux_pxy'.format(self.name_temp[0])
                 self.main_proxy_list.append(main_proxy_name)
                 length_fingers = len(self.main_proxy_list)
-                proxy = curve.pyramid(main_proxy_name)
+                proxy = mCore.curve.pyramid(main_proxy_name)
                 cmds.move(self.init_position[0] + 2, self.init_position[1] + 2, 4 - (length_fingers * 2),
                           proxy)
                 self.next_position = list(self.init_position)
@@ -142,7 +142,7 @@ class Foot(object):
                 # Create proxies with the name convention and in the correct position
                 for limb in range(3):
                     proxy_name = '{}_pxy'.format(self.name_temp[limb])
-                    knot = curve.knot(proxy_name)
+                    knot = mCore.curve.knot(proxy_name)
                     self.connections.append(knot)
                     self.main_fingers.append(knot)
                     if limb == 0:
@@ -179,7 +179,7 @@ class Foot(object):
                 main_proxy_name = '{}_aux_pxy'.format(self.name_temp[0])
                 self.main_proxy_list.append(main_proxy_name)
                 length_fingers = len(self.main_proxy_list)
-                proxy = curve.pyramid(main_proxy_name)
+                proxy = mCore.curve.pyramid(main_proxy_name)
                 cmds.move(self.init_position[0] + 2, self.init_position[1] + 2, 4 - (length_fingers * 2),
                           proxy)
                 self.next_position = list(self.init_position)
@@ -187,7 +187,7 @@ class Foot(object):
 
                 for limb in range(3):
                     proxy_name = '{}_pxy'.format(self.name_temp[limb])
-                    knot = curve.knot(proxy_name)
+                    knot = mCore.curve.knot(proxy_name)
                     self.connections.append(knot)
                     self.main_fingers.append(knot)
                     if limb == 0:
@@ -219,8 +219,8 @@ class Foot(object):
                               self.main_proxy_list[self.fingers - 2])
                 cmds.select(self.hand_proxy)
                 self.fingers = self.fingers + 1
-        elif add == False and self.fingers > 0:
-            self.name_temp = utility.hand_name('Foot', self.tool_name, self.fingers)
+        elif not add and self.fingers > 0:
+            self.name_temp = mCore.utility.hand_name('Foot', self.tool_name, self.fingers)
 
             self.connectors.pop(self.name_temp[-1].split('_')[-1])
 
@@ -229,7 +229,7 @@ class Foot(object):
             for i in range(3):
                 self.main_fingers.pop()
             self.main_proxy_list.pop()
-        elif add == False and self.fingers == 0:
+        elif not add and self.fingers == 0:
             self.fingers = 1
 
     def set_main(self):
@@ -242,7 +242,7 @@ class Foot(object):
                 joint_temp = cmds.joint(n=(self.fingers_name[j])[i])
                 self.temp_chain.append(joint_temp)
 
-            self.main_temp = utility.orient_limbo(self.temp_chain, self.fingers_name[j])
+            self.main_temp = mCore.utility.orient_limbo(self.temp_chain, self.fingers_name[j])
             self.main.append(self.main_temp)
             self.temp_chain = []
             cmds.select(cl=True)
@@ -269,10 +269,10 @@ class Foot(object):
 
                 if self.side == "Left":
                     cmds.select(ctr)
-                    curve.color(6)
+                    mCore.curve.color(6)
                 if self.side == "Right":
                     cmds.select(ctr)
-                    curve.color(13)
+                    mCore.curve.color(13)
 
             hrc_arm = cmds.ls("{}_hrc".format(self.fingers_name[j][0]))
             hrc_arm_list.append(hrc_arm)
@@ -294,7 +294,7 @@ class Foot(object):
         self.connectors['root'].append(_fk_return[1][0])
 
         for i in range(self.fingers):
-            self.name_temp = utility.hand_name('Foot', self.tool_name, i)
+            self.name_temp = mCore.utility.hand_name('Foot', self.tool_name, i)
 
             self.connectors[self.name_temp[-1].split('_')[-1]].append(self.main[i][-1])
             self.connectors[self.name_temp[-1].split('_')[-1]].append(_fk_return[2][i])
