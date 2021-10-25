@@ -1,6 +1,6 @@
 from mCore import utility, curve
 from maya import cmds
-import pymel.core as pm
+import mCore
 
 
 class Arm(object):
@@ -79,29 +79,6 @@ class Arm(object):
         cmds.delete(self.temp_chain)
         cmds.select(cl=True)
 
-    def get_pole_vector_position(self, joint_1, joint_2, joint_3, multiplier=2):
-        a = joint_1.getTranslation(space="world")
-        b = joint_2.getTranslation(space="world")
-        c = joint_3.getTranslation(space="world")
-
-        start_to_end = c - a
-        start_to_mid = b - a
-
-        dot = start_to_mid * start_to_end
-
-        projection = float(dot) / float(start_to_end.length())
-
-        start_to_end_normalized = start_to_end.normal()
-
-        projection_vector = start_to_end_normalized * projection
-
-        arrow_vector = start_to_mid - projection_vector
-        arrow_vector *= multiplier
-
-        pole_vector_position = arrow_vector + b
-
-        return pole_vector_position
-
     def _ik(self):
         ik_chain = []
         new_joint_chain = "_IK_jnt"
@@ -145,14 +122,11 @@ class Arm(object):
         cmds.matchTransform(offset_pole, self.main[1], pos=True, rot=True)
         cmds.select(self.main[0], self.main[1], self.main[2])
 
-        joint_1, joint_2, joint_3 = pm.selected()
-
-        locator = pm.spaceLocator()
-        locator.setTranslation(self.get_pole_vector_position(joint_1, joint_2, joint_3), space="world")
+        pos = mCore.utility.pole_vector(cmds.xform(self.main[0], q=True, ws=True, t=True),
+                                        cmds.xform(self.main[1], q=True, ws=True, t=True),
+                                        cmds.xform(self.main[2], q=True, ws=True, t=True))
         cmds.select(self.name[2] + "_IK_hdl")
-        # cmds.poleVectorConstraint(self.name[1] + "_IK_ctr", (self.name[2] + "_IK_hdl"), w=1)
-
-        pm.matchTransform(offset_pole, locator, pos=True)
+        cmds.xform(offset_pole, ws=True, t=pos)
 
         # This code below makes a cycle so i will wait to fix it(is fixed)
         cmds.aimConstraint(self.name[1] + "_IK_jnt", offset_pole, aim=(0, 1, 0), mo=False)
@@ -163,7 +137,6 @@ class Arm(object):
         cmds.select(self.name[2] + "_IK_hdl")
 
         cmds.poleVectorConstraint(self.name[1] + "_IK_ctr", (self.name[2] + "_IK_hdl"), w=1)
-        pm.delete(locator)
 
         outer_group = cmds.group(offset_pole, zero, n='{}_grp'.format(self.name[0]))
         cmds.select(cl=True)

@@ -1,10 +1,10 @@
 from mCore import utility, curve
 from maya import cmds
-import pymel.core as pm
+import mCore
 
 
 class QuadArm(object):
-    def __init__(self, objects=None, name=None, position=None,  side=None):
+    def __init__(self, objects=None, name=None, position=None, side=None):
         self.init_position = position
         self.main = []
         self.temp_chain = []
@@ -79,41 +79,18 @@ class QuadArm(object):
         cmds.parent(temp_loc, self.main[2])
         cmds.xform(t=(-3, 0, 0), ro=(0, 0, 0))
         cmds.parent(w=True)
-        aim_temp = cmds.aimConstraint(joint_end, self.name[2] + '_jnt', wut='object', wuo=temp_loc, u=(-1, 0, 0), aim=(0, 1, 0))
+        aim_temp = cmds.aimConstraint(joint_end, self.name[2] + '_jnt', wut='object', wuo=temp_loc, u=(-1, 0, 0),
+                                      aim=(0, 1, 0))
         cmds.delete(aim_temp, temp_loc)
 
         cmds.parent(joint_end, self.main[2])
         self.main.append(joint_end)
-
 
         cmds.setAttr(self.main[3] + '.jointOrientX', 0)
         cmds.setAttr(self.main[3] + '.jointOrientY', 0)
         cmds.setAttr(self.main[3] + '.jointOrientZ', 0)
 
         cmds.select(cl=True)
-
-    def get_pole_vector_position(self, joint_1, joint_2, joint_3, multiplier=2):
-        a = joint_1.getTranslation(space="world")
-        b = joint_2.getTranslation(space="world")
-        c = joint_3.getTranslation(space="world")
-
-        start_to_end = c - a
-        start_to_mid = b - a
-
-        dot = start_to_mid * start_to_end
-
-        projection = float(dot) / float(start_to_end.length())
-
-        start_to_end_normalized = start_to_end.normal()
-
-        projection_vector = start_to_end_normalized * projection
-
-        arrow_vector = start_to_mid - projection_vector
-        arrow_vector *= multiplier
-
-        pole_vector_position = arrow_vector + b
-
-        return pole_vector_position
 
     def _ik(self):
         ik_chain = []
@@ -141,8 +118,6 @@ class QuadArm(object):
         cmds.group(n=self.name[2] + '_IK_hdl_hrc')
         ik_hdl_cst = cmds.group(n=self.name[2] + '_IK_hdl_cst')
 
-
-
         # Creating ik Icon
         cube = curve.cube(self.name[3] + '_IK_ctr')
         cube_list = cmds.ls(cube, dag=True)
@@ -161,13 +136,12 @@ class QuadArm(object):
         cmds.xform(self.name[2] + '_IK_hdl_cst', ws=1,
                    piv=(anklePivot[0], anklePivot[1], anklePivot[2]))
 
-
         cmds.xform(self.name[2] + '_IK_hdl_hrc', ws=1,
                    piv=(anklePivot[0], anklePivot[1], anklePivot[2]))
         cmds.xform(ankle_ctr, ws=1, piv=(anklePivot[0], anklePivot[1], anklePivot[2]))
 
-        cmds.ikHandle(n=self.name[3] + 'Hock_ikhandle', sj=self.name[2]+"_IK_jnt",
-                      ee=self.name[3]+"_IK_jnt", sol='ikSCsolver')
+        cmds.ikHandle(n=self.name[3] + 'Hock_ikhandle', sj=self.name[2] + "_IK_jnt",
+                      ee=self.name[3] + "_IK_jnt", sol='ikSCsolver')
 
         cmds.parent(self.name[2] + '_IK_hdl_cst', self.name[3] + '_IK_ctr')
         cmds.parent(self.name[3] + 'Hock_ikhandle', self.name[3] + '_IK_ctr')
@@ -185,12 +159,12 @@ class QuadArm(object):
         cmds.matchTransform(offset_pole, self.main[1], pos=True, rot=True)
         cmds.select(self.main[0], self.main[1], self.main[2])
 
-        joint_1, joint_2, joint_3 = pm.selected()
-
-        locator = pm.spaceLocator()
-        locator.setTranslation(self.get_pole_vector_position(joint_1, joint_2, joint_3), space="world")
+        pos = mCore.utility.pole_vector(cmds.xform(self.main[0], q=True, ws=True, t=True),
+                                        cmds.xform(self.main[1], q=True, ws=True, t=True),
+                                        cmds.xform(self.main[2], q=True, ws=True, t=True))
         cmds.select(self.name[2] + "_IK_hdl")
-        pm.matchTransform(offset_pole, locator, pos=True)
+        cmds.xform(offset_pole, ws=True, t=pos)
+
         cmds.aimConstraint(self.name[1] + "_IK_jnt", offset_pole, aim=(0, 1, 0), mo=False)
         cmds.aimConstraint(self.name[1] + "_IK_jnt", offset_pole, rm=True)
         cmds.parentConstraint(self.name[1] + "_IK_jnt", zero_pole, st=["x", "y", "z"], sr=["x", "z"])
@@ -199,7 +173,6 @@ class QuadArm(object):
         cmds.select(self.name[2] + "_IK_hdl")
 
         cmds.poleVectorConstraint(self.name[1] + "_IK_ctr", (self.name[2] + "_IK_hdl"), w=1)
-        pm.delete(locator)
 
         outer_group = cmds.group(offset_pole, zero, ik_hdl_cst, n='{}_grp'.format(self.name[0]))
         cmds.select(cl=True)

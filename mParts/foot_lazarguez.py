@@ -34,11 +34,6 @@ class Foot(object):
         else:
             self.set_main()
 
-    def lock_hide_attr(self, obj, attr_array, lock, hide):
-        for a in attr_array:
-            cmds.setAttr(obj + '.' + a, k=hide, l=lock)
-            # SHOW AND UNLOCK ATTRIBUTES
-
     def set_proxy(self, add=True):
         if not add and self.fingers > 0:
             self.fingers = self.fingers - 1

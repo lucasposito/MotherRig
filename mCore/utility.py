@@ -42,6 +42,35 @@ def select_all_controls():
     cmds.select(curves, r=True)
 
 
+def select_all_keyed():
+    cache = []
+    for i in cmds.ls():
+        if cmds.keyframe(i, query=True, at=['translate', 'rotate'], vc=True) is not None:
+            cache.append(i)
+    cmds.select(cache, r=True)
+
+
+def select_non_crv():
+    curves = cmds.listRelatives(cmds.ls(type="nurbsCurve"), parent=True)
+    cache = []
+    for i in cmds.ls():
+        if cmds.keyframe(i, query=True, at=['translate', 'rotate'], vc=True) is not None:
+            cache.append(i)
+    not_shapes = [each for each in cache if each not in curves]
+    cmds.select(not_shapes, r=True)
+
+
+def freeze_joints():
+    selected = cmds.ls(sl=True)
+    for each in selected:
+        cmds.setAttr('{}.jointOrient'.format(each), 0, 0, 0)
+
+
+def skin_cluster_joints():
+    selected = cmds.ls(sl=True)
+    cmds.select(cmds.skinCluster(selected, q=True, inf='findRelatedSkinCluster'), r=True)
+
+
 def orient_limbo(objects, name):
     if len(objects) != 3:
         return
@@ -426,6 +455,24 @@ def object_position(obj):
 def create_vector(pos):
     vector = om.MVector(pos[0], pos[1], pos[2])
     return vector
+
+
+def pole_vector(pos_a, pos_b, pos_c, multiplier=1):
+    point_a = create_vector(pos_a)
+    point_b = create_vector(pos_b)
+    point_c = create_vector(pos_c)
+
+    vector_ab = point_b - point_a
+    vector_ac = point_c - point_a
+    ac_normal = vector_ac.normalize()
+
+    proj_length = vector_ab * ac_normal
+    proj_vector = (ac_normal * proj_length) + point_a
+
+    vector_pb = point_b - proj_vector
+    pb_normal = vector_pb.normalize()
+    pole_position = (point_b + (pb_normal * vector_ab.length())) * multiplier
+    return pole_position
 
 
 def distance_between(obj=None):

@@ -16,11 +16,7 @@ def _ik_fk_switcher(*args):
 
 
 def _select_all_keyed(*args):
-    cache = []
-    for i in cmds.ls():
-        if cmds.keyframe(i, query=True, at=['translate', 'rotate'], vc=True) is not None:
-            cache.append(i)
-    cmds.select(cache, r=True)
+    mCore.utility.select_all_keyed()
 
 
 def _select_all_controls(*args):
@@ -28,13 +24,7 @@ def _select_all_controls(*args):
 
 
 def _select_non_crv(*args):
-    curves = cmds.listRelatives(cmds.ls(type="nurbsCurve"), parent=True)
-    cache = []
-    for i in cmds.ls():
-        if cmds.keyframe(i, query=True, at=['translate', 'rotate'], vc=True) is not None:
-            cache.append(i)
-    not_shapes = [each for each in cache if each not in curves]
-    cmds.select(not_shapes, r=True)
+    mCore.utility.select_non_crv()
 
 
 def _mother_rig(*args):
@@ -58,14 +48,11 @@ def _simple_parent(*args):
 
 
 def _freeze_joints(*args):
-    selected = cmds.ls(sl=True)
-    for each in selected:
-        cmds.setAttr('{}.jointOrient'.format(each), 0, 0, 0)
+    mCore.utility.freeze_joints()
 
 
 def _skin_cluster_joints(*args):
-    selected = cmds.ls(sl=True)
-    cmds.select(cmds.skinCluster(selected, q=True, inf='findRelatedSkinCluster'), r=True)
+    mCore.utility.skin_cluster_joints()
 
 
 class MotherShelf(object):
