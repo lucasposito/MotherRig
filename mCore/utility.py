@@ -4,7 +4,7 @@ import maya.cmds as cmds
 import math
 import fnmatch
 
-from mCore import universal_suffix
+import mCore
 
 
 def clean_namespaces():
@@ -87,9 +87,9 @@ def orient_limbo(objects, name):
     locator = cmds.ls(sl=True, l=True)
     cmds.select(d=True)
 
-    first = cmds.joint(n='{}_{}'.format(name[0], universal_suffix[-1]), p=position['Root'])
-    second = cmds.joint(n='{}_{}'.format(name[1], universal_suffix[-1]), p=position['Mid'])
-    third = cmds.joint(n='{}_{}'.format(name[2], universal_suffix[-1]), p=position['End'])
+    first = cmds.joint(n='{}_{}'.format(name[0], mCore.universal_suffix[-1]), p=position['Root'])
+    second = cmds.joint(n='{}_{}'.format(name[1], mCore.universal_suffix[-1]), p=position['Mid'])
+    third = cmds.joint(n='{}_{}'.format(name[2], mCore.universal_suffix[-1]), p=position['End'])
     main_limb.append(first)
     main_limb.append('{}|{}'.format(first, second))
     main_limb.append('{}|{}|{}'.format(first, second, third))
