@@ -63,6 +63,7 @@ def select_non_crv():
 def freeze_joints():
     selected = cmds.ls(sl=True)
     for each in selected:
+        cmds.makeIdentity(each, a=True, t=True, r=True, s=True)
         cmds.setAttr('{}.jointOrient'.format(each), 0, 0, 0)
 
 

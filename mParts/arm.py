@@ -119,23 +119,6 @@ class Arm:
     def access(self, element):
         return
 
-    def _pole_vector(self):
-        point_a = mCore.utility.create_vector(self.position['Arm'])
-        point_b = mCore.utility.create_vector(self.position['ForeArm'])
-        point_c = mCore.utility.create_vector(self.position['Hand'])
-
-        vector_ab = point_b - point_a
-        vector_ac = point_c - point_a
-        ac_normal = vector_ac.normalize()
-
-        proj_length = vector_ab * ac_normal
-        proj_vector = (ac_normal * proj_length) + point_a
-
-        vector_pb = point_b - proj_vector
-        pb_normal = vector_pb.normalize()
-        pole_position = point_b + (pb_normal * vector_ab.length())
-        return pole_position
-
     def _ik(self):
         arm_copy = cmds.listRelatives(cmds.duplicate(self.main[0])[0], ad=True, f=True)
         arm_copy.append(list(filter(None, arm_copy[0].split('|')))[0])
@@ -165,7 +148,7 @@ class Arm:
         ik_chain.extend(temp)
 
         srt_group = list(filter(None, pole_ctr.split('|')[:-1]))
-        pole_position = self._pole_vector()
+        pole_position = mCore.utility.pole_vector(self.position['Arm'], self.position['ForeArm'], self.position['Hand'])
         cmds.move(pole_position.x, pole_position.y, pole_position.z, '|'.join(srt_group), ws=True)
 
         cluster = mCore.curve.line_between(self.main[1], pole_ctr, self.name[1])
@@ -183,7 +166,9 @@ class Arm:
         hrc_hand_group = list(filter(None, hand_ctr.split('|')))[0]
         outer_group = cmds.group(hrc_pole_group, hrc_hand_group, cluster, n='{}_grp'.format(self.name[0]))
         cmds.select(cl=True)
-        cmds.setAttr('{}.visibility'.format(ik_chain[1]), 0)
+        cmds.setAttr('{}.drawStyle'.format(ik_chain[0]), 2)
+        cmds.setAttr('{}.drawStyle'.format(ik_chain[1]), 2)
+        cmds.setAttr('{}.drawStyle'.format(ik_chain[2]), 2)
         return list(filter(None, ik_chain[0].split('|')))[0], outer_group, ik_chain[0], hand_ctr
 
     def _fk(self):
