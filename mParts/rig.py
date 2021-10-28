@@ -1,4 +1,6 @@
 import sys
+
+import mCore.utility
 from mCore import LeafNode, Tree, utility, universal_suffix
 from . import Spine, Arm, Leg, Blank, Hand, Foot, QuadArm, QuadLeg
 # modules = map(__import__, mother_modules)
@@ -286,8 +288,15 @@ class RigUI(QtWidgets.QDialog):
                 first = first.right
             for nod in cache:
                 if isinstance(nod.module, Hand) or isinstance(nod.module, Foot):
-                    print(nod.name)
-
+                    if len(nod.module.fingers_name) > 2:
+                        temp_group = cmds.group(em=True)
+                        parent = nod.module.parent_inner
+                        root = cmds.xform(parent[0].module.connectors[parent[-1]][0], q=True, ws=True, t=True)
+                        left = cmds.xform('{}_pxy'.format(nod.module.fingers_name[2][0]), q=True, ws=True, t=True)
+                        right = cmds.xform('{}_pxy'.format(nod.module.fingers_name[1][0]), q=True, ws=True, t=True)
+                        mCore.utility.triad_orient(temp_group, root, left, right)
+                        parent[0].module.init_orient = cmds.xform(temp_group, q=True, ws=True, ro=True)
+                        cmds.delete(temp_group)
                     break
 
     def generate_rig(self, element):

@@ -5,11 +5,11 @@ import mCore
 
 
 class Arm:
-    def __init__(self, objects=None, name=None, position=None, orient=None, side=None):
+    def __init__(self, objects=None, name=None, position=None, side=None):
         self._toggle = False
         self.main = []
         self.init_position = position
-        self.init_orient = orient
+        self.init_orient = None
         self.position = {}
         self.name = mCore.utility.limb_name('Arm', name)
         self.side = side
@@ -41,6 +41,9 @@ class Arm:
     def set_main(self):
         self._get_position()
         self.main = mCore.utility.orient_limbo(self.selected, self.name)
+        if self.init_orient:
+            cmds.xform(self.main[-1], ro=tuple(self.init_orient), ws=True)
+            cmds.makeIdentity(self.main[-1], a=True, r=True)
         if self.side == 'Right':
             self.toggle_orient()
 
