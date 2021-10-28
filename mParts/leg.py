@@ -114,7 +114,7 @@ class Leg:
         ik_chain.extend(temp)
 
         srt_group = list(filter(None, pole_ctr.split('|')[:-1]))
-        pole_position = mCore.utility.pole_vector(self.position['Arm'], self.position['ForeArm'], self.position['Hand'])
+        pole_position = mCore.utility.pole_vector(self.position['UpLeg'], self.position['Leg'], self.position['Foot'])
         cmds.move(pole_position.x, pole_position.y, pole_position.z, '|'.join(srt_group), ws=True)
 
         cluster = mCore.curve.line_between(self.main[1], pole_ctr, self.name[1])

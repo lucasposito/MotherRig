@@ -275,20 +275,37 @@ class RigUI(QtWidgets.QDialog):
             if proxy in self._proxies:
                 self._proxies.remove(proxy)
 
+    def orient_tip(self, leaf):
+        if len(leaf.child_group) == 0:
+            return
+        for each in leaf.child_group:
+            cache = [each[0]]
+            first = each[0].right
+            while first:
+                cache.append(first)
+                first = first.right
+            for nod in cache:
+                if isinstance(nod.module, Hand) or isinstance(nod.module, Foot):
+                    print(nod.name)
+
+                    break
+
     def generate_rig(self, element):
         if element in self._qt_items:
             node = self._qt_items[element]
+            self.orient_tip(node)
             # detect if arm or leg have
             node.module.set_main()
-            if node.attributes[0] == 'IK':
+            # in python 2 the order of the attributes changes
+            if node.attributes[-2] == 'IK':
                 node.module.set_ik()
-            elif node.attributes[0] == 'FK':
+            elif node.attributes[-2] == 'FK':
                 if isinstance(node.module, Blank) and node.module.parent_inner:
                     node.module.init_position = cmds.xform(
                         node.module.init_position.module.connectors['root'][0], q=True,
                         ws=True, t=True)
                 node.module.set_fk()
-            elif node.attributes[0] == 'IKFK':
+            elif node.attributes[-2] == 'IKFK':
                 node.module.set_ik_fk()
             else:
                 return

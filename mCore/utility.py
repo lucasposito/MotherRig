@@ -580,3 +580,16 @@ def cardinal_orient(obj, south, north, left, right):
 
     transform_fn.setObject(obj_dag)
     transform_fn.setRotation(quaternion)
+
+
+def triad_orient(obj, root, left, right):
+    def old_api_vector(pos):
+        vector = old_om.MVector(pos[0], pos[1], pos[2])
+        return vector
+
+    left_point = old_api_vector(left)
+    right_point = old_api_vector(right)
+    center_vector = ((left_point - right_point) * 0.5) + right_point
+    center_pos = center_vector.x, center_vector.y, center_vector.z
+
+    cardinal_orient(obj, root, center_pos, left, right)
