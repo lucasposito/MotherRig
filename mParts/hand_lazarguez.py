@@ -290,14 +290,18 @@ class Hand(object):
         self.self_inner = _fk_return[0]
         self.self_outer = None
 
-        self.connectors['root'].append(self.main[0][0])
-        self.connectors['root'].append(_fk_return[1][0])
-
         for i in range(self.fingers):
             self.name_temp = mCore.utility.hand_name('Hand', self.tool_name, i)
-
-            self.connectors[self.name_temp[-1].split('_')[-1]].append(self.main[i][-1])
-            self.connectors[self.name_temp[-1].split('_')[-1]].append(_fk_return[2][i])
+            if i == 0:
+                self.connectors['root'].append([self.main[i][0]])
+                self.connectors['root'].append([_fk_return[1][i]])
+                self.connectors[self.name_temp[-1].split('_')[-1]].append(self.main[i][-1])
+                self.connectors[self.name_temp[-1].split('_')[-1]].append(_fk_return[2][i])
+            else:
+                self.connectors['root'][-2].append(self.main[i][0])
+                self.connectors['root'][-1].append(_fk_return[1][i])
+                self.connectors[self.name_temp[-1].split('_')[-1]].append(self.main[i][-1])
+                self.connectors[self.name_temp[-1].split('_')[-1]].append(_fk_return[2][i])
 
     def set_ik(self):
         self.set_fk()
