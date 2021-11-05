@@ -2,7 +2,7 @@ import sys
 
 import mCore.utility
 from mCore import LeafNode, Tree, utility, universal_suffix
-from . import Spine, Arm, Leg, Blank, Hand, Foot, QuadArm, QuadLeg
+from . import Spine, Arm, Leg, Blank, Hand, Foot, QuadArm, QuadLeg, Single
 # modules = map(__import__, mother_modules)
 from PySide2 import QtCore
 from PySide2 import QtWidgets
@@ -54,7 +54,7 @@ class RigUI(QtWidgets.QDialog):
         self._qt_items = {}
         self.rig_modules = []
         self.mods = {'Spine': [Spine], 'Arm': [Arm], 'Leg': [Leg], 'Blank': [Blank], 'Hand': [Hand], 'Foot': [Foot],
-                     'QuadArm': [QuadArm], 'QuadLeg': [QuadLeg]}
+                     'QuadArm': [QuadArm], 'QuadLeg': [QuadLeg], 'Single': [Single]}
         self.qt_tree = QtWidgets.QTreeWidget()
         self._shapes_tree = Tree()
 
@@ -227,6 +227,8 @@ class RigUI(QtWidgets.QDialog):
 
         self.quad_arm_button.clicked.connect(self.send_quad_arm)
         self.quad_leg_button.clicked.connect(self.send_quad_leg)
+
+        self.single_button.clicked.connect(self.send_single)
 
         self.delete_button.clicked.connect(self.delete)
         self.generate_button.clicked.connect(self._traverse)
@@ -401,6 +403,9 @@ class RigUI(QtWidgets.QDialog):
         if module == 'QuadLeg':
             quad_leg = self.mods['QuadLeg'][option](name=name, position=pos)
             return quad_leg
+        if module == 'Single':
+            single = self.mods['Single'][option](name=name, position=pos, side=self.parameter['side'])
+            return single
 
     def _insert_parent_leaf(self, name, module, selected=None):
         parent = self._shapes_tree.create_node(name)
@@ -451,7 +456,7 @@ class RigUI(QtWidgets.QDialog):
                 qt_child.addChild(qt_plug)
         self.qt_tree.expandAll()
 
-    def _insert_child_leaf(self, name, selected=None, nameless=False):
+    def _insert_child_leaf(self, name, selected=None):
         group = None
         str_name = name
         if not isinstance(name, str):
@@ -483,9 +488,6 @@ class RigUI(QtWidgets.QDialog):
                 self._proxies.append('{}_pxy'.format(mod_object.name[0]))
                 mod_object.parent_inner = (self._rig_root, 'root')
             parent.module = mod_object
-            if nameless:
-                parent.module.parent_outer = self._rig_root
-                parent.group_node = True
             for plug in mod_object.connectors:
                 self._modules[mod_object.connectors[plug][0]] = parent
                 qt_plug = QtWidgets.QTreeWidgetItem([plug])
@@ -507,7 +509,8 @@ class RigUI(QtWidgets.QDialog):
             if self.parameter['name']:
                 self._insert_parent_leaf(self.parameter['name'], module)
                 return
-            self._insert_child_leaf(module, nameless=True)
+            self._insert_parent_leaf(module, module)
+            # self._insert_child_leaf(module, nameless=True)
             return
 
         parent_group = selected[0]
@@ -604,6 +607,10 @@ class RigUI(QtWidgets.QDialog):
 
     def send_quad_leg(self):
         self.parameter['module'] = 'QuadLeg'
+        self.add_module()
+
+    def send_single(self):
+        self.parameter['module'] = 'Single'
         self.add_module()
 
     def refresh_tree_widget(self):

@@ -1,5 +1,4 @@
 import maya.cmds as cmds
-from random import uniform as rd
 
 import mCore
 

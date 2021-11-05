@@ -7,6 +7,7 @@ from .foot_lazarguez import Foot
 from .quadruped_lazarguez import QuadArm
 from .quadruped_rear_leg import QuadLeg
 from .blank import Blank
+from .single import Single
 from .ik_fk_switcher import ikfkUI
 from .ik_fk_switcher import IKFK
 from .import_fbx_anim import ImportAnimation
