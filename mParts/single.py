@@ -55,10 +55,13 @@ class Single:
 
         ctr.zero_out(['null', 'diamond'], ['hrc', 'ctr'], [self.main[0]])
         ctr.toggle_control()
+        group = cmds.listRelatives(ctr.group[0], p=True)[0]
+        if self.side == 'Right':
+            cmds.setAttr('{}.scale'.format(group), -1, -1, -1)
         ctr.constraint()
         mCore.curve.color(self.color[self.side])
 
-        self.self_inner = cmds.listRelatives(ctr.group[0], p=True)[0]
+        self.self_inner = group
         final_ctr = ctr.group[0]
         if final_ctr[0] == '|':
             final_ctr = final_ctr[1:]

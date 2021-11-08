@@ -41,11 +41,18 @@ class Arm:
     def set_main(self):
         self._get_position()
         self.main = mCore.utility.orient_limbo(self.selected, self.name)
+        if self.side == 'Right':
+            self.toggle_orient()
+            if self.init_orient:
+                cmds.xform(self.main[-1], ro=tuple(self.init_orient), ws=True)
+                cmds.makeIdentity(self.main[-1], a=True, r=True)
+                
         if self.init_orient:
             cmds.xform(self.main[-1], ro=tuple(self.init_orient), ws=True)
             cmds.makeIdentity(self.main[-1], a=True, r=True)
-        if self.side == 'Right':
-            self.toggle_orient()
+            if self.side == 'Right':
+                cmds.setAttr('{}.rotateX'.format(self.main[-1]), 180)
+                cmds.makeIdentity(self.main[-1], a=True, r=True)
 
     def set_proxy(self):
         multiplier = 1

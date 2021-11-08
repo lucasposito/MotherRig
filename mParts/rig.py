@@ -305,9 +305,8 @@ class RigUI(QtWidgets.QDialog):
         if element in self._qt_items:
             node = self._qt_items[element]
             self.orient_tip(node)
-            # detect if arm or leg have
             node.module.set_main()
-            # in python 2 the order of the attributes changes
+            # for python 2 the [-2] index throughout this method should be [0] in order to work
             if node.attributes[-2] == 'IK':
                 node.module.set_ik()
             elif node.attributes[-2] == 'FK':
