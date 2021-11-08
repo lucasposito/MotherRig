@@ -223,12 +223,15 @@ class Leg:
         cmds.parent(fk_elements[0], ik_elements[0])
         mCore.curve.lock_hide_attr(switcher, ['tx', 'ty', 'tz', 'rx', 'ry', 'rz', 'sx', 'sy', 'sz', 'visibility'], 0, 0)
 
-        # visibility = [line, pole vector, ik jnt, hand ctr, fk ctr]
-        # cmds.connectAttr('{}.IkFk'.format(switcher), '{}.visibility'.format(ik_elements[0]))
-        # cmds.connectAttr('{}.IkFk'.format(switcher), '{}.visibility'.format(ik_elements[-1]))
-        #
-        # cmds.connectAttr('{}.outValue'.format(remap), '{}.visibility'.format(fk_elements[0]))
-        # cmds.connectAttr('{}.outValue'.format(remap), '{}.visibility'.format(fk_elements[-1]))
+        fk_controls = cmds.listRelatives(fk_elements[2], ad=True)
+        shapes = [value for value in fk_controls if value in cmds.ls(type="nurbsCurve")]
+        for fk in shapes:
+            cmds.connectAttr('{}.outValue'.format(remap), '{}.visibility'.format(fk))
+
+        ik_controls = [ik_elements[-1], '{}_IK_crv'.format(self.name[1]), '{}_IK_ctr'.format(self.name[1])]
+        for ik in ik_controls:
+            shape = cmds.listRelatives(ik, s=True)[0]
+            cmds.connectAttr('{}.IkFk'.format(switcher), '{}.visibility'.format(shape))
 
         self.self_inner = ik_elements[0]
         self.self_outer = ik_elements[1]

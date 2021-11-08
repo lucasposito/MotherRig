@@ -374,6 +374,8 @@ class RigUI(QtWidgets.QDialog):
             return True
         obj = cmds.ls(sl=True)[0]
         if obj in self._modules:
+            if isinstance(self._modules[obj].module, Single):
+                return self._modules[obj], 'root'
             part = utility.manipulate_name(obj, 'query', position=-2)
             return self._modules[obj], part
 

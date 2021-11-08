@@ -9,7 +9,10 @@ class Single:
         self.main = []
         self.name = [name]
         self.init_position = position
+        self.position = None
         self.side = side
+
+        self.color = {'Left': 6, 'Right': 13, 'Center': 17}
 
         self.self_inner = None  # leaf node
         self.self_outer = None  # leaf node
@@ -22,14 +25,23 @@ class Single:
         self.set_proxy()
 
     def set_main(self):
-        pass
+        self.position = cmds.xform(self.connectors['root'][0], q=True, ws=True, piv=True)[0:3]
+        rot = cmds.xform(self.connectors['root'][0], q=True, ws=True, ro=True)
+        joint = cmds.joint(n='{}_{}'.format(self.name[0], mCore.universal_suffix[-1]), p=self.position)
+        cmds.xform(joint, ro=tuple(rot))
+        cmds.makeIdentity(joint, a=True, r=True)
+        if self.side == 'Right':
+            cmds.setAttr('{}.rotateX'.format(joint), 180)
+            cmds.makeIdentity(joint, a=True, r=True)
+        self.main.append(joint)
+        self.connectors['root'].append(joint)
 
     def set_proxy(self):
         if not self.init_position:
             self.init_position = [0, 0, 0]
 
-        proxy = mCore.curve.knot('{}_pxy'.format(self.name[0]))
-        cmds.move(rd(self.init_position[0] + 5, self.init_position[0]), rd(self.init_position[1] + 10, self.init_position[1] + 5),
+        proxy = mCore.curve.gimbal('{}_pxy'.format(self.name[0]))
+        cmds.move(rd(self.init_position[0] + 2, self.init_position[0]), rd(self.init_position[1] + 2, self.init_position[1]),
                   rd(self.init_position[2], self.init_position[2]), proxy)
 
         cmds.select(cl=True)
@@ -39,15 +51,18 @@ class Single:
         self.set_fk()
 
     def set_fk(self):
-        circle = mCore.curve.quad_arrow('{}_ctr'.format(self.name[0]))
-        mCore.curve.size(5)
-        mCore.curve.color(3)
-        group = cmds.group(circle, n='{}_hrc'.format(self.name[0]))
-        self.self_inner = group
-        self.self_outer = circle
-        self.connectors['root'].append(circle)
-        if self.init_position:
-            cmds.xform(group, t=tuple(self.init_position))
+        ctr = mCore.Control()
+
+        ctr.zero_out(['null', 'diamond'], ['hrc', 'ctr'], [self.main[0]])
+        ctr.toggle_control()
+        ctr.constraint()
+        mCore.curve.color(self.color[self.side])
+
+        self.self_inner = cmds.listRelatives(ctr.group[0], p=True)[0]
+        final_ctr = ctr.group[0]
+        if final_ctr[0] == '|':
+            final_ctr = final_ctr[1:]
+        self.connectors['root'].append(final_ctr)
 
     def set_ik_fk(self):
         self.set_fk()

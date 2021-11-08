@@ -48,6 +48,38 @@ def normalize_size(factor=0.8):
     cmds.select(objects, r=True)
 
 
+def gimbal(name='gimbal_ctr'):
+    vertex_position = [(0, 7, 0), (1, 5, 0), (-1, 5, 0), (0, 7, 0), (0, 5, 1), (0, 5, -1), (0, 7, 0),
+                       (0, -7, 0), (1, -5, 0), (-1, -5, 0), (0, -7, 0), (0, -5, 1), (0, -5, -1), (0, -7, 0)]
+    vertex_number = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+
+    curve_object = cmds.curve(n=name, d=1, p=vertex_position, k=vertex_number)
+    y_shape = cmds.listRelatives(curve_object, s=True)[0]
+    y_shape = cmds.rename(y_shape, '{}_YShape'.format(curve_object))
+    cmds.setAttr('{}.overrideEnabled'.format(y_shape), 1)
+    cmds.setAttr('{}.overrideColor'.format(y_shape), 14)
+
+    z_arrow = cmds.duplicate(curve_object)[0]
+    z_shape = cmds.listRelatives(z_arrow, s=True)[0]
+    z_shape = cmds.rename(z_shape, '{}_ZShape'.format(curve_object))
+    cmds.setAttr('{}.overrideEnabled'.format(z_shape), 1)
+    cmds.setAttr('{}.overrideColor'.format(z_shape), 6)
+
+    x_arrow = cmds.duplicate(curve_object)[0]
+    x_shape = cmds.listRelatives(x_arrow, s=True)[0]
+    x_shape = cmds.rename(x_shape, '{}_XShape'.format(curve_object))
+    cmds.setAttr('{}.overrideEnabled'.format(x_shape), 1)
+    cmds.setAttr('{}.overrideColor'.format(x_shape), 13)
+
+    cmds.setAttr('{}.rotateX'.format(z_arrow), 90)
+    cmds.setAttr('{}.rotateZ'.format(x_arrow), -90)
+    cmds.makeIdentity(z_arrow, x_arrow, a=True, r=True)
+    cmds.parent(z_shape, x_shape, curve_object, r=True, s=True)
+    cmds.delete(z_arrow, x_arrow)
+    cmds.select(curve_object, r=True)
+    return curve_object
+
+
 def proxy(name='proxy_ctr'):
     vertex_position = [(0, 12, 0), (0, 1, 0), (-1, 0, 0), (-12, 0, 0), (-1, 0, 0), (0, 0, 1), (0, 0, 12), (0, 0, 1),
                        (0, 1, 0), (1, 0, 0), (12, 0, 0), (1, 0, 0), (0, 0, 1), (1, 0, 0), (0, 0, -1), (0, 0, -12),
