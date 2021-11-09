@@ -1,0 +1,37 @@
+global string $gObj = "nurbsCircle1";
+string $control = "nurbsCircle1";
+string $switch_attr = "const";
+string $selected[] = `ls -type "nurbsCurve"`;
+
+
+global float $gPosition[];
+global float $gRotation[];
+
+
+proc update_position(){
+    global string $gObj;
+    global float $gPosition[];
+    global float $gRotation[];
+    $gPosition = `xform -q -ws -piv $gObj`;
+    $gRotation = `xform -q -ws -ro $gObj`;
+}
+
+
+proc match_position(){
+    global string $gObj;
+    global float $gPosition[];
+    global float $gRotation[];
+    xform -ws -t $gPosition[0] $gPosition[1] $gPosition[2] $gObj;
+    xform -ws -ro $gRotation[0] $gRotation[1] $gRotation[2] $gObj;
+    update_position();
+}
+
+
+for($each in $selected){
+    string $parent[] = `listRelatives -p $each`;
+    scriptJob -attributeChange ($parent[0] + ".rotate") "update_position";
+    scriptJob -attributeChange ($parent[0] + ".translate") "update_position";
+}
+
+
+int $match_old_position_job = `scriptJob -attributeChange ($control + "." + $switch_attr) "match_position"`;
