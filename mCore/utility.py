@@ -36,6 +36,8 @@ def select_all_controls():
         shapes = [value for value in cmds.ls(type="nurbsCurve") if value in cmds.namespaceInfo(main_namespace, ls=True)]
     else:
         shapes = cmds.ls(type="nurbsCurve")
+    if not shapes:
+        return
     curves = fnmatch.filter(cmds.listRelatives(shapes, parent=True), '*_ctr')
     curves.extend(fnmatch.filter(cmds.listRelatives(shapes, parent=True), '*IKFK'))
     curves.extend(fnmatch.filter(cmds.listRelatives(shapes, parent=True), '*_IK'))
