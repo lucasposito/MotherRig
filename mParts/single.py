@@ -28,7 +28,7 @@ class Single:
         self.position = cmds.xform(self.connectors['root'][0], q=True, ws=True, piv=True)[0:3]
         rot = cmds.xform(self.connectors['root'][0], q=True, ws=True, ro=True)
         joint = cmds.joint(n='{}_{}'.format(self.name[0], mCore.universal_suffix[-1]), p=self.position)
-        cmds.xform(joint, ro=tuple(rot))
+        cmds.xform(joint, ro=tuple(rot), ws=True)
         cmds.makeIdentity(joint, a=True, r=True)
         if self.side == 'Right':
             cmds.setAttr('{}.rotateX'.format(joint), 180)
